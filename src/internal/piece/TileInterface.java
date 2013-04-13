@@ -110,9 +110,18 @@ public abstract class TileInterface {
 	
 	/**
 	 * Return a String representation of the interfaces that are available.
+	 * @return {@String} representing the interfaces
 	 */
 	@Override
 	public String toString() {
 		return interfaces;
+	}
+	
+	/**
+	 * Return a binary representation of the interfaces that are available.
+	 * @return {@String} representing the interfaces in binary format
+	 */
+	public String getBinaryInterfaces() {
+		return binaryString;
 	}
 }
