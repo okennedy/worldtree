@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import internal.piece.Piece;
+import internal.piece.IPiece;
+import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.IWorldTree.IRoom;
@@ -98,7 +99,8 @@ public class WorldTreeFactory {
 		public void initialize() {
 			for(int i = 0; i < space.getXDimension(); i++) {
 				for(int j = 0; j < space.getYDimension(); j++) {
-					ITile tile = newTile("" + space.arrayToCoord(space.xCoord(), space.yCoord()), parent, null, Piece.randomPiece());
+					ITile tile = newTile("" + space.arrayToCoord(space.xCoord(), space.yCoord()), 
+												parent, null, PieceFactory.randomPiece());
 					space.setByArray(i, j, tile);
 					System.out.print("");
 				}
@@ -108,7 +110,8 @@ public class WorldTreeFactory {
 		
 		/**
 		 * This is some really ugly code where multi-line visuals of each tile are split into single lines and
-		 * each line of each tile is appended together to the StringBuffer before moving on to the next line of every tile.
+		 * each line of each tile is appended together to the StringBuffer 
+		 * before moving on to the next line of every tile.
 		 * <p>
 		 * This is done to ensure that the visual of a room/region is as it should be!
 		 */
@@ -151,8 +154,8 @@ public class WorldTreeFactory {
 	 *
 	 */
 	public class Tile extends WorldTree implements ITile {
-		private Piece piece;
-		public Tile(String name, IWorldTree parent, Constraint constraints, Piece tilePiece) {
+		private IPiece piece;
+		public Tile(String name, IWorldTree parent, Constraint constraints, IPiece tilePiece) {
 			super(name, parent, constraints);
 			this.piece = tilePiece;
 		}
@@ -162,7 +165,7 @@ public class WorldTreeFactory {
 		 * @return {@code Piece} object stored by this Tile.
 		 */
 		@Override
-		public Piece piece() {
+		public IPiece piece() {
 			return piece;
 		}
 		
@@ -180,7 +183,7 @@ public class WorldTreeFactory {
 		}
 	}
 	
-	public ITile newTile(String name, IWorldTree parent, Constraint constraints, Piece tilePiece) {
+	public ITile newTile(String name, IWorldTree parent, Constraint constraints, IPiece tilePiece) {
 		return new Tile(name, parent, constraints, tilePiece);
 	}
 	

@@ -38,12 +38,14 @@ public abstract class WorldTree implements IWorldTree {
 	}
 	
 	public List<String> getStringRepresentation() {
+		if(stringRepresentation.size() == 0)
+			initString();
 		return stringRepresentation;
 	}
 	
 	@Override
 	public String toString() {
-		return stringRepresentation.toString();
+		return getStringRepresentation().toString();
 	}
 	
 	public void initString() {
@@ -60,13 +62,12 @@ public abstract class WorldTree implements IWorldTree {
 		for(int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
 			StringBuffer fullLine = new StringBuffer();
 			for(List<String> stringList : listStringList) {
-				if(stringList.size() < lineIndex)
+				if(stringList.size() > lineIndex)
 					fullLine.append(stringList.get(lineIndex));
 			}
 			returnString.append(fullLine.toString() + "\n");
 			if(!stringRepresentation.contains(fullLine.toString()))
 				stringRepresentation.add(fullLine.toString());
 		}
-		parent.initString();
 	}
 }

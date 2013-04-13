@@ -1,8 +1,8 @@
 package internal.tree;
 
-import internal.piece.Piece;
-
 import java.util.List;
+
+import internal.piece.IPiece;
 
 public interface IWorldTree {
 	public String name();
@@ -10,7 +10,7 @@ public interface IWorldTree {
 	public List<IWorldTree> children();
 	public void initialize();
 	List<String> getStringRepresentation();
-	void initString();
+	public String toString();
 	
 	public interface IMap extends IWorldTree {
 		
@@ -25,7 +25,7 @@ public interface IWorldTree {
 	}
 	
 	public interface ITile extends IWorldTree {
-		public Piece piece();
+		public IPiece piece();
 	}
 	
 	public interface IObject extends IWorldTree {
