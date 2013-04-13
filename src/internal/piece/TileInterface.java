@@ -1,6 +1,7 @@
 package internal.piece;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 
 /**
@@ -8,7 +9,7 @@ import java.util.ArrayList;
  * @author guru
  *
  */
-public abstract class TileInterface {
+public abstract class TileInterface implements ITileInterface {
 	private String interfaces;
 	private String binaryString;
 	private int integerFormat;
@@ -16,7 +17,9 @@ public abstract class TileInterface {
 	public TileInterface(String interfaces) {
 		if (interfaces.matches("[a-zA-Z]+")) {
 //			We're converting a string of UDLR to binary
-			this.interfaces = interfaces.toUpperCase();
+			char[] array 		= interfaces.toUpperCase().toCharArray();
+			Arrays.sort(array);
+			this.interfaces 	= array.toString();
 			this.binaryString 	= TileInterfaceType.toBinaryString(interfaces);
 		}
 		else {
