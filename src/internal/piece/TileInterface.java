@@ -19,7 +19,7 @@ public abstract class TileInterface implements ITileInterface {
 //			We're converting a string of UDLR to binary
 			char[] array 		= interfaces.toUpperCase().toCharArray();
 			Arrays.sort(array);
-			this.interfaces 	= array.toString();
+			this.interfaces 	= new String(array);
 			this.binaryString 	= TileInterfaceType.toBinaryString(interfaces);
 		}
 		else {

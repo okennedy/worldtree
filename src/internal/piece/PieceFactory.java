@@ -41,7 +41,7 @@ public class PieceFactory {
 				return p;
 			char [] array = interfaces.toUpperCase().toCharArray();
 			Arrays.sort(array);
-			interfaces = array.toString();
+			interfaces = new String(array);
 			if(interfaces.equals(p.getText()))
 				return p;
 		}

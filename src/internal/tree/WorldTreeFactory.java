@@ -76,9 +76,9 @@ public class WorldTreeFactory {
 					"Spikes",
 					"Cave"
 			};
-			for(int i = 0; i < 4; i++) {
+			for(int i = 0; i < 2; i++) {
 				int nextInt = (new Random()).nextInt(5);
-				children.add(newRegion(regionNames[nextInt], this, null, new Space(nextInt + 1, nextInt + 1)));
+				children.add(newRegion(regionNames[nextInt], this, null, new Space(2, 2)));
 			}
 		}
 	}
@@ -102,7 +102,6 @@ public class WorldTreeFactory {
 					ITile tile = newTile("" + space.arrayToCoord(space.xCoord(), space.yCoord()), 
 												parent, null, PieceFactory.randomPiece());
 					space.setByArray(i, j, tile);
-					System.out.print("");
 				}
 			}
 			initString();
@@ -137,7 +136,7 @@ public class WorldTreeFactory {
 						fullLine.append(stringList.get(xIndex).split("\n")[lineIndex]);
 						
 					}
-					if(!stringRepresentation.contains(fullLine.toString()))
+//					if(!stringRepresentation.contains(fullLine.toString()))
 						stringRepresentation.add(fullLine.toString());
 				}
 			}

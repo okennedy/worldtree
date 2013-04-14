@@ -1,7 +1,7 @@
 package internal.tree.tile.space;
 
+import internal.piece.IPiece;
 import internal.piece.TileInterfaceType;
-import internal.piece.Piece;
 
 /**
  * The cell class is used to fill up the space.
@@ -9,12 +9,12 @@ import internal.piece.Piece;
  *
  */
 public class Cell {
-	private Piece piece;
+	private IPiece piece;
 	
 	public Cell() {
 	}
 	
-	public Cell(Piece p) {
+	public Cell(IPiece p) {
 		this.piece = p;
 	}
 	
@@ -31,7 +31,7 @@ public class Cell {
 	 * Get the current piece that is stored in the cell
 	 * @return {@code Piece} object stored by this cell.
 	 */
-	public Piece getPiece() {
+	public IPiece getPiece() {
 		return piece;
 	}
 }
