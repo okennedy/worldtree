@@ -60,11 +60,10 @@ public abstract class WorldTree implements IWorldTree {
 	}
 	
 	public void initString() {
-		StringBuffer returnString = new StringBuffer();
-		if(children == null)
+		if(children() == null)
 			return;
 		List<List<String>> listStringList = new ArrayList<List<String>>();
-		for(IWorldTree child : children) {
+		for(IWorldTree child : children()) {
 			listStringList.add(child.getStringRepresentation());
 		}
 		int lineCount = 0;
@@ -74,9 +73,8 @@ public abstract class WorldTree implements IWorldTree {
 			StringBuffer fullLine = new StringBuffer();
 			for(List<String> stringList : listStringList) {
 				if(stringList.size() > lineIndex)
-					fullLine.append(stringList.get(lineIndex));
+					fullLine.append(stringList.get(lineIndex) + " ");
 			}
-			returnString.append(fullLine.toString() + "\n");
 //			if(!stringRepresentation.contains(fullLine.toString()))
 				stringRepresentation.add(fullLine.toString());
 		}

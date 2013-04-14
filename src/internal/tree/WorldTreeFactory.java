@@ -76,9 +76,9 @@ public class WorldTreeFactory {
 					"Spikes",
 					"Cave"
 			};
-			for(int i = 0; i < 2; i++) {
+			for(int i = 0; i < 4; i++) {
 				int nextInt = (new Random()).nextInt(5);
-				children.add(newRegion(regionNames[nextInt], this, null, new Space(2, 2)));
+				children.add(newRegion(regionNames[nextInt], this, null, new Space(5, 5)));
 			}
 		}
 	}
@@ -99,9 +99,8 @@ public class WorldTreeFactory {
 		public void initialize() {
 			for(int i = 0; i < space.getXDimension(); i++) {
 				for(int j = 0; j < space.getYDimension(); j++) {
-					ITile tile = newTile("" + space.arrayToCoord(space.xCoord(), space.yCoord()), 
-												parent, null, PieceFactory.randomPiece());
-					space.setByArray(i, j, tile);
+					space.setByArray(i, j, newTile("tile" + space.arrayToCoord(space.xCoord(), space.yCoord()), 
+														this, null, PieceFactory.randomPiece()));
 				}
 			}
 			initString();
@@ -133,13 +132,22 @@ public class WorldTreeFactory {
 				for(int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
 					StringBuffer fullLine = new StringBuffer(); 
 					for(int xIndex = 0; xIndex < stringList.size(); xIndex++) {
-						fullLine.append(stringList.get(xIndex).split("\n")[lineIndex]);
+						fullLine.append(stringList.get(xIndex).split("\n")[lineIndex] + " ");
 						
 					}
 //					if(!stringRepresentation.contains(fullLine.toString()))
 						stringRepresentation.add(fullLine.toString());
 				}
 			}
+			prepareToString();
+		}
+		
+		@Override
+		public List<IWorldTree> children() {
+			if(space.collection().size() > 0)
+				return space.collection();
+			else
+				return null;
 		}
 	}
 	

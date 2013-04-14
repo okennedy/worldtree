@@ -1,5 +1,8 @@
 package internal.tree.tile.space;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.ITile;
 import internal.tree.WorldTreeFactory.Tile;
@@ -98,5 +101,16 @@ public class Space extends Dimension {
 	
 	public void setByArray(int xIndex, int yIndex, ITile tile) {
 		matrix[xIndex][yIndex] = tile;
+	}
+
+	public List<IWorldTree> collection() {
+		List<IWorldTree> returnList = new ArrayList<IWorldTree>();
+		for(int i = 0; i < getXDimension(); i++) {
+			for(int j = 0; j < getYDimension(); j++) {
+				if(matrix[i][j] != null)
+					returnList.add(matrix[i][j]);
+			}
+		}
+		return returnList;
 	}
 }
