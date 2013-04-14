@@ -78,31 +78,67 @@ public class Space extends Dimension {
 		return matrix[xCurr][yCurr];
 	}
 	
+	/**
+	 * Retrieve the Cell that is being represented by the given set of Cartesian coordinates.
+	 * @param xCoord
+	 * @param yCoord
+	 * @return {@code ITile} representing the given set of coordinates.
+	 */
 	public ITile getByCoord(int xCoord, int yCoord) {
 		return matrix[yDimension - yCoord - 1][xCoord];
 	}
 	
+	/**
+	 * Retrieve the Cell that is being represented by the given set of array indices.
+	 * @param xIndex
+	 * @param yIndex
+	 * @return {@code ITile} representing the given set of indices.
+	 */
 	public ITile getByArray(int xIndex, int yIndex) {
 		return matrix[xIndex][yIndex];
 	}
 
+	/**
+	 * Current x-coordinate
+	 * @return {@code Integer} holding the current x-coordinate.
+	 */
 	public int xCoord() {
 		return xCurr;
 	}
 	
+	/**
+	 * Current y-coordinate
+	 * @return {@code Integer} holding the current y-coordinate.
+	 */
 	public int yCoord() {
 		return yCurr;
 	}
 	
+	/**
+	 * Set a given tile specified by Cartesian coordinates.
+	 * @param xCoord
+	 * @param yCoord
+	 * @param tile {@code ITile} object that is to be set in the given coordinates.
+	 */
 	public void setByCoord(int xCoord, int yCoord, ITile tile) {
 		int[] indices = coordToArray(xCoord, yCoord);
 		matrix[indices[1]][indices[0]] = tile;
 	}
 	
+	/**
+	 * Set a given tile specified by array indices.
+	 * @param xCoord
+	 * @param yCoord
+	 * @param tile {@code ITile} object that is to be set in the given indices of the array.
+	 */
 	public void setByArray(int xIndex, int yIndex, ITile tile) {
 		matrix[xIndex][yIndex] = tile;
 	}
 
+	/**
+	 * Obtain a collection of all {@code ITile} objects used in this Space.
+	 * @return {@code List<IWorldTree} containing every {@code ITile} from this Space.
+	 */
 	public List<IWorldTree> collection() {
 		List<IWorldTree> returnList = new ArrayList<IWorldTree>();
 		for(int i = 0; i < getXDimension(); i++) {

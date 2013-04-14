@@ -19,13 +19,20 @@ public class PieceFactory {
 	private static PieceFactory instance = null;
 	
 	protected PieceFactory() {
+//		Prevent initialization of PieceFactory.
 	}
 	
-	public PieceFactory(String[] pieceStrings) {
+	public PieceFactory(String[] pieceStrings) throws Exception {
+		if(instance != null)
+			throw new Exception("Multiple initialization of singleton class");
 		instance = new PieceFactory();
 		instance.initialize(pieceStrings);
 	}
 
+	/**
+	 * Initialize the list of pieces that this factory class is responsible to generate.
+	 * @param list {@code List} containing strings representing the interfaces of all pieces.
+	 */
 	private void initialize(String[] list) {
 		for(String s : list) {
 			Piece p = new Piece(s);
@@ -34,7 +41,12 @@ public class PieceFactory {
 		}
 	}
 
-
+/**
+ * Get a piece object that is mapped to the specified set of interfaces
+ * @param interfaces {@code String} representing the interfaces required in the Piece
+ * @return {@code Piece} representing the given set of interfaces
+ * @throws IllegalArgumentException if there is no Piece corresponding to the given set of interfaces.
+ */
 	private Piece getNewPiece(String interfaces) {
 		for(Piece p : listOfPieces) {
 			if(p.getBinaryInterfaces().equals(interfaces))
@@ -77,7 +89,10 @@ public class PieceFactory {
 			super(interfaces);
 			initializeVisual();
 		}
-		
+
+		/**
+		 * Read the file 'pieces.txt' to initialize a visual representation for this piece.
+		 */
 		private void initializeVisual() {
 			visual = "";
 			BufferedReader in = null;
@@ -135,13 +150,18 @@ public class PieceFactory {
 		}
 		
 		/**
-		 * Returns a visual representation of this piece.
+		 * Returns a visual representation of this Piece.
+		 * @return {@code String} containing visual representation of this Piece.
 		 */
 		@Override
 		public String toString() {
 			return visual;
 		}
 
+		/**
+		 * Returns a {@code String} containing the textual representation of this Piece.
+		 * @return {@code String} containing the interfaces as defined for this Piece.
+		 */
 		@Override
 		public String getText() {
 			return super.toString();
