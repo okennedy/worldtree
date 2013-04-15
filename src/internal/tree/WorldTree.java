@@ -1,13 +1,7 @@
 package internal.tree;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.sound.sampled.Line;
 
 /**
  * WorldTree is the abstract class that every object in the hierarchy extends.

@@ -1,5 +1,8 @@
 bin
 .*
 *.class
-!.gitignore
 *.swp
+*.*~
+output
+!src
+!.gitignore
