@@ -97,10 +97,15 @@ public class WorldTreeFactory {
 
 		@Override
 		public void initialize() {
-			for(int i = 0; i < space.getXDimension(); i++) {
-				for(int j = 0; j < space.getYDimension(); j++) {
-					space.setByArray(i, j, newTile("tile" + space.arrayToCoord(space.xCoord(), space.yCoord()), 
-														this, null, PieceFactory.randomPiece()));
+			for(int i = 0; i < space.getYDimension(); i++) {
+				for(int j = 0; j < space.getXDimension(); j++) {
+					String validInterfaces = space.getValidInterfaces(i, j);
+					if(validInterfaces.equals("!D!L!R!U")) {
+						initString();
+						return;
+					}
+					String coordinates = "(" + space.arrayToCoord(i, j)[0] + "," + space.arrayToCoord(i, j)[1] + ")";
+					space.setByArray(i, j, newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(validInterfaces)));
 				}
 			}
 			initString();
@@ -116,10 +121,12 @@ public class WorldTreeFactory {
 		@Override
 		public void initString() {
 			List<List<String>> listStringList = new ArrayList<List<String>>();
-			for(int i = 0; i < space.getXDimension(); i++) {
+			for(int i = 0; i < space.getYDimension(); i++) {
 				List<String> stringList = new ArrayList<String>();
-				for(int j = 0; j < space.getYDimension(); j++) {
-					stringList.add(space.getByArray(i, j).piece().toString());
+				for(int j = 0; j < space.getXDimension(); j++) {
+					if(space.getByArray(i, j) != null)
+						stringList.add(space.getByArray(i, j).piece().toString());
+					
 				}
 				listStringList.add(stringList);
 			}

@@ -3,6 +3,7 @@ package internal.tree.tile.space;
 import java.util.ArrayList;
 import java.util.List;
 
+import internal.piece.TileInterfaceType;
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.ITile;
 import internal.tree.WorldTreeFactory.Tile;
@@ -148,5 +149,54 @@ public class Space extends Dimension {
 			}
 		}
 		return returnList;
+	}
+
+	/**
+	 * Check surrounding entries in the space to find out valid interfaces. Also check for corner cases (literally).
+	 * @param xIndex
+	 * @param yIndex
+	 * @return {@code String} containing set of valid interfaces.
+	 */
+	public String getValidInterfaces(int yIndex, int xIndex) {
+		StringBuffer validInterfaces = new StringBuffer();
+		if(yIndex + 1 == yDimension)
+			validInterfaces.append("!D");
+		else if(matrix[xIndex][yIndex + 1] == null)
+			validInterfaces.append("D");
+		else if(matrix[xIndex][yIndex + 1].piece().hasInterface(TileInterfaceType.U))
+			validInterfaces.append("D");
+		else
+			validInterfaces.append("!D");
+		
+		if(xIndex - 1 < 0)
+			validInterfaces.append("!L");
+		else if(matrix[xIndex - 1][yIndex] == null)
+			validInterfaces.append("L");
+		else if(matrix[xIndex - 1][yIndex].piece().hasInterface(TileInterfaceType.R))
+			validInterfaces.append("L");
+		else
+			validInterfaces.append("!L");
+		
+		
+		if(xIndex + 1 == xDimension)
+			validInterfaces.append("!R");
+		else if(matrix[xIndex + 1][yIndex] == null)
+			validInterfaces.append("R");
+		else if(matrix[xIndex + 1][yIndex].piece().hasInterface(TileInterfaceType.L))
+			validInterfaces.append("R");
+		else
+			validInterfaces.append("!R");
+		
+		
+		if(yIndex - 1 < 0)
+			validInterfaces.append("!U");
+		else if(matrix[xIndex][yIndex - 1] == null)
+			validInterfaces.append("U");
+		else if(matrix[xIndex][yIndex - 1].piece().hasInterface(TileInterfaceType.D))
+			validInterfaces.append("U");
+		else
+			validInterfaces.append("!U");
+		
+		return validInterfaces.toString();
 	}
 }

@@ -71,10 +71,60 @@ public class PieceFactory {
 		return instance.getNewPiece(interfaces);
 	}
 
+	/**
+	 * To be used only for debugging purposes. Completely random is of no use.
+	 * @return {@code IPiece} a random {@code Piece}
+	 */
 	public static IPiece randomPiece() {
 		return listOfPieces.get((new Random()).nextInt(listOfPieces.size()));
 	}
 
+	/**
+	 * Accepts a set of interfaces to use or avoid using and returns a random {@code IPiece} 
+	 * from the set of valid pieces.<br>
+	 * Invalid interfaces are to be prefixed with a '!' symbol.
+	 * @param interfaces {@code String} representing set of valid/invalid interfaces.
+	 * @return {@code IPiece} conforming to the specified conditions.
+	 */
+	public static IPiece randomPiece(String interfaces) throws IllegalStateException {
+		String permittedInterfaces = "DLRU";
+		String originalString = interfaces;
+		while(true) {
+			if(interfaces.contains("!")) {
+				int pos = interfaces.indexOf('!');
+				char invalidInterface = interfaces.charAt(pos + 1);
+				interfaces = interfaces.replaceFirst("!.", "");
+				
+				permittedInterfaces.replace("" + invalidInterface, "");
+			}
+			else
+				break;
+		}
+		
+//		We've removed all the invalid interfaces. Now to remove ones that are not specified..
+		for(char c : permittedInterfaces.toCharArray()) {
+			if(!interfaces.contains("" + c))
+				permittedInterfaces = permittedInterfaces.replace("" + c, "");
+		}
+		
+		/**
+		 * Now we have the list of permitted interfaces!
+		 * Create a sublist from listOfPieces and select a random IPiece from it.
+		 */
+		
+		List<IPiece> subList = new ArrayList<IPiece>();
+		for(IPiece piece : listOfPieces) {
+			if(permittedInterfaces.contains(piece.getText()))
+				subList.add(piece);
+		}
+		try {
+			return subList.get(new Random().nextInt(subList.size()));
+		} catch(IllegalArgumentException e) {
+			System.err.println("Original list : " + originalString + "\n");
+			e.printStackTrace();
+			throw new IllegalStateException("All interfaces have been banned!");
+		} 
+	}
 	/**
 	 * The Piece class is used to define every type of Piece that is valid.
 	 * These pieces occupy Cells.
