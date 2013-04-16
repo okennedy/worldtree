@@ -139,7 +139,14 @@ public class WorldTreeFactory {
 				for(int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
 					StringBuffer fullLine = new StringBuffer(); 
 					for(int xIndex = 0; xIndex < stringList.size(); xIndex++) {
-						fullLine.append(stringList.get(xIndex).split("\n")[lineIndex] + " ");
+						String[] stringArray = null;
+						try {
+							 stringArray = stringList.get(xIndex).split("\n");
+							fullLine.append(stringArray[lineIndex] + " ");
+						} catch(ArrayIndexOutOfBoundsException e) {
+							System.err.println("size :" + stringList.size() + "\n" + stringList.get(xIndex));
+							e.printStackTrace();
+						}
 						
 					}
 //					if(!stringRepresentation.contains(fullLine.toString()))

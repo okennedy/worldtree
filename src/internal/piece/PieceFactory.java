@@ -36,7 +36,6 @@ public class PieceFactory {
 	private void initialize(String[] list) {
 		for(String s : list) {
 			Piece p = new Piece(s);
-			p.initializeVisual();
 			listOfPieces.add(p);
 		}
 	}
@@ -137,7 +136,10 @@ public class PieceFactory {
 		
 		private Piece(String interfaces) {
 			super(interfaces);
-			initializeVisual();
+			if(interfaces.equals(""))
+				this.visual = "+------+\n|      |\n|      |\n|      |\n+------+\n";
+			else
+				initializeVisual();
 		}
 
 		/**

@@ -15,7 +15,13 @@ public abstract class TileInterface implements ITileInterface {
 	private int integerFormat;
 	
 	public TileInterface(String interfaces) {
-		if (interfaces.matches("[a-zA-Z]+")) {
+		if(interfaces.equals("")) {
+			this.interfaces 	= "";
+			this.binaryString 	= "0000";
+			this.integerFormat 	= 0;
+			return;
+		}
+		else if (interfaces.matches("[a-zA-Z]+")) {
 //			We're converting a string of UDLR to binary
 			char[] array 		= interfaces.toUpperCase().toCharArray();
 			Arrays.sort(array);
