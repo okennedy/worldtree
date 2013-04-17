@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -85,43 +86,46 @@ public class PieceFactory {
 	 * @param interfaces {@code String} representing set of valid/invalid interfaces.
 	 * @return {@code IPiece} conforming to the specified conditions.
 	 */
-	public static IPiece randomPiece(String interfaces) throws IllegalStateException {
-		String permittedInterfaces = "DLRU";
-		String originalString = interfaces;
-		while(true) {
-			if(interfaces.contains("!")) {
-				int pos = interfaces.indexOf('!');
-				char invalidInterface = interfaces.charAt(pos + 1);
-				interfaces = interfaces.replaceFirst("!.", "");
-				
-				permittedInterfaces.replace("" + invalidInterface, "");
+	
+	public static IPiece randomPiece(Map<String, String> interfaceMap) throws IllegalStateException {
+		String mandatoryInterfaces  = interfaceMap.get("mandatoryInterfaces");
+		String invalidInterfaces	= interfaceMap.get("invalidInterfaces");
+		
+//		Empty piece case
+		if(invalidInterfaces.equals("DLRU")) {
+			for(Piece p : listOfPieces) {
+				if(p.getText().equals(""))
+					return p;
 			}
-			else
-				break;
 		}
-		
-//		We've removed all the invalid interfaces. Now to remove ones that are not specified..
-		for(char c : permittedInterfaces.toCharArray()) {
-			if(!interfaces.contains("" + c))
-				permittedInterfaces = permittedInterfaces.replace("" + c, "");
-		}
-		
-		/**
-		 * Now we have the list of permitted interfaces!
-		 * Create a sublist from listOfPieces and select a random IPiece from it.
-		 */
-		
+
 		List<IPiece> subList = new ArrayList<IPiece>();
-		for(IPiece piece : listOfPieces) {
-			if(permittedInterfaces.contains(piece.getText()))
-				subList.add(piece);
+//		First, we create a sublist containing all pieces that satisfy mandatory interface list
+		for(Piece p : listOfPieces) {
+			if(p.getText().equals(""))
+				continue;
+			if(p.getText().contains(mandatoryInterfaces)) {
+				subList.add(p);
+//				Now test to see if Piece contains invalid interface
+				for(char c : invalidInterfaces.toCharArray()) {
+					if(p.getText().contains("" + c)) {
+						subList.remove(p);
+						break;
+					}
+				}
+			}
 		}
+
+		/**
+		 * Now we have the list of permitted Piece(s)!
+		 */		
 		try {
 			return subList.get(new Random().nextInt(subList.size()));
 		} catch(IllegalArgumentException e) {
-			System.err.println("Original list : " + originalString + "\n");
+			System.err.println("Mandatory list : " + mandatoryInterfaces + "\n" +
+					           "Invalid list   : " + invalidInterfaces);
 			e.printStackTrace();
-			throw new IllegalStateException("All interfaces have been banned!");
+			throw new IllegalStateException("subList of Piece(s) is empty!");
 		} 
 	}
 	/**

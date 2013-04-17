@@ -97,15 +97,12 @@ public class WorldTreeFactory {
 
 		@Override
 		public void initialize() {
+//			TODO: Ensure all pieces are traverse-able.
 			for(int i = 0; i < space.getYDimension(); i++) {
 				for(int j = 0; j < space.getXDimension(); j++) {
-					String validInterfaces = space.getValidInterfaces(i, j);
-					if(validInterfaces.equals("!D!L!R!U")) {
-						initString();
-						return;
-					}
+					java.util.Map<String, String> interfaceMap = space.getValidInterfaces(i, j);
 					String coordinates = "(" + space.arrayToCoord(i, j)[0] + "," + space.arrayToCoord(i, j)[1] + ")";
-					space.setByArray(i, j, newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(validInterfaces)));
+					space.setByArray(i, j, newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(interfaceMap)));
 				}
 			}
 			initString();
@@ -115,7 +112,7 @@ public class WorldTreeFactory {
 		 * This is some really ugly code where multi-line visuals of each tile are split into single lines and
 		 * each line of each tile is appended together to the StringBuffer 
 		 * before moving on to the next line of every tile.
-		 * <p>
+		 * <br>
 		 * This is done to ensure that the visual of a room/region is as it should be!
 		 */
 		@Override

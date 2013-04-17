@@ -1,7 +1,9 @@
 package internal.tree.tile.space;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import internal.piece.TileInterfaceType;
 import internal.tree.IWorldTree;
@@ -157,46 +159,46 @@ public class Space extends Dimension {
 	 * @param yIndex
 	 * @return {@code String} containing set of valid interfaces.
 	 */
-	public String getValidInterfaces(int yIndex, int xIndex) {
-		StringBuffer validInterfaces = new StringBuffer();
+	public Map<String, String> getValidInterfaces(int yIndex, int xIndex) {
+		StringBuffer mandatoryInterfaces = new StringBuffer();
+		StringBuffer invalidInterfaces = new StringBuffer();
 		if(yIndex + 1 == yDimension)
-			validInterfaces.append("!D");
-		else if(matrix[xIndex][yIndex + 1] == null)
-			validInterfaces.append("D");
-		else if(matrix[xIndex][yIndex + 1].piece().hasInterface(TileInterfaceType.U))
-			validInterfaces.append("D");
+			invalidInterfaces.append("D");
+		else if(matrix[yIndex + 1][xIndex] == null);
+		else if(matrix[yIndex + 1][xIndex].piece().hasInterface(TileInterfaceType.U))
+			mandatoryInterfaces.append("D");
 		else
-			validInterfaces.append("!D");
+			invalidInterfaces.append("D");
 		
 		if(xIndex - 1 < 0)
-			validInterfaces.append("!L");
-		else if(matrix[xIndex - 1][yIndex] == null)
-			validInterfaces.append("L");
-		else if(matrix[xIndex - 1][yIndex].piece().hasInterface(TileInterfaceType.R))
-			validInterfaces.append("L");
+			invalidInterfaces.append("L");
+		else if(matrix[yIndex][xIndex - 1] == null);
+		else if(matrix[yIndex][xIndex - 1].piece().hasInterface(TileInterfaceType.R))
+			mandatoryInterfaces.append("L");
 		else
-			validInterfaces.append("!L");
+			invalidInterfaces.append("L");
 		
 		
 		if(xIndex + 1 == xDimension)
-			validInterfaces.append("!R");
-		else if(matrix[xIndex + 1][yIndex] == null)
-			validInterfaces.append("R");
-		else if(matrix[xIndex + 1][yIndex].piece().hasInterface(TileInterfaceType.L))
-			validInterfaces.append("R");
+			invalidInterfaces.append("R");
+		else if(matrix[yIndex][xIndex + 1] == null);
+		else if(matrix[yIndex][xIndex + 1].piece().hasInterface(TileInterfaceType.L))
+			mandatoryInterfaces.append("R");
 		else
-			validInterfaces.append("!R");
+			invalidInterfaces.append("R");
 		
 		
 		if(yIndex - 1 < 0)
-			validInterfaces.append("!U");
-		else if(matrix[xIndex][yIndex - 1] == null)
-			validInterfaces.append("U");
-		else if(matrix[xIndex][yIndex - 1].piece().hasInterface(TileInterfaceType.D))
-			validInterfaces.append("U");
+			invalidInterfaces.append("U");
+		else if(matrix[yIndex - 1][xIndex] == null);
+		else if(matrix[yIndex - 1][xIndex].piece().hasInterface(TileInterfaceType.D))
+			mandatoryInterfaces.append("U");
 		else
-			validInterfaces.append("!U");
+			invalidInterfaces.append("U");
 		
-		return validInterfaces.toString();
+		Map<String, String> interfaceMap = new HashMap<String, String>();
+		interfaceMap.put("mandatoryInterfaces", mandatoryInterfaces.toString());
+		interfaceMap.put("invalidInterfaces", invalidInterfaces.toString());
+		return interfaceMap;
 	}
 }
