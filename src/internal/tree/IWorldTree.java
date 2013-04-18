@@ -1,15 +1,37 @@
 package internal.tree;
 
+import java.util.Collection;
 import java.util.List;
 
 import internal.piece.IPiece;
 
 public interface IWorldTree {
+	/**
+	 * Get the name of this WorldTree instance.
+	 * @return {@code String} representing the name of this WorldTree instance.
+	 */
 	public String name();
+	
+	/**
+	 * Get the parent of this WorldTree instance.
+	 * @return {@code IWroldTree} interface to the parent of this WorldTree instance.
+	 */
 	public IWorldTree parent();
-	public List<IWorldTree> children();
+	
+	/**
+	 * Get the set of children of this WorldTree instance
+	 * @return {@code List<IWorldTree>} containing the children of this WorldTree instance
+	 */
+	public Collection<IWorldTree> children();
+	/**
+	 * This method is used to initialize a particular level in the World hierarchy.
+	 * Thus, each level has its own 'unique' implementation of this method.
+	 */
 	public void initialize();
-	List<String> getStringRepresentation();
+	
+	
+	public List<String> getStringRepresentation();
+	
 	public String toString();
 	
 	public interface IMap extends IWorldTree {

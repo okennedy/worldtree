@@ -1,6 +1,7 @@
 package internal.tree;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -102,7 +103,10 @@ public class WorldTreeFactory {
 				for(int j = 0; j < space.getXDimension(); j++) {
 					java.util.Map<String, String> interfaceMap = space.getValidInterfaces(i, j);
 					String coordinates = "(" + space.arrayToCoord(i, j)[0] + "," + space.arrayToCoord(i, j)[1] + ")";
-					space.setByArray(i, j, newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(interfaceMap)));
+					ITile tile = newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(interfaceMap));
+					Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles
+					
+					space.setByArray(i, j, tile);
 				}
 			}
 			initString();
@@ -154,7 +158,7 @@ public class WorldTreeFactory {
 		}
 		
 		@Override
-		public List<IWorldTree> children() {
+		public Collection<IWorldTree> children() {
 			if(space.collection().size() > 0)
 				return space.collection();
 			else
@@ -198,6 +202,20 @@ public class WorldTreeFactory {
 		
 		@Override
 		public void initialize() {
+		}
+		
+		protected void addChild(IWorldTree child) {
+			this.children.add(child);
+			
+			StringBuffer visual = new StringBuffer();
+			for(String line : this.stringRepresentation)
+				visual.append(line);
+			
+			if(visual.toString().contains("  "))
+				visual = new StringBuffer(visual.toString().replace("  ", child.toString()));
+			else
+				System.err.println("Error: " + this.name() + " is unable to accomodate more children visually\n" +
+						"\tThe object still contains these children");
 		}
 	}
 	

@@ -1,6 +1,7 @@
 package internal.tree;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ import java.util.List;
 
 public abstract class WorldTree implements IWorldTree {
 	protected IWorldTree parent;
-	protected List<IWorldTree> children;
+	protected Collection<IWorldTree> children;
 	private String name;
 	private Constraint constraints;
 	protected List<String> stringRepresentation;
@@ -25,27 +26,15 @@ public abstract class WorldTree implements IWorldTree {
 		this.stringRepresentation = new ArrayList<String>();
 	}
 
-	/**
-	 * Get the name of this WorldTree instance.
-	 * @return {@code String} representing the name of this WorldTree instance.
-	 */
 	public String name() {
 		return name;
 	}
 	
-	/**
-	 * Get the parent of this WorldTree instance.
-	 * @return {@code IWroldTree} interface to the parent of this WorldTree instance.
-	 */
 	public IWorldTree parent() {
 		return parent;
 	}
 	
-	/**
-	 * Get the set of children of this WorldTree instance
-	 * @return {@code List<IWorldTree>} containing the children of this WorldTree instance
-	 */
-	public List<IWorldTree> children() {
+	public Collection<IWorldTree> children() {
 		return children;
 	}
 	
