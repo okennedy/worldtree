@@ -1,4 +1,4 @@
-package internal.tree.tile.space;
+package internal.space;
 
 /**
  * Dimension is an abstract class that gives some sense of dimension to any space that extends it.

@@ -8,12 +8,12 @@ import java.util.Random;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
+import internal.space.Space;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.IWorldTree.IRoom;
 import internal.tree.IWorldTree.IRegion;
 import internal.tree.IWorldTree.ITile;
 import internal.tree.IWorldTree.IObject;
-import internal.tree.tile.space.Space;
 
 
 public class WorldTreeFactory {
@@ -71,14 +71,12 @@ public class WorldTreeFactory {
 		public void initialize() {
 			children = new ArrayList<IWorldTree>();
 			String regionNames[] = {
-					"Pit",
+					"Dungeon",
 					"Normal",
-					"Stairs",
-					"Spikes",
-					"Cave"
+					"Altar",
 			};
 			for(int i = 0; i < 4; i++) {
-				int nextInt = (new Random()).nextInt(5);
+				int nextInt = (new Random()).nextInt(regionNames.length);
 				children.add(newRegion(regionNames[nextInt], this, null, new Space(5, 5)));
 			}
 		}

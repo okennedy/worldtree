@@ -1,4 +1,4 @@
-package internal.tree.tile.space;
+package internal.space;
 
 import java.util.ArrayList;
 import java.util.HashMap;
