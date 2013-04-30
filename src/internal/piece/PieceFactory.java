@@ -67,7 +67,7 @@ public class PieceFactory {
 	 * @throws IllegalArgumentException if the interfaces are invalid or if there is no Piece 
 	 * corresponding to the specified interfaces.
 	 */
-	public static Piece newPiece(String interfaces) {
+	public static IPiece newPiece(String interfaces) {
 		return instance.getNewPiece(interfaces);
 	}
 

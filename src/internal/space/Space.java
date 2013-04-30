@@ -1,10 +1,12 @@
 package internal.space;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.ITile;
@@ -22,12 +24,14 @@ import internal.tree.WorldTreeFactory.Tile;
 public class Space extends Dimension {
 	protected int xCurr, yCurr;
 	protected ITile[][] matrix;
+	private List<String> stringRepresentation;
 	
 	public Space(int x, int y) {
 		super(y, x);
 		matrix = new Tile[y][x];
 		xCurr = 0;
 		yCurr = yDimension - 1;
+		stringRepresentation = new ArrayList<String>();
 	}
 	
 	public int[] arrayToCoord(int x, int y) {
@@ -81,6 +85,11 @@ public class Space extends Dimension {
 		return matrix[xCurr][yCurr];
 	}
 	
+	
+	public int[] currentCoordinates() {
+		return new int[] {xCurr,yCurr};
+	}
+	
 	/**
 	 * Retrieve the Cell that is being represented by the given set of Cartesian coordinates.
 	 * @param xCoord
@@ -126,6 +135,7 @@ public class Space extends Dimension {
 	public void setByCoord(int xCoord, int yCoord, ITile tile) {
 		int[] indices = coordToArray(xCoord, yCoord);
 		matrix[indices[1]][indices[0]] = tile;
+		updateStringRepresentation(indices[1], indices[0]);
 	}
 	
 	/**
@@ -136,6 +146,7 @@ public class Space extends Dimension {
 	 */
 	public void setByArray(int xIndex, int yIndex, ITile tile) {
 		matrix[xIndex][yIndex] = tile;
+		updateStringRepresentation(xIndex, yIndex);
 	}
 
 	/**
@@ -155,11 +166,15 @@ public class Space extends Dimension {
 
 	/**
 	 * Check surrounding entries in the space to find out valid interfaces. Also check for corner cases (literally).
-	 * @param xIndex
-	 * @param yIndex
+	 * @param xCoord
+	 * @param yCoord
 	 * @return {@code String} containing set of valid interfaces.
 	 */
-	public Map<String, String> getValidInterfaces(int yIndex, int xIndex) {
+	public Map<String, String> getValidInterfaces(int xCoord, int yCoord) {
+		int [] indices = coordToArray(xCoord, yCoord);
+		int xIndex = indices[0];
+		int yIndex = indices[1];
+		
 		StringBuffer mandatoryInterfaces = new StringBuffer();
 		StringBuffer invalidInterfaces = new StringBuffer();
 		if(yIndex + 1 == yDimension)
@@ -200,5 +215,94 @@ public class Space extends Dimension {
 		interfaceMap.put("mandatoryInterfaces", mandatoryInterfaces.toString());
 		interfaceMap.put("invalidInterfaces", invalidInterfaces.toString());
 		return interfaceMap;
+	}
+	
+	public List<String> getStringRepresentation() {
+		stringRepresentation.removeAll(stringRepresentation);
+		List<List<String>> listStringList = new ArrayList<List<String>>();
+		for(int i = 0; i < getYDimension(); i++) {
+			List<String> stringList = new ArrayList<String>();
+			for(int j = 0; j < getXDimension(); j++) {
+				if(getByArray(i, j) != null)
+					stringList.add(getByArray(i, j).piece().toString());
+				else
+					stringList.add(PieceFactory.newPiece("").toString());
+			}
+			listStringList.add(stringList);
+		}
+		
+//		We use one instance of a piece's toString() to test for number of lines.
+		int lineCount = listStringList.get(0).get(0).split("\n").length;
+		
+		for(int yIndex = 0; yIndex < listStringList.size(); yIndex++) {
+			List<String> stringList = listStringList.get(yIndex);
+			for(int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
+				StringBuffer fullLine = new StringBuffer(); 
+				for(int xIndex = 0; xIndex < stringList.size(); xIndex++) {
+					String[] stringArray = null;
+					try {
+						 stringArray = stringList.get(xIndex).split("\n");
+						fullLine.append(stringArray[lineIndex] + " ");
+					} catch(ArrayIndexOutOfBoundsException e) {
+						System.err.println("size :" + stringList.size() + "\n" + stringList.get(xIndex));
+						e.printStackTrace();
+					}
+					
+				}
+//				if(!stringRepresentation.contains(fullLine.toString()))
+					stringRepresentation.add(fullLine.toString());
+			}
+		}
+		return stringRepresentation;
+	}
+	
+	private void updateStringRepresentation(int xIndex, int yIndex) {
+//		First we find the 'line' that holds this tile (using yIndex)
+		getStringRepresentation();
+	}
+
+	/**
+	 * Set current coordinates
+	 * @param x
+	 * @param y
+	 */
+	public void setCurrentCoordinates(int x, int y) {
+		xCurr = x;
+		yCurr = y;
+	}
+	
+	/**
+	 * Get a {@code Collection} of neighboring tiles
+	 * @param x x-coordinate
+	 * @param y y-coordinate
+	 * @return {@code Collection<ITile>} containing neighbouring tiles
+	 */
+	public Collection<ITile> getNeighbours(int x, int y) {
+		
+//		pre-processing
+		int[] indices = coordToArray(x, y);
+		x = indices[0];
+		y = indices[1];
+		
+		Collection<ITile> returnCollection = new ArrayList<ITile>();
+		
+		int[] oldCurrent = currentCoordinates();
+		setCurrentCoordinates(x, y);
+		returnCollection.add(nextUp());
+		returnCollection.add(nextDown());
+		returnCollection.add(nextLeft());
+		returnCollection.add(nextRight());
+		
+		setCurrentCoordinates(oldCurrent[0], oldCurrent[1]);
+		
+		return returnCollection;
+	}
+	
+	/**
+	 * Get a {@code Collection} of neighboring tiles from current tile
+	 * @return {@code Collection<ITile>} containing neighboring tiles
+	 */
+	public Collection<ITile> getNeighbours() {
+		return getNeighbours(xCurr, yCurr);
 	}
 }

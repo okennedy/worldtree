@@ -34,7 +34,7 @@ public class Driver {
 		map.initialize();
 		map.initialize();
 		map.initialize();
-		map.initialize();
+//		map.initialize();
 		BufferedWriter out = null;
 		try {
 			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));

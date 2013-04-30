@@ -30,7 +30,7 @@ public interface IWorldTree {
 	public void initialize();
 	
 	
-	public List<String> getStringRepresentation();
+	List<String> getStringRepresentation();
 	
 	public String toString();
 	

@@ -2,8 +2,11 @@ package internal.tree;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+
+import test.commands.Command;
 
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
@@ -91,23 +94,65 @@ public class WorldTreeFactory {
 		public Region(String name, IWorldTree parent, Constraint constraints, Space space) {
 			super(name, parent, constraints);
 			this.space = space;
-			stringRepresentation = new ArrayList<String>();
+			stringRepresentation = space.getStringRepresentation();
+			
 		}
 
 		@Override
 		public void initialize() {
 //			TODO: Ensure all pieces are traverse-able.
+			initString();
+		}
+		
+		/**
+		 * This method can be used to instantly initialize this Region and all its children tiles.
+		 */
+		private void initRegion() {
 			for(int i = 0; i < space.getYDimension(); i++) {
 				for(int j = 0; j < space.getXDimension(); j++) {
-					java.util.Map<String, String> interfaceMap = space.getValidInterfaces(i, j);
-					String coordinates = "(" + space.arrayToCoord(i, j)[0] + "," + space.arrayToCoord(i, j)[1] + ")";
-					ITile tile = newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(interfaceMap));
-					Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles
+					ITile tile = initTile(i, j, false);
 					
 					space.setByArray(i, j, tile);
 				}
 			}
-			initString();
+		}
+		
+		private ITile initTile(int y, int x, boolean isCoord) {
+			int[] coords = null;
+			if(!isCoord) {
+				coords = space.arrayToCoord(x, y);
+				x = coords[0];
+				y = coords[1];
+			}
+			java.util.Map<String, String> interfaceMap = space.getValidInterfaces(x, y);
+			String coordinates = "(" + space.arrayToCoord(y, x)[0] + "," + space.arrayToCoord(y, x)[1] + ")";
+			ITile tile = newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(interfaceMap));
+//			Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles\
+			space.setCurrentCoordinates(x, y);
+			return tile;
+		}
+
+		public boolean move(Command cmd) {
+			if(space.currentTile() == null) {
+//				First tile
+				ITile tile = initTile(0, 0, true);
+				space.setByCoord(0, 0, tile);
+				space.initNeighbours();
+			}
+			else {
+				switch(cmd) {
+				case UP:
+					break;
+				case DOWN:
+					break;
+				case LEFT:
+					break;
+				case RIGHT:
+					break;
+				default:
+					break;
+				}
+			}
 		}
 		
 		/**
@@ -119,39 +164,7 @@ public class WorldTreeFactory {
 		 */
 		@Override
 		public void initString() {
-			List<List<String>> listStringList = new ArrayList<List<String>>();
-			for(int i = 0; i < space.getYDimension(); i++) {
-				List<String> stringList = new ArrayList<String>();
-				for(int j = 0; j < space.getXDimension(); j++) {
-					if(space.getByArray(i, j) != null)
-						stringList.add(space.getByArray(i, j).piece().toString());
-					
-				}
-				listStringList.add(stringList);
-			}
-			
-//			We use one instance of a piece's toString() to test for number of lines.
-			int lineCount = listStringList.get(0).get(0).split("\n").length;
-			
-			for(int yIndex = 0; yIndex < listStringList.size(); yIndex++) {
-				List<String> stringList = listStringList.get(yIndex);
-				for(int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
-					StringBuffer fullLine = new StringBuffer(); 
-					for(int xIndex = 0; xIndex < stringList.size(); xIndex++) {
-						String[] stringArray = null;
-						try {
-							 stringArray = stringList.get(xIndex).split("\n");
-							fullLine.append(stringArray[lineIndex] + " ");
-						} catch(ArrayIndexOutOfBoundsException e) {
-							System.err.println("size :" + stringList.size() + "\n" + stringList.get(xIndex));
-							e.printStackTrace();
-						}
-						
-					}
-//					if(!stringRepresentation.contains(fullLine.toString()))
-						stringRepresentation.add(fullLine.toString());
-				}
-			}
+			stringRepresentation = space.getStringRepresentation();
 			prepareToString();
 		}
 		
