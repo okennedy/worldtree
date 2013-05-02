@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Random;
 
 import test.commands.Command;
+import test.ui.TestEngine;
 
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
@@ -17,7 +18,7 @@ import internal.tree.IWorldTree.IRoom;
 import internal.tree.IWorldTree.IRegion;
 import internal.tree.IWorldTree.ITile;
 import internal.tree.IWorldTree.IObject;
-
+import internal.space.Space.Direction;
 
 public class WorldTreeFactory {
 
@@ -58,6 +59,12 @@ public class WorldTreeFactory {
 				}
 			}
 		}
+
+		@Override
+		public void move(Command command) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 	
 	public IMap newMap(String name, IWorldTree parent, Constraint constraints) {
@@ -78,10 +85,16 @@ public class WorldTreeFactory {
 					"Normal",
 					"Altar",
 			};
-			for(int i = 0; i < 4; i++) {
+			for(int i = 0; i < 2; i++) {
 				int nextInt = (new Random()).nextInt(regionNames.length);
-				children.add(newRegion(regionNames[nextInt], this, null, new Space(5, 5)));
+				children.add(newRegion(regionNames[nextInt], this, null, new Space(6, 6)));
 			}
+		}
+
+		@Override
+		public void move(Command command) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 	
@@ -94,6 +107,11 @@ public class WorldTreeFactory {
 		public Region(String name, IWorldTree parent, Constraint constraints, Space space) {
 			super(name, parent, constraints);
 			this.space = space;
+//			First tile
+			ITile tile = initTile(0, 0, true);
+			space.setByCoord(0, 0, tile);
+			space.setCurrentCoordinates(0, 0);
+			initNeighbours();
 			stringRepresentation = space.getStringRepresentation();
 			
 		}
@@ -110,14 +128,13 @@ public class WorldTreeFactory {
 		private void initRegion() {
 			for(int i = 0; i < space.getYDimension(); i++) {
 				for(int j = 0; j < space.getXDimension(); j++) {
-					ITile tile = initTile(i, j, false);
-					
+					ITile tile = initTile(j, i, false);
 					space.setByArray(i, j, tile);
 				}
 			}
 		}
 		
-		private ITile initTile(int y, int x, boolean isCoord) {
+		private ITile initTile(int x, int y, boolean isCoord) {
 			int[] coords = null;
 			if(!isCoord) {
 				coords = space.arrayToCoord(x, y);
@@ -125,36 +142,98 @@ public class WorldTreeFactory {
 				y = coords[1];
 			}
 			java.util.Map<String, String> interfaceMap = space.getValidInterfaces(x, y);
-			String coordinates = "(" + space.arrayToCoord(y, x)[0] + "," + space.arrayToCoord(y, x)[1] + ")";
+			String coordinates = "(" + space.arrayToCoord(x, y)[0] + "," + space.arrayToCoord(x, y)[1] + ")";
 			ITile tile = newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(interfaceMap));
-//			Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles\
-			space.setCurrentCoordinates(x, y);
+//			Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles
 			return tile;
 		}
-
-		public boolean move(Command cmd) {
-			if(space.currentTile() == null) {
-//				First tile
-				ITile tile = initTile(0, 0, true);
-				space.setByCoord(0, 0, tile);
-				space.initNeighbours();
+		
+		
+		@Override
+		public void move(Command command) {
+			int[] coords = space.currentCoordinates();
+			switch(command) {
+			case UP:
+				coords[1]++;
+				break;
+			case DOWN:
+				coords[1]--;
+				break;
+			case LEFT:
+				coords[0]--;
+				break;
+			case RIGHT:
+				coords[0]++;
+				break;
+			default:
+				throw new IllegalStateException("Only directions should be passed to move()");
 			}
-			else {
-				switch(cmd) {
-				case UP:
-					break;
-				case DOWN:
-					break;
-				case LEFT:
-					break;
-				case RIGHT:
-					break;
-				default:
-					break;
-				}
+			
+			if(space.validate(coords[0], coords[1])) {
+				space.setCurrentCoordinates(coords[0], coords[1]);
+				initNeighbours();
 			}
+			
 		}
 		
+		private void initNeighbours() {
+			int[] coords = space.currentCoordinates();
+			initNeighbours(coords[0], coords[1]);
+		}
+
+		private void initNeighbours(int xCoord, int yCoord) {
+			int[] indices = null;
+			
+			List<Direction> directions = new ArrayList<Direction>(Space.listDirections());
+			
+			while(directions.size() > 0) {
+				indices = space.currentCoordinates();
+				
+				
+				int randomIndex = 0 + (int) (Math.random() * (directions.size() - 0) + 0);
+				Direction direction = directions.get(randomIndex);
+				switch(direction) {
+				case E:
+					indices[0]++;
+					break;
+				case N:
+					indices[1]++;
+					break;
+				case NE:
+					indices[0]++;
+					indices[1]++;
+					break;
+				case NW:
+					indices[0]--;
+					indices[1]++;
+					break;
+				case S:
+					indices[1]--;
+					break;
+				case SE:
+					indices[0]++;
+					indices[1]--;
+					break;
+				case SW:
+					indices[0]--;
+					indices[1]--;
+					break;
+				case W:
+					indices[0]--;
+					break;
+				default:
+					throw new IllegalStateException("Invalid direction? This should have never occured!\n");
+				}
+				
+				if(space.validate(indices[0], indices[1]) && space.getByCoord(indices[0], indices[1]) == null) {	
+					ITile tile = initTile(indices[0], indices[1], true);
+					space.setByCoord(indices[0], indices[1], tile);
+				}
+				directions.remove(direction);
+				TestEngine.write();
+			}
+		}
+
 		/**
 		 * This is some really ugly code where multi-line visuals of each tile are split into single lines and
 		 * each line of each tile is appended together to the StringBuffer 
@@ -228,6 +307,12 @@ public class WorldTreeFactory {
 				System.err.println("Error: " + this.name() + " is unable to accomodate more children visually\n" +
 						"\tThe object still contains these children");
 		}
+
+		@Override
+		public void move(Command command) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 	
 	public ITile newTile(String name, IWorldTree parent, Constraint constraints, IPiece tilePiece) {
@@ -248,6 +333,12 @@ public class WorldTreeFactory {
 
 		@Override
 		public void initialize() {
+		}
+
+		@Override
+		public void move(Command command) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 	

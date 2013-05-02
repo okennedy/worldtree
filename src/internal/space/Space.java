@@ -305,4 +305,59 @@ public class Space extends Dimension {
 	public Collection<ITile> getNeighbours() {
 		return getNeighbours(xCurr, yCurr);
 	}
+	
+	/**
+	 * Get all the valid directions allowed by this Space
+	 * @return {@code Collection<Direction>} containing the valid directions as defined by the private enum {@code Direction}
+	 */
+	public static Collection<Direction> listDirections() {
+		return Direction.listDirections();
+	}
+	
+	public enum Direction {
+		NW("NW"),
+		N("N"),
+		NE("NE"),
+		E("E"),
+		SE("SE"),
+		S("S"),
+		SW("SW"),
+		W("W")
+		;
+		
+		private String choice;
+		private Direction(String choice) {
+			this.choice = choice;
+		}
+		
+		public static Collection<Direction> listDirections() {
+			Collection<Direction> collection = new ArrayList<Direction>();
+			for(Direction d : values()) {
+				collection.add(d);
+			}
+			
+			return collection;
+		}
+		
+		public static Direction getDirection(String choice) {
+			for(Direction d : values()) {
+				if(d.choice.equals(choice))
+					return d;
+			}
+			
+			throw new IllegalArgumentException("No such direction " + choice + "\n" +
+					"Valid choices are :" + listDirections().toString() );
+		}
+		
+		@Override public String toString() {
+			return choice;
+		}
+	}
+
+	public boolean validate(int xCoord, int yCoord) {
+		if(xCoord >= 0 && xCoord < xDimension && yCoord >= 0 && yCoord < yDimension)
+			return true;
+		else
+			return false;
+	}
 }

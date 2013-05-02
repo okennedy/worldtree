@@ -43,8 +43,8 @@ public abstract class WorldTree implements IWorldTree {
 	 * @return {@code List<String>} containing the strings used to visually represent this WorldTree instance.
 	 */
 	public List<String> getStringRepresentation() {
-		if(stringRepresentation.size() == 0)
-			initString();
+		stringRepresentation.removeAll(stringRepresentation);
+		initString();
 		return stringRepresentation;
 	}
 	

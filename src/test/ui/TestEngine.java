@@ -1,6 +1,9 @@
 package test.ui;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -11,13 +14,14 @@ import internal.tree.IWorldTree.IMap;
 import internal.tree.IWorldTree.IRegion;
 
 public class TestEngine {
-
+	private static IWorldTree map = null;
 	
 	public static void init(IMap map) {
 		BufferedReader in = null;
 		try {
 			in = new BufferedReader(new InputStreamReader(System.in));
 			String command;
+			TestEngine.map = map;
 			map.initialize();	//Map initialized
 			map.initialize();	//Rooms initialized
 			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0
@@ -48,6 +52,7 @@ public class TestEngine {
 		case LEFT:
 		case RIGHT:
 			object.move(cmd);
+			write();
 		case INSPECT:
 			break;
 		
@@ -60,5 +65,24 @@ public class TestEngine {
 			break;
 		}
 		return null;
+	}
+	
+	
+	public static void write() {
+		BufferedWriter out = null;
+		try {
+			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));
+			out.write(map.toString());
+		} catch(IOException e) {
+			e.printStackTrace();
+		} finally {
+			if(out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 }

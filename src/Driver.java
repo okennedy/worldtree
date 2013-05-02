@@ -3,6 +3,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import test.ui.TestEngine;
+
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
@@ -31,24 +33,6 @@ public class Driver {
 		new PieceFactory(pieceStrings);
 		WorldTreeFactory factory = new WorldTreeFactory();
 		IMap map = factory.newMap("TestMap", null, null);
-		map.initialize();
-		map.initialize();
-		map.initialize();
-//		map.initialize();
-		BufferedWriter out = null;
-		try {
-			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));
-			out.write(map.toString());
-		} catch(IOException e) {
-			e.printStackTrace();
-		} finally {
-			if(out != null) {
-				try {
-					out.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		TestEngine.init(map);
 	}
 }
