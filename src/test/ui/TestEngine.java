@@ -46,24 +46,28 @@ public class TestEngine {
 
 	private static Command parse(String command, IRegion object) {
 		Command cmd = Command.parse(command);
-		switch(cmd) {
-		case UP:
-		case DOWN:
-		case LEFT:
-		case RIGHT:
-			object.move(cmd);
-			write();
-		case INSPECT:
-			break;
-		
-		case QUERY:
-			break;
-		
-		case WRITE:
-			break;
-		default:
-			break;
-		}
+		if(cmd != null){
+      switch(cmd) {
+      case UP:
+      case DOWN:
+      case LEFT:
+      case RIGHT:
+        object.move(cmd);
+        write();
+      case INSPECT:
+        break;
+      
+      case QUERY:
+        break;
+      
+      case WRITE:
+        break;
+      default:
+        break;
+      }
+    } else {
+      System.err.println("Invalid command: '" + command + "'");
+    }
 		return null;
 	}
 	
