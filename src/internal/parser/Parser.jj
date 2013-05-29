@@ -1,0 +1,19 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(EG1)package internal.parser;
+
+public class EG1{}PARSER_END(EG1)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN : /* OPERATORS */{    < PLUS 		: "+" >|   < MINUS 		: "-" >|   < MULTIPLY	: "*" >|   < DIVIDE 		: "/" >}
+TOKEN [IGNORE_CASE] : /* KEYWORDS */
+{    < FOR		: "FOR" >
+|   < ALL		: "ALL" >
+|   < ASSERT	: "ASSERT" >
+|   < UNION		: "UNION" >
+|   < AND		: "AND" >
+|   < OR		: "OR" >
+|   < NOT		: "NOT" >
+|   < DEFINE	: "DEFINE" >
+|   < AS		: "AS" >
+|   < IN		: "IN" >
+}
+TOKEN :{    < CONSTANT 	: (< DIGIT >)+ >|   < #DIGIT 	: [ "0"-"9" ] >
+|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >}
