@@ -9,6 +9,7 @@ import java.util.Random;
 import test.commands.Command;
 import test.ui.TestEngine;
 
+import internal.constraint.Constraint;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
