@@ -2,11 +2,16 @@
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
  */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(EG1)package internal.parser;
 
-public class EG1{}PARSER_END(EG1)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN : /* OPERATORS */{    < PLUS 		: "+" >|   < MINUS 		: "-" >|   < MULTIPLY	: "*" >|   < DIVIDE 		: "/" >}
+public class EG1{}PARSER_END(EG1)SKIP :{    " "|   "\r"|   "\t"|   "\n"}
+TOKEN : /* SYMBOLS */
+{    < COMMA		: "," >
+}
+TOKEN : /* OPERATORS */{    < PLUS 		: "+" >|   < MINUS 		: "-" >|   < MULTIPLY	: "*" >|   < DIVIDE 		: "/" >}
 TOKEN [IGNORE_CASE] : /* KEYWORDS */
 {    < FOR		: "FOR" >
 |   < ALL		: "ALL" >
 |   < ASSERT	: "ASSERT" >
+|   < WHERE		: "WHERE" >
 |   < UNION		: "UNION" >
 |   < AND		: "AND" >
 |   < OR		: "OR" >
@@ -16,4 +21,47 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < IN		: "IN" >
 }
 TOKEN :{    < CONSTANT 	: (< DIGIT >)+ >|   < #DIGIT 	: [ "0"-"9" ] >
-|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >}
+|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >}
+void pattern() :
+{}
+{    word() (relation() word() (< COMMA > pattern())* )?}
+
+void query() :
+{
+}
+{
+    pattern() < WHERE > condition() (< UNION > query())?
+}
+
+void relation() :
+{
+}
+{
+    word()
+|   LOOKAHEAD(2) relation() < MULTIPLY >
+|   LOOKAHEAD(2) relation() < PLUS >
+}
+
+void condition() :
+{
+}
+{
+    word() "." word() = constant()
+|   < NOT > condition()
+|   condition() (< AND > | < OR >) condition()
+}
+
+String word() :
+{
+}
+{
+    < WORD > { return token.image; }
+}
+
+double constant() :
+{
+    Token integer, decimal;
+}
+{
+    < CONSTANT > { return Double.parseDouble(token.image); }
+|   LOOKAHEAD(2) integer = < CONSTANT > "." decimal = < CONSTANT > { return Double.parseDouble(integer + "." + decimal);}}
