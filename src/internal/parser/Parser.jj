@@ -3,10 +3,6 @@
  */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(EG1)package internal.parser;
 
 public class EG1{}PARSER_END(EG1)SKIP :{    " "|   "\r"|   "\t"|   "\n"}
-TOKEN : /* SYMBOLS */
-{    < COMMA		: "," >
-}
-TOKEN : /* OPERATORS */{    < PLUS 		: "+" >|   < MINUS 		: "-" >|   < MULTIPLY	: "*" >|   < DIVIDE 		: "/" >}
 TOKEN [IGNORE_CASE] : /* KEYWORDS */
 {    < FOR		: "FOR" >
 |   < ALL		: "ALL" >
@@ -19,9 +15,19 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < DEFINE	: "DEFINE" >
 |   < AS		: "AS" >
 |   < IN		: "IN" >
+|   < CONSTANT 	: (< DIGIT >)+ >
+|   < #DIGIT 	: [ "0"-"9" ] >
+|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >
+|   < COMMA		: "," >
+|   < PLUS 		: "+" >
+|   < MINUS 	: "-" >
+|   < MULTIPLY	: "*" >
+|   < EQUALS	: "=" >
+|   < DIVIDE 	: "/" >
+|   < LPARANS	: "(" >
+|   < RPARANS	: ")" >
 }
-TOKEN :{    < CONSTANT 	: (< DIGIT >)+ >|   < #DIGIT 	: [ "0"-"9" ] >
-|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >}
+
 void pattern() :
 {}
 {    word() (relation() word() (< COMMA > pattern())* )?}
@@ -37,18 +43,17 @@ void relation() :
 {
 }
 {
-    word()
-|   LOOKAHEAD(2) relation() < MULTIPLY >
-|   LOOKAHEAD(2) relation() < PLUS >
+    word() (< MULTIPLY > | < PLUS >)?
+|   < LPARANS > relation() < RPARANS > 
 }
 
 void condition() :
 {
 }
 {
-    word() "." word() = constant()
+    word() "." word() < EQUALS > constant()
 |   < NOT > condition()
-|   condition() (< AND > | < OR >) condition()
+|   < LPARANS > condition() (< AND > | < OR >) condition() < RPARANS >
 }
 
 String word() :
@@ -60,8 +65,13 @@ String word() :
 
 double constant() :
 {
-    Token integer, decimal;
+    Token integer = null, decimal = null;
 }
 {
-    < CONSTANT > { return Double.parseDouble(token.image); }
-|   LOOKAHEAD(2) integer = < CONSTANT > "." decimal = < CONSTANT > { return Double.parseDouble(integer + "." + decimal);}}
+    LOOKAHEAD(2) < CONSTANT >    {        integer = token;    }    "." < CONSTANT >
+    {        decimal = token;
+        return Double.parseDouble(integer.image + "." + token.image);
+    }
+|   < CONSTANT >    {        integer = token;
+        return Double.parseDouble(integer.image);    }
+}
