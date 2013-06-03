@@ -30,7 +30,8 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 
 void pattern() :
 {}
-{    word() (relation() word() (< COMMA > pattern())* )?}
+{
+    LOOKAHEAD(4) reference() relation() reference() (< COMMA > pattern())*}
 
 void query() :
 {
@@ -51,7 +52,7 @@ void condition() :
 {
 }
 {
-    word() "." word() < EQUALS > constant()
+    property()
 |   < NOT > condition()
 |   < LPARANS > condition() (< AND > | < OR >) condition() < RPARANS >
 }
@@ -74,4 +75,18 @@ double constant() :
     }
 |   < CONSTANT >    {        integer = token;
         return Double.parseDouble(integer.image);    }
+}
+
+Reference reference() :
+{
+}
+{
+    < WORD > { return new Reference(token.image); }
+}
+
+String property() :
+{
+}
+{
+    word() { return token.image; }
 }
