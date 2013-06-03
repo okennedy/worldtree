@@ -1,7 +1,7 @@
 package internal.parser;
 
 public class Query {
-	Pattern pattern;
-	Condition condition;
+	private Pattern pattern;
+	private Condition condition;
 	
 }

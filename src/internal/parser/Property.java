@@ -1,9 +1,9 @@
 package internal.parser;
 
 public class Property {
-	Reference reference;
-	String name;
-	String value;
+	private Reference reference;
+	private String name;
+	private String value;
 	
 	Property(Reference reference, String name, String value) {
 		this.reference	= reference;

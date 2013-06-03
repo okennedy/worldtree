@@ -1,7 +1,11 @@
 package internal.parser;
 
 public class Condition {
-	Property property;
-	Condition subCondition;
+	private Property property;
+	private Condition subCondition;
 	
+	Condition(Property property, Condition subCondition) {
+		this.property		= property;
+		this.subCondition	= subCondition;
+	}
 }

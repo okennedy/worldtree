@@ -1,9 +1,9 @@
 package internal.parser;
 
 public class Pattern {
-	Reference r1, r2;
-	Relation relation;
-	Pattern subPattern;
+	private Reference r1, r2;
+	private Relation relation;
+	private Pattern subPattern;
 	
 	Pattern(Reference r1, Relation relation, Reference r2, Pattern subPattern) {
 		this.r1			= r1;
