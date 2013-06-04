@@ -28,32 +28,44 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < RPARANS	: ")" >
 }
 
-void pattern() :
+Pattern pattern() :
 {}
 {
     LOOKAHEAD(4) reference() relation() reference() (< COMMA > pattern())*}
 
-void query() :
+Query query() :
 {
+    Pattern pattern = null;
+    Condition condition = null;
 }
 {
-    pattern() < WHERE > condition() (< UNION > query())?
-}
-
-void relation() :
-{
-}
-{
-    word() (< MULTIPLY > | < PLUS >)?
-|   < LPARANS > relation() < RPARANS > 
+    pattern = pattern() < WHERE > condition = condition() (< UNION > query())?    {        return new Query(pattern, condition);    }    
 }
 
-void condition() :
+Relation relation() :
 {
+    Relation relation = null;
+    String name = null, regex = null;
 }
 {
-    property()
-|   < NOT > condition()
+    name = word() (< MULTIPLY > | < PLUS >)?    {        regex = token.image;
+        return new Relation(name, regex);
+    }
+|   < LPARANS > relation = relation() < RPARANS >    {        return relation;    }
+}
+
+Condition condition() :
+{
+    Property property = null;
+    Boolean not = null;
+    Condition condition = null;
+}
+{
+    property = property()    {        return new Condition(null, property, null);    }    
+|   < NOT > condition = condition()    {        not = true;
+        return new Condition(not, condition);
+    }
+        
 |   < LPARANS > condition() (< AND > | < OR >) condition() < RPARANS >
 }
 

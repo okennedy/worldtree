@@ -3,7 +3,7 @@ package internal.parser;
 
 public class Parser implements ParserConstants {
 
-  static final public void pattern() throws ParseException {
+  static final public Pattern pattern() throws ParseException {
     if (jj_2_1(4)) {
 
     } else {
@@ -28,10 +28,12 @@ public class Parser implements ParserConstants {
     }
   }
 
-  static final public void query() throws ParseException {
-    pattern();
+  static final public Query query() throws ParseException {
+    Pattern pattern = null;
+    Condition condition = null;
+    pattern = pattern();
     jj_consume_token(WHERE);
-    condition();
+    condition = condition();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case UNION:
       jj_consume_token(UNION);
@@ -41,12 +43,16 @@ public class Parser implements ParserConstants {
       jj_la1[1] = jj_gen;
       ;
     }
+        {if (true) return new Query(pattern, condition);}
+    throw new Error("Missing return statement in function");
   }
 
-  static final public void relation() throws ParseException {
+  static final public Relation relation() throws ParseException {
+    Relation relation = null;
+    String name = null, regex = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case WORD:
-      word();
+      name = word();
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case PLUS:
       case MULTIPLY:
@@ -67,27 +73,37 @@ public class Parser implements ParserConstants {
         jj_la1[3] = jj_gen;
         ;
       }
+        regex = token.image;
+        {if (true) return new Relation(name, regex);}
       break;
     case LPARANS:
       jj_consume_token(LPARANS);
-      relation();
+      relation = relation();
       jj_consume_token(RPARANS);
+        {if (true) return relation;}
       break;
     default:
       jj_la1[4] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+    throw new Error("Missing return statement in function");
   }
 
-  static final public void condition() throws ParseException {
+  static final public Condition condition() throws ParseException {
+    Property property = null;
+    Boolean not = null;
+    Condition condition = null;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case WORD:
-      property();
+      property = property();
+        {if (true) return new Condition(null, property, null);}
       break;
     case NOT:
       jj_consume_token(NOT);
-      condition();
+      condition = condition();
+        not = true;
+        {if (true) return new Condition(not, condition);}
       break;
     case LPARANS:
       jj_consume_token(LPARANS);
@@ -112,6 +128,7 @@ public class Parser implements ParserConstants {
       jj_consume_token(-1);
       throw new ParseException();
     }
+    throw new Error("Missing return statement in function");
   }
 
   static final public String word() throws ParseException {
