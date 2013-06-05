@@ -29,7 +29,7 @@ public class Pattern implements IPattern {
 		}
 		
 		else {
-			result.append(" " + subPattern.debugString());
+			result.append(" , " + subPattern.debugString());
 			result.append(")");
 			return result.toString();
 		}

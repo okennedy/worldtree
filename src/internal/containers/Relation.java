@@ -14,13 +14,24 @@ public class Relation implements IContainer {
 	
 	@Override
 	public String toString() {
-		return name + regex;
+		return regex == null ? name : name + regex;
 	}
 
 
 
 	@Override
 	public String debugString() {
-		return "RELATION(" + name + regex + ")";
+		StringBuffer result = new StringBuffer("RELATION(" + name);
+		
+		if(regex == null) {
+			result.append(")");
+			return result.toString();
+		}
+		
+		else {
+			result.append(regex);
+			result.append(")");
+			return result.toString();
+		}
 	}
 }
