@@ -38,18 +38,14 @@ IPattern pattern() :
 {
     IPattern pattern = null, subPattern = null;}
 {
-    LOOKAHEAD(412421) pattern = basePattern() < COMMA > subPattern = pattern()    {        return new Pattern(pattern, subPattern);
-    }
-|   pattern = basePattern()
-    {        return pattern;    }}
+    LOOKAHEAD(412421) pattern = basePattern() < COMMA > subPattern = pattern() { return new Pattern(pattern, subPattern); }
+|   pattern = basePattern() { return pattern; }}
 
 BasePattern basePattern() :
 {
     Reference r1 = null, r2 = null;
     Relation relation = null;}
-{    r1 = reference() relation = relation() r2 = reference()
-    {        return new BasePattern(r1, relation, r2);
-    }
+{    r1 = reference() relation = relation() r2 = reference() { return new BasePattern(r1, relation, r2); }
 }
 
 Query query() :
@@ -58,7 +54,7 @@ Query query() :
     ICondition condition = null;
 }
 {
-    pattern = pattern() < WHERE > condition = condition() (< UNION > query())?    {        return new Query(pattern, condition);    }    
+    pattern = pattern() < WHERE > condition = condition() (< UNION > query())? { return new Query(pattern, condition); }
 }
 
 Relation relation() :
@@ -75,8 +71,8 @@ Relation relation() :
         regex = token.image;
         return new Relation(name, regex);
     }
-|   < LPARANS > relation = relation() < RPARANS >    {        return relation;    }
-|   name = word()    {        return new Relation(name, null);    }
+|   < LPARANS > relation = relation() < RPARANS > { return relation; }
+|   name = word() { return new Relation(name, null); }
 }
 
 ICondition condition() :
@@ -86,11 +82,10 @@ ICondition condition() :
     ICondition condition = null, subCondition = null;
 }
 {
-    property = property()    {        return new BaseCondition(false, property);    }    
+    property = property() { return new BaseCondition(false, property); }
 |   < NOT > condition = condition()    {        not = true;
         return new BaseCondition(not, condition.property());
     }
-        
 |   < LPARANS > condition = condition() (< AND > | < OR >) subCondition = condition() < RPARANS >    {        return new Condition(condition, subCondition);    }
 }
 
@@ -132,8 +127,14 @@ Property property() :
     String name = null, value = null;
 }
 {
-    ref = reference() < DOT > name = word() < EQUALS > value = constant()
-    {        return new Property(ref, name, value);    }    
+    ref = reference() < DOT > name = word() < EQUALS > value = constant() { return new Property(ref, name, value); }
+}
+
+Constraint constraint() :
+{    Query query = null;
+    ICondition condition = null;
+}
+{    < FOR > < ALL > query = query() < ASSERT > condition = condition() { return new Constraint(query, condition); }
 }
 
 IContainer parse() :
@@ -141,5 +142,6 @@ IContainer parse() :
     IContainer o = null;
 }
 {    LOOKAHEAD(2352523) o = query()		{ return o; }|   LOOKAHEAD(3) o = pattern() 		{ return o; }
-|   LOOKAHEAD(3) o = condition()	{ return o; }|    o = relation()					{ return o; }
+|   LOOKAHEAD(3) o = condition()	{ return o; }
+|   constraint()
 }
