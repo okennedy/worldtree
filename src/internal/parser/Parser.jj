@@ -32,16 +32,27 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < RPARANS	: ")" >
 }
 
-Pattern pattern() :
-{}
+IPattern pattern() :
 {
-    LOOKAHEAD(4) reference() relation() reference() (< COMMA > pattern())*
-    {        return null;
-    }}
+    IPattern pattern = null, subPattern = null;}
+{
+    LOOKAHEAD(3) pattern = basePattern() < COMMA > subPattern = pattern()    {        return new Pattern(pattern, subPattern);
+    }
+|   pattern = basePattern()
+    {        return pattern;    }}
+
+BasePattern basePattern() :
+{
+    Reference r1 = null, r2 = null;
+    Relation relation = null;}
+{    r1 = reference() relation = relation() r2 = reference()
+    {        return new BasePattern(r1, relation, r2);
+    }
+}
 
 Query query() :
 {
-    Pattern pattern = null;
+    IPattern pattern = null;
     ICondition condition = null;
 }
 {
