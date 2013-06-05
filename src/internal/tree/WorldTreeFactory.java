@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import test.ui.TestEngine;
+import test.ui.UIDebugEngine;
 
 import internal.constraint.Constraint;
 import internal.piece.IPiece;

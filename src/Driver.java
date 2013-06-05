@@ -1,4 +1,4 @@
-import test.ui.TestEngine;
+import test.ui.UIDebugEngine;
 
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
@@ -28,6 +28,6 @@ public class Driver {
 		new PieceFactory(pieceStrings);
 		WorldTreeFactory factory = new WorldTreeFactory();
 		IMap map = factory.newMap("TestMap", null, null);
-		TestEngine.init(map);
+		UIDebugEngine.init(map);
 	}
 }

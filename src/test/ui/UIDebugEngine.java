@@ -15,7 +15,7 @@ import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.IWorldTree.IRegion;
 
-public class TestEngine {
+public class UIDebugEngine {
 	
 	public static void init(IMap map) {
 		BufferedReader in = null;
