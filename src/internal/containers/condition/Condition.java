@@ -35,4 +35,9 @@ public class Condition implements ICondition {
 	public ICondition subCondition() {
 		return subCondition;
 	}
+	
+	@Override
+	public String toString() {
+		return statement();
+	}
 }

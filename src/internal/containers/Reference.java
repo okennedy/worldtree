@@ -6,4 +6,10 @@ public class Reference {
 	public Reference(String name) {
 		this.name	= name;
 	}
+	
+	
+	@Override
+	public String toString() {
+		return name;
+	}
 }

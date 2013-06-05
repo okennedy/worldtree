@@ -8,4 +8,12 @@ public class Relation {
 		this.name	= name;
 		this.regex	= regex;
 	}
+	
+	
+	
+	
+	@Override
+	public String toString() {
+		return name + regex;
+	}
 }

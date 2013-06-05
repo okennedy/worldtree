@@ -31,4 +31,8 @@ public class BaseCondition implements ICondition {
 		return null;
 	}
 	
+	@Override
+	public String toString() {
+		return statement();
+	}
 }
