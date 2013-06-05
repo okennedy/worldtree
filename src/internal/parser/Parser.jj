@@ -122,9 +122,9 @@ Property property() :
     {        return new Property(ref, name, value);    }    
 }
 
-Object parse() :
+IContainer parse() :
 {
-    Object o = null;
+    IContainer o = null;
 }
 {
     LOOKAHEAD(2) o = query()	{ return o; }
