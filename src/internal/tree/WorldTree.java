@@ -17,10 +17,10 @@ public abstract class WorldTree implements IWorldTree {
 	protected IWorldTree parent;
 	protected Collection<IWorldTree> children;
 	private String name;
-	private Constraint constraints;
+	private Collection<Constraint> constraints;
 	protected List<String> stringRepresentation;
 
-	protected WorldTree(String name, IWorldTree parent, Constraint constraints) {
+	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		this.parent 		= parent;
 		this.children 		= null;
 		this.name 			= name;
@@ -45,6 +45,11 @@ public abstract class WorldTree implements IWorldTree {
 			return this;
 		else
 			return this.parent.root();
+	}
+	
+	@Override
+	public Collection<Constraint> constraints() {
+		return constraints;
 	}
 	
 	/**

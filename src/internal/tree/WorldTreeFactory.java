@@ -20,7 +20,7 @@ import internal.space.Space.Direction;
 public class WorldTreeFactory {
 
 	private  class Map extends WorldTree implements IMap {
-		public Map(String name, IWorldTree parent, Constraint constraints) {
+		public Map(String name, IWorldTree parent, Collection<Constraint> constraints) {
 			super(name, parent, constraints);
 		}
 
@@ -64,12 +64,12 @@ public class WorldTreeFactory {
 		}
 	}
 	
-	public IMap newMap(String name, IWorldTree parent, Constraint constraints) {
+	public IMap newMap(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		return new Map(name, parent, constraints);
 	}
 	
 	private  class Room extends WorldTree implements IRoom {
-		public Room(String name, IWorldTree parent, Constraint constraints) {
+		public Room(String name, IWorldTree parent, Collection<Constraint> constraints) {
 			super(name, parent, constraints);
 		}
 
@@ -95,13 +95,13 @@ public class WorldTreeFactory {
 		}
 	}
 	
-	public IRoom newRoom(String name, IWorldTree parent, Constraint constraints) {
+	public IRoom newRoom(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		return new Room(name, parent, constraints);
 	}
 	
 	private  class Region extends WorldTree implements IRegion {
 		private Space space;
-		public Region(String name, IWorldTree parent, Constraint constraints, Space space) {
+		public Region(String name, IWorldTree parent, Collection<Constraint> constraints, Space space) {
 			super(name, parent, constraints);
 			this.space = space;
 //			First tile
@@ -251,7 +251,7 @@ public class WorldTreeFactory {
 		}
 	}
 	
-	public IRegion newRegion(String name, IWorldTree parent, Constraint constraints, Space space) {
+	public IRegion newRegion(String name, IWorldTree parent, Collection<Constraint> constraints, Space space) {
 		return new Region(name, parent, constraints, space);
 	}
 	
@@ -262,7 +262,7 @@ public class WorldTreeFactory {
 	 */
 	public class Tile extends WorldTree implements ITile {
 		private IPiece piece;
-		public Tile(String name, IWorldTree parent, Constraint constraints, IPiece tilePiece) {
+		public Tile(String name, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
 			super(name, parent, constraints);
 			this.piece = tilePiece;
 		}
@@ -310,13 +310,13 @@ public class WorldTreeFactory {
 		}
 	}
 	
-	public ITile newTile(String name, IWorldTree parent, Constraint constraints, IPiece tilePiece) {
+	public ITile newTile(String name, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
 		return new Tile(name, parent, constraints, tilePiece);
 	}
 	
 	private  class Object extends WorldTree implements IObject {
 		private List<ITile> validTiles;
-		public Object(String name, IWorldTree parent, Constraint constraints, List<ITile> validTiles) {
+		public Object(String name, IWorldTree parent, Collection<Constraint> constraints, List<ITile> validTiles) {
 			super(name, parent, constraints);
 			this.validTiles = validTiles;
 		}
@@ -337,7 +337,7 @@ public class WorldTreeFactory {
 		}
 	}
 	
-	public IObject newObject(String name, IWorldTree parent, Constraint constraints, List<ITile> validTiles) {
+	public IObject newObject(String name, IWorldTree parent, Collection<Constraint> constraints, List<ITile> validTiles) {
 		return new Object(name, parent, constraints, validTiles);
 	}
 }

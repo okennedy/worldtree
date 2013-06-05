@@ -3,9 +3,11 @@ package internal.tree;
 import java.util.Collection;
 import java.util.List;
 
+import internal.containers.Constraint;
 import internal.piece.IPiece;
 
 public interface IWorldTree {
+	
 	/**
 	 * Get the name of this WorldTree instance.
 	 * @return {@code String} representing the name of this WorldTree instance.
@@ -23,11 +25,18 @@ public interface IWorldTree {
 	 * @return {@code List<IWorldTree>} containing the children of this WorldTree instance
 	 */
 	public Collection<IWorldTree> children();
+	
 	/**
 	 * This method is used to initialize a particular level in the World hierarchy.
 	 * Thus, each level has its own 'unique' implementation of this method.
 	 */
 	public void initialize();
+	
+	/**
+	 * Obtain constraints on this WorldTree instance
+	 * @return {@code Collection<Constriant>}  
+	 */
+	public Collection<Constraint> constraints();
 	
 	/**
 	 * Obtain root of this WorldTree
