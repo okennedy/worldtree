@@ -2,6 +2,8 @@ package test.parser;
 
 import static org.junit.Assert.*;
 
+import internal.containers.IContainer;
+import internal.parser.ParseException;
 import internal.parser.Parser;
 
 import java.io.BufferedReader;
@@ -28,12 +30,14 @@ public class ParserTest {
 				command.append(cmd);
 				if(command.toString().contains(";")) {
 					Parser parser = new Parser(new StringReader(command.toString()));
-					Object o = parser.parse();
-					System.out.println(o.toString());
+					IContainer o = parser.parse();
+					System.out.println(o.debugString());
 					command.delete(0, command.length());
 				}
 			}
 		} catch(IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 	}

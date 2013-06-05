@@ -1,6 +1,6 @@
 package internal.containers;
 
-public class Property {
+public class Property implements IContainer {
 	private Reference reference;
 	private String name;
 	private String value;
@@ -15,5 +15,10 @@ public class Property {
 	@Override
 	public String toString() {
 		return reference.toString() + "." + name + " = " + value;
+	}
+	
+	@Override
+	public String debugString() {
+		return "PROPERTY(" + reference.debugString() + "." + name + " = " + value + ")"; 
 	}
 }

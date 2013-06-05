@@ -1,9 +1,11 @@
 package internal.containers.pattern;
 
+import internal.containers.Property;
 import internal.containers.Reference;
 import internal.containers.Relation;
+import internal.containers.condition.ICondition;
 
-public class Pattern {
+public class Pattern implements IPattern {
 	private Reference r1, r2;
 	private Relation relation;
 	private Pattern subPattern;
@@ -13,5 +15,31 @@ public class Pattern {
 		this.relation	= relation;
 		this.r2			= r2;
 		this.subPattern	= subPattern;
+	}
+
+	@Override
+	public String debugString() {
+		StringBuffer result = new StringBuffer("PATTERN(");
+		
+		result.append(r1.debugString());
+		
+		if(relation == null) {
+			result.append(")");
+			return result.toString();
+		}
+		
+		else
+			result.append(" " + relation.debugString() + " " + r2.debugString());
+		
+		if(subPattern == null) {
+			result.append(")");
+			return result.toString();
+		}
+		
+		else {
+			result.append(" " + subPattern.debugString());
+			result.append(")");
+			return result.toString();
+		}
 	}
 }

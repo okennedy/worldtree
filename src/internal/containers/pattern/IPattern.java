@@ -1,5 +1,7 @@
 package internal.containers.pattern;
 
-public interface IPattern {
+import internal.containers.IContainer;
+
+public interface IPattern extends IContainer {
 
 }

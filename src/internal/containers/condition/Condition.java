@@ -40,4 +40,19 @@ public class Condition implements ICondition {
 	public String toString() {
 		return statement();
 	}
+
+	@Override
+	public String debugString() {
+		StringBuffer result = new StringBuffer("CONDITION(" + baseCondition.debugString());
+		
+		if(subCondition == null) {
+			result.append(")");
+			return result.toString();
+		}
+		else {
+			result.append(" , " + subCondition.debugString());
+			result.append(")");
+			return result.toString();
+		}
+	}
 }

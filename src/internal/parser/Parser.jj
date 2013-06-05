@@ -19,9 +19,9 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < DEFINE	: "DEFINE" >
 |   < AS		: "AS" >
 |   < IN		: "IN" >
+|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >
 |   < CONSTANT 	: (< DIGIT >)+ >
 |   < #DIGIT 	: [ "0"-"9" ] >
-|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >
 |   < COMMA		: "," >
 |   < PLUS 		: "+" >
 |   < MINUS 	: "-" >
@@ -54,7 +54,12 @@ Relation relation() :
     String name = null, regex = null;
 }
 {
-    name = word() (< MULTIPLY > | < PLUS >)?    {        regex = token.image;
+    LOOKAHEAD(2) name = word() < MULTIPLY >    {        regex = token.image;
+        return new Relation(name, regex);
+    }
+|   LOOKAHEAD(2) name = word() < PLUS >
+    {
+        regex = token.image;
         return new Relation(name, regex);
     }
 |   < LPARANS > relation = relation() < RPARANS >    {        return relation;    }
@@ -82,17 +87,22 @@ String word() :
     < WORD > { return token.image; }
 }
 
-double constant() :
+String constant() :
 {
     Token integer = null, decimal = null;
 }
 {
-    LOOKAHEAD(2) < CONSTANT >    {        integer = token;    }    "." < CONSTANT >
-    {        decimal = token;
-        return Double.parseDouble(integer.image + "." + token.image);
+    LOOKAHEAD(2) < CONSTANT >    {        integer = token;
+        return integer.image;    }
+|   < CONSTANT >
+    {
+        integer = token;
     }
-|   < CONSTANT >    {        integer = token;
-        return Double.parseDouble(integer.image);    }
+    "." < CONSTANT >
+    {
+        decimal = token;
+        return integer.image + "." + decimal.image;
+    }
 }
 
 Reference reference() :
@@ -108,6 +118,17 @@ Property property() :
     String name = null, value = null;
 }
 {
-    ref = reference() "." name = word() < EQUALS > value = word()
+    ref = reference() "." name = word() < EQUALS > value = constant()
     {        return new Property(ref, name, value);    }    
+}
+
+Object parse() :
+{
+    Object o = null;
+}
+{
+    LOOKAHEAD(2) o = query()	{ return o; }
+|   LOOKAHEAD(2) o = pattern() 	{ return o; }
+|   LOOKAHEAD(3) o = relation()	{ return o; }
+|   o = condition()				{ return o; }
 }

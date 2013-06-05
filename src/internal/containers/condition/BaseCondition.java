@@ -35,4 +35,17 @@ public class BaseCondition implements ICondition {
 	public String toString() {
 		return statement();
 	}
+
+	@Override
+	public String debugString() {
+		StringBuffer result = new StringBuffer("CONDITION(");
+		
+		if(not)
+			result.append("NOT ");
+		
+		result.append(property.debugString());
+		result.append(")");
+		
+		return result.toString();
+	}
 }

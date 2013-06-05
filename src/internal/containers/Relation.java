@@ -1,6 +1,6 @@
 package internal.containers;
 
-public class Relation {
+public class Relation implements IContainer {
 	private String name;
 	private String regex;
 	
@@ -15,5 +15,12 @@ public class Relation {
 	@Override
 	public String toString() {
 		return name + regex;
+	}
+
+
+
+	@Override
+	public String debugString() {
+		return "RELATION(" + name + regex + ")";
 	}
 }
