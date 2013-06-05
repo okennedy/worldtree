@@ -140,7 +140,6 @@ IContainer parse() :
 {
     IContainer o = null;
 }
-{
-    (        LOOKAHEAD(2352523) o = query()		{ return o; }|       LOOKAHEAD(3) o = pattern() 		{ return o; }
-|       LOOKAHEAD(3) o = condition()	{ return o; }        o = relation()					{ return o; }        )?
+{    LOOKAHEAD(2352523) o = query()		{ return o; }|   LOOKAHEAD(3) o = pattern() 		{ return o; }
+|   LOOKAHEAD(3) o = condition()	{ return o; }|    o = relation()					{ return o; }
 }
