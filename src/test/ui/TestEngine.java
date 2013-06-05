@@ -19,18 +19,18 @@ public class TestEngine {
 	
 	public static void init(IMap map) {
 		BufferedReader in = null;
+		
 		try {
 			in = new BufferedReader(new InputStreamReader(System.in));
 			String command;
-
 			map.initialize();	//Map initialized
 			map.initialize();	//Rooms initialized
 			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0
 			while(true) {
 				command = in.readLine();
-				TestCommandParser.ReInit(new StringReader(command));
+				TestCommandParser testParser = new TestCommandParser(new StringReader(command));
 				try {
-					TestCommandParser.parse(child);
+					testParser.parse(child);
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}

@@ -1,15 +1,15 @@
 /**
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
- */options{    JDK_VERSION = "1.5";    static = true;}PARSER_BEGIN(TestCommandParser)package test.parser;
+ */options{    JDK_VERSION = "1.5";    static = false;}PARSER_BEGIN(TestCommandParser)package test.parser;
 
 import internal.tree.IWorldTree;
 import test.ui.TestEngine;
 
 public class TestCommandParser{}PARSER_END(TestCommandParser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN [IGNORE_CASE] :{
-    < UP		: "U(P)?" >
-|   < DOWN		: "D(OWN)?" >
-|   < LEFT		: "L(EFT)?" >
-|   < RIGHT		: "R(IGHT)?" >|   < PLUS 		: "+" >|   < MINUS 	: "-" >|   < MULTIPLY 	: "*" >|   < DIVIDE 	: "/" >
+    < UP		: "UP" >
+|   < DOWN		: "DOWN" >
+|   < LEFT		: "LEFT" >
+|   < RIGHT		: "RIGHT" >|   < PLUS 		: "+" >|   < MINUS 	: "-" >|   < MULTIPLY 	: "*" >|   < DIVIDE 	: "/" >
 |   < CONSTANT 	: (< DIGIT >)+ >
 |   < #DIGIT 	: [ "0"-"9" ] >}
 
