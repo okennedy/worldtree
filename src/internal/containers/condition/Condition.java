@@ -15,6 +15,11 @@ public class Condition implements ICondition {
 		this.baseCondition	= new BaseCondition(not, condition.property());
 		this.subCondition	= condition.subCondition();
 	}
+	
+	Condition(ICondition baseCondition, ICondition subCondition) {
+		this.baseCondition	= baseCondition;
+		this.subCondition	= subCondition;
+	}
 
 	@Override
 	public String statement() {
