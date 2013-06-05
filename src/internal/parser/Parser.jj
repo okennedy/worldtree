@@ -19,7 +19,7 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < DEFINE	: "DEFINE" >
 |   < AS		: "AS" >
 |   < IN		: "IN" >
-|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >
+|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])* >
 |   < CONSTANT 	: (< DIGIT >)+ >
 |   < #DIGIT 	: [ "0"-"9" ] >
 |   < COMMA		: "," >
