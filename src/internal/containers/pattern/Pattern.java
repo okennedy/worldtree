@@ -8,7 +8,7 @@ public class Pattern {
 	private Relation relation;
 	private Pattern subPattern;
 	
-	Pattern(Reference r1, Relation relation, Reference r2, Pattern subPattern) {
+	public Pattern(Reference r1, Relation relation, Reference r2, Pattern subPattern) {
 		this.r1			= r1;
 		this.relation	= relation;
 		this.r2			= r2;

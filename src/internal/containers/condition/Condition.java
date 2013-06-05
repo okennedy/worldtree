@@ -6,17 +6,17 @@ public class Condition implements ICondition {
 	private ICondition baseCondition;
 	private ICondition subCondition;
 	
-	Condition(boolean not, Property property, ICondition subCondition) {
+	public Condition(boolean not, Property property, ICondition subCondition) {
 		this.baseCondition	= new BaseCondition(not, property);
 		this.subCondition	= subCondition;
 	}
 	
-	Condition(boolean not, ICondition condition) {
+	public Condition(boolean not, ICondition condition) {
 		this.baseCondition	= new BaseCondition(not, condition.property());
 		this.subCondition	= condition.subCondition();
 	}
 	
-	Condition(ICondition baseCondition, ICondition subCondition) {
+	public Condition(ICondition baseCondition, ICondition subCondition) {
 		this.baseCondition	= baseCondition;
 		this.subCondition	= subCondition;
 	}

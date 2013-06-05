@@ -2,6 +2,10 @@
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
  */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(Parser)package internal.parser;
 
+import internal.containers.*;
+import internal.containers.pattern.*;
+import internal.containers.condition.*;
+
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}
 TOKEN [IGNORE_CASE] : /* KEYWORDS */
 {    < FOR		: "FOR" >
@@ -31,7 +35,9 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 Pattern pattern() :
 {}
 {
-    LOOKAHEAD(4) reference() relation() reference() (< COMMA > pattern())*}
+    LOOKAHEAD(4) reference() relation() reference() (< COMMA > pattern())*
+    {        return null;
+    }}
 
 Query query() :
 {
@@ -61,7 +67,7 @@ ICondition condition() :
     ICondition condition = null, subCondition = null;
 }
 {
-    property = property()    {        return new BaseCondition(null, property, null);    }    
+    property = property()    {        return new BaseCondition(false, property);    }    
 |   < NOT > condition = condition()    {        not = true;
         return new BaseCondition(not, condition.property());
     }
@@ -96,9 +102,9 @@ Reference reference() :
     < WORD > { return new Reference(token.image); }
 }
 
-String property() :
+Property property() :
 {
 }
 {
-    word() { return token.image; }
+    word() { return new Property(token.image); }
 }
