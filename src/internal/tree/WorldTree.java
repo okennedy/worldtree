@@ -1,6 +1,6 @@
 package internal.tree;
 
-import internal.constraint.Constraint;
+import internal.containers.Constraint;
 
 import java.util.ArrayList;
 import java.util.Collection;

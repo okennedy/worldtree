@@ -1,4 +1,4 @@
-package internal.constraint;
+package internal.containers;
 
 public class Constraint {
 
