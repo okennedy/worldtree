@@ -16,14 +16,13 @@ import internal.tree.IWorldTree.IMap;
 import internal.tree.IWorldTree.IRegion;
 
 public class TestEngine {
-	private static IWorldTree map = null;
 	
 	public static void init(IMap map) {
 		BufferedReader in = null;
 		try {
 			in = new BufferedReader(new InputStreamReader(System.in));
 			String command;
-			TestEngine.map = map;
+
 			map.initialize();	//Map initialized
 			map.initialize();	//Rooms initialized
 			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0
@@ -51,11 +50,11 @@ public class TestEngine {
 		}
 	}
 	
-	public static void write() {
+	public static void write(IWorldTree object) {
 		BufferedWriter out = null;
 		try {
 			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));
-			out.write(map.toString());
+			out.write(object.toString());
 		} catch(IOException e) {
 			e.printStackTrace();
 		} finally {

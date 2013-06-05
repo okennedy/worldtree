@@ -229,7 +229,6 @@ public class WorldTreeFactory {
 					space.setByCoord(indices[0], indices[1], tile);
 				}
 				directions.remove(direction);
-				TestEngine.write();
 			}
 		}
 

@@ -3,6 +3,7 @@
  */options{    JDK_VERSION = "1.5";    static = true;}PARSER_BEGIN(TestCommandParser)package test.parser;
 
 import internal.tree.IWorldTree;
+import test.ui.TestEngine;
 
 public class TestCommandParser{}PARSER_END(TestCommandParser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN [IGNORE_CASE] :{
     < UP		: "U(P)?" >
@@ -25,6 +26,10 @@ void parse(IWorldTree object) :
 {
     Direction d = null;
 }
-{    (        d = direction()		{ object.move(d); }
+{    (        d = direction()
+        {
+            object.move(d);
+            TestEngine.write(object.root());
+        }
     )
 }   
