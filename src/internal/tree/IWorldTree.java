@@ -3,8 +3,6 @@ package internal.tree;
 import java.util.Collection;
 import java.util.List;
 
-import test.commands.Command;
-
 import internal.piece.IPiece;
 
 public interface IWorldTree {
@@ -31,7 +29,7 @@ public interface IWorldTree {
 	 */
 	public void initialize();
 	
-	public void move(Command command);
+	public void move(test.parser.Direction direction);
 	
 	List<String> getStringRepresentation();
 	

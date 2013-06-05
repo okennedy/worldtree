@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import test.commands.Command;
 import test.ui.TestEngine;
 
 import internal.constraint.Constraint;
@@ -62,7 +61,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(Command command) {
+		public void move(test.parser.Direction direction) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -93,7 +92,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(Command command) {
+		public void move(test.parser.Direction direction) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -149,11 +148,10 @@ public class WorldTreeFactory {
 			return tile;
 		}
 		
-		
 		@Override
-		public void move(Command command) {
+		public void move(test.parser.Direction direction) {		//FIXME
 			int[] coords = space.currentCoordinates();
-			switch(command) {
+			switch(direction) {
 			case UP:
 				coords[1]++;
 				break;
@@ -310,7 +308,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(Command command) {
+		public void move(test.parser.Direction direction) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -337,7 +335,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(Command command) {
+		public void move(test.parser.Direction direction) {
 			// TODO Auto-generated method stub
 			
 		}

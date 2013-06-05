@@ -6,8 +6,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 
-import test.commands.Command;
+import test.parser.ParseException;
+import test.parser.TestCommandParser;
 
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.IMap;
@@ -27,7 +29,12 @@ public class TestEngine {
 			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0
 			while(true) {
 				command = in.readLine();
-				parse(command, child);
+				TestCommandParser.ReInit(new StringReader(command));
+				try {
+					TestCommandParser.parse(child);
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
@@ -43,30 +50,6 @@ public class TestEngine {
 			}
 		}
 	}
-
-	private static Command parse(String command, IRegion object) {
-		Command cmd = Command.parse(command);
-		switch(cmd) {
-		case UP:
-		case DOWN:
-		case LEFT:
-		case RIGHT:
-			object.move(cmd);
-			write();
-		case INSPECT:
-			break;
-		
-		case QUERY:
-			break;
-		
-		case WRITE:
-			break;
-		default:
-			break;
-		}
-		return null;
-	}
-	
 	
 	public static void write() {
 		BufferedWriter out = null;
