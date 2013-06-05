@@ -1,5 +1,11 @@
 package test.ui;
 
+import static org.junit.Assert.*;
+
+import internal.tree.IWorldTree;
+import internal.tree.IWorldTree.IMap;
+import internal.tree.IWorldTree.IRegion;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -8,14 +14,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 
-
-import internal.tree.IWorldTree;
-import internal.tree.IWorldTree.IMap;
-import internal.tree.IWorldTree.IRegion;
+import org.junit.Test;
 
 public class UIDebugEngine {
 	
-	public static void init(IMap map) {
+	@Test
+	public static void movementTest(IMap map) {
 		BufferedReader in = null;
 		
 		try {
@@ -65,4 +69,5 @@ public class UIDebugEngine {
 			}
 		}
 	}
+
 }
