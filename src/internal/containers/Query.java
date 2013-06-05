@@ -2,7 +2,6 @@ package internal.containers;
 
 import internal.containers.condition.ICondition;
 import internal.containers.pattern.IPattern;
-import internal.containers.pattern.Pattern;
 
 public class Query implements IContainer {
 	private IPattern pattern;

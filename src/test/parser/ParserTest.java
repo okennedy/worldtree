@@ -37,8 +37,10 @@ public class ParserTest {
 			}
 		} catch(IOException e) {
 			e.printStackTrace();
+			fail();
 		} catch (ParseException e) {
 			e.printStackTrace();
+			fail();
 		}
 	}
 

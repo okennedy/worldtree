@@ -40,6 +40,7 @@ public class UIDebugEngine {
 		} catch (IOException e) {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
+			fail();
 		} finally {
 			if(in != null) {
 				try {
@@ -47,6 +48,7 @@ public class UIDebugEngine {
 				} catch (IOException e) {
 					System.err.println(e.getMessage());
 					e.printStackTrace();
+					fail();
 				}
 			}
 		}
