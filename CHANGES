@@ -1,3 +1,14 @@
+06042013:gurupras
+	Working on container classes
+	Condition class seems to be fully implemented - verify field types
+	
+        TODO-LIST
+	    - Port all UI related parsing to JavaCC
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
 05292013:gurupras
 	Started work on parser
 
