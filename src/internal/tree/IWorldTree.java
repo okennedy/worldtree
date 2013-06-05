@@ -29,6 +29,12 @@ public interface IWorldTree {
 	 */
 	public void initialize();
 	
+	/**
+	 * Obtain root of this WorldTree
+	 * @return {@code IWorldTree} representing the root of this WorldTree
+	 */
+	public IWorldTree root();
+	
 	public void move(test.parser.Direction direction);
 	
 	List<String> getStringRepresentation();
