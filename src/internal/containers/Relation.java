@@ -1,4 +1,4 @@
-package internal.parser;
+package internal.containers;
 
 public class Relation {
 	private String name;

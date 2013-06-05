@@ -1,4 +1,6 @@
-package internal.parser;
+package internal.containers;
+
+import internal.containers.condition.Condition;
 
 public class Query {
 	private Pattern pattern;

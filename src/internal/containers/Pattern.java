@@ -1,4 +1,4 @@
-package internal.parser;
+package internal.containers;
 
 public class Pattern {
 	private Reference r1, r2;
