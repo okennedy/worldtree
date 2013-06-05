@@ -4,10 +4,12 @@ import internal.containers.Property;
 
 public class Condition implements ICondition {
 	private ICondition baseCondition;
+	UnionType unionType;
 	private ICondition subCondition;
 	
-	public Condition(boolean not, Property property, ICondition subCondition) {
+	public Condition(boolean not, Property property, UnionType unionType, ICondition subCondition) {
 		this.baseCondition	= new BaseCondition(not, property);
+		this.unionType		= unionType;
 		this.subCondition	= subCondition;
 	}
 	
@@ -16,14 +18,10 @@ public class Condition implements ICondition {
 		this.subCondition	= condition.subCondition();
 	}
 	
-	public Condition(ICondition baseCondition, ICondition subCondition) {
+	public Condition(ICondition baseCondition, UnionType unionType, ICondition subCondition) {
 		this.baseCondition	= baseCondition;
+		this.unionType		= unionType;
 		this.subCondition	= subCondition;
-	}
-
-	@Override
-	public String statement() {
-		return baseCondition.statement() + " " + subCondition.statement();
 	}
 
 	@Override
@@ -38,7 +36,7 @@ public class Condition implements ICondition {
 	
 	@Override
 	public String toString() {
-		return statement();
+		return baseCondition + " " + unionType + " " + subCondition;
 	}
 
 	@Override
@@ -50,7 +48,7 @@ public class Condition implements ICondition {
 			return result.toString();
 		}
 		else {
-			result.append(" , " + subCondition.debugString());
+			result.append(" " + unionType + " " + subCondition.debugString());
 			result.append(")");
 			return result.toString();
 		}

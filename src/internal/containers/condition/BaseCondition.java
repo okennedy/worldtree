@@ -12,16 +12,6 @@ public class BaseCondition implements ICondition {
 	}
 
 	@Override
-	public String statement() {
-		StringBuffer returnString = new StringBuffer();
-		if(not)
-			returnString.append("NOT ");
-		
-		returnString.append(property.toString());
-		return returnString.toString();
-	}
-
-	@Override
 	public Property property() {
 		return property;
 	}
@@ -33,7 +23,12 @@ public class BaseCondition implements ICondition {
 	
 	@Override
 	public String toString() {
-		return statement();
+		StringBuffer returnString = new StringBuffer();
+		if(not)
+			returnString.append("NOT ");
+		
+		returnString.append(property.toString());
+		return returnString.toString();
 	}
 
 	@Override

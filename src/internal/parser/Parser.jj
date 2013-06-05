@@ -79,6 +79,7 @@ ICondition condition() :
 {
     Property property = null;
     Boolean not = null;
+    UnionType unionType = null;
     ICondition condition = null, subCondition = null;
 }
 {
@@ -86,7 +87,9 @@ ICondition condition() :
 |   < NOT > condition = condition()    {        not = true;
         return new BaseCondition(not, condition.property());
     }
-|   < LPARANS > condition = condition() (< AND > | < OR >) subCondition = condition() < RPARANS >    {        return new Condition(condition, subCondition);    }
+|   < LPARANS > condition = condition()
+    (< AND > | < OR >) { unionType = UnionType.getType(token.image); }
+    subCondition = condition() < RPARANS >    { return new Condition(condition, unionType, subCondition); }
 }
 
 String word() :
