@@ -104,7 +104,10 @@ Reference reference() :
 
 Property property() :
 {
+    Reference ref = null;
+    String name = null, value = null;
 }
 {
-    word() { return new Property(token.image); }
+    ref = reference() "." name = word() < EQUALS > value = word()
+    {        return new Property(ref, name, value);    }    
 }
