@@ -1,4 +1,7 @@
-package internal.containers;
+package internal.containers.pattern;
+
+import internal.containers.Reference;
+import internal.containers.Relation;
 
 public class Pattern {
 	private Reference r1, r2;

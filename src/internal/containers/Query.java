@@ -1,8 +1,8 @@
 package internal.containers;
 
-import internal.containers.Pattern.Pattern;
 import internal.containers.condition.Condition;
 import internal.containers.condition.ICondition;
+import internal.containers.pattern.Pattern;
 
 public class Query {
 	private Pattern pattern;
