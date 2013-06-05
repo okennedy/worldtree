@@ -2,11 +2,8 @@ package internal.tree;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-
-import test.ui.UIDebugEngine;
 
 import internal.constraint.Constraint;
 import internal.piece.IPiece;
@@ -61,7 +58,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(test.parser.Direction direction) {
+		public void move(test.ui.Direction direction) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -92,7 +89,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(test.parser.Direction direction) {
+		public void move(test.ui.Direction direction) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -149,7 +146,7 @@ public class WorldTreeFactory {
 		}
 		
 		@Override
-		public void move(test.parser.Direction direction) {		//FIXME
+		public void move(test.ui.Direction direction) {		//FIXME
 			int[] coords = space.currentCoordinates();
 			switch(direction) {
 			case UP:
@@ -307,7 +304,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(test.parser.Direction direction) {
+		public void move(test.ui.Direction direction) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -334,7 +331,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(test.parser.Direction direction) {
+		public void move(test.ui.Direction direction) {
 			// TODO Auto-generated method stub
 			
 		}

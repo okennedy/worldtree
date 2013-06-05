@@ -1,11 +1,11 @@
 /**
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
- */options{    JDK_VERSION = "1.5";    static = false;}PARSER_BEGIN(TestCommandParser)package test.parser;
+ */options{    JDK_VERSION = "1.5";    static = false;}PARSER_BEGIN(UIDebugParser)package test.ui;
 
 import internal.tree.IWorldTree;
-import test.ui.TestEngine;
+import test.ui.UIDebugEngine;
 
-public class TestCommandParser{}PARSER_END(TestCommandParser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN [IGNORE_CASE] :{
+public class UIDebugParser{}PARSER_END(UIDebugParser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN [IGNORE_CASE] :{
     < UP		: "UP" >
 |   < DOWN		: "DOWN" >
 |   < LEFT		: "LEFT" >
@@ -29,7 +29,7 @@ void parse(IWorldTree object) :
 {    (        d = direction()
         {
             object.move(d);
-            TestEngine.write(object.root());
+            UIDebugEngine.write(object.root());
         }
     )
 }   

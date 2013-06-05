@@ -1,4 +1,4 @@
-package test.parser;
+package test.ui;
 
 public enum Direction {
 	UP("UP"),

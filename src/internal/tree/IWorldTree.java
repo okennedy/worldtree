@@ -35,7 +35,7 @@ public interface IWorldTree {
 	 */
 	public IWorldTree root();
 	
-	public void move(test.parser.Direction direction);
+	public void move(test.ui.Direction direction);
 	
 	List<String> getStringRepresentation();
 	

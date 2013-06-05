@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 
-import test.parser.ParseException;
-import test.parser.TestCommandParser;
 
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.IMap;
@@ -28,7 +26,7 @@ public class UIDebugEngine {
 			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0
 			while(true) {
 				command = in.readLine();
-				TestCommandParser testParser = new TestCommandParser(new StringReader(command));
+				UIDebugParser testParser = new UIDebugParser(new StringReader(command));
 				try {
 					testParser.parse(child);
 				} catch (ParseException e) {
