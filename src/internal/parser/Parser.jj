@@ -31,6 +31,7 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < DIVIDE 	: "/" >
 |   < LPARANS	: "(" >
 |   < RPARANS	: ")" >
+|   < DOT		: "." >
 }
 
 IPattern pattern() :
@@ -111,7 +112,7 @@ String constant() :
     {
         integer = token;
     }
-    "." < CONSTANT >
+    < DOT > < CONSTANT >
     {
         decimal = token;
         return integer.image + "." + decimal.image;
@@ -131,7 +132,7 @@ Property property() :
     String name = null, value = null;
 }
 {
-    ref = reference() "." name = word() < EQUALS > value = constant()
+    ref = reference() < DOT > name = word() < EQUALS > value = constant()
     {        return new Property(ref, name, value);    }    
 }
 
