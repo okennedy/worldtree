@@ -38,7 +38,7 @@ IPattern pattern() :
 {
     IPattern pattern = null, subPattern = null;}
 {
-    LOOKAHEAD(4) pattern = basePattern() < COMMA > subPattern = pattern()    {        return new Pattern(pattern, subPattern);
+    LOOKAHEAD(412421) pattern = basePattern() < COMMA > subPattern = pattern()    {        return new Pattern(pattern, subPattern);
     }
 |   pattern = basePattern()
     {        return pattern;    }}
