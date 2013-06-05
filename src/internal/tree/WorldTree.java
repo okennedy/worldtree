@@ -40,6 +40,13 @@ public abstract class WorldTree implements IWorldTree {
 		return children;
 	}
 	
+	public IWorldTree root() {
+		if(this.parent == null)
+			return this;
+		else
+			return this.parent.root();
+	}
+	
 	/**
 	 * Get set of strings used to represent this WorldTree instance.
 	 * @return {@code List<String>} containing the strings used to visually represent this WorldTree instance.

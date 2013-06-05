@@ -1,12 +1,12 @@
 /**
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
- */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(EG1)package internal.parser;
+ */options{  JDK_VERSION = "1.5";  static = false;}PARSER_BEGIN(Parser)package internal.parser;
 
-public class EG1{}PARSER_END(EG1)SKIP :{    " "|   "\r"|   "\t"|   "\n"}
-TOKEN : /* SYMBOLS */
-{    < COMMA		: "," >
-}
-TOKEN : /* OPERATORS */{    < PLUS 		: "+" >|   < MINUS 		: "-" >|   < MULTIPLY	: "*" >|   < DIVIDE 		: "/" >}
+import internal.containers.*;
+import internal.containers.pattern.*;
+import internal.containers.condition.*;
+
+public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}
 TOKEN [IGNORE_CASE] : /* KEYWORDS */
 {    < FOR		: "FOR" >
 |   < ALL		: "ALL" >
@@ -19,36 +19,65 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < DEFINE	: "DEFINE" >
 |   < AS		: "AS" >
 |   < IN		: "IN" >
+|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >
+|   < CONSTANT 	: (< DIGIT >)+ >
+|   < #DIGIT 	: [ "0"-"9" ] >
+|   < COMMA		: "," >
+|   < PLUS 		: "+" >
+|   < MINUS 	: "-" >
+|   < MULTIPLY	: "*" >
+|   < EQUALS	: "=" >
+|   < DIVIDE 	: "/" >
+|   < LPARANS	: "(" >
+|   < RPARANS	: ")" >
 }
-TOKEN :{    < CONSTANT 	: (< DIGIT >)+ >|   < #DIGIT 	: [ "0"-"9" ] >
-|   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])+ >}
-void pattern() :
+
+Pattern pattern() :
 {}
-{    word() (relation() word() (< COMMA > pattern())* )?}
+{
+    LOOKAHEAD(4) reference() relation() reference() (< COMMA > pattern())*
+    {        return null;
+    }}
 
-void query() :
+Query query() :
 {
+    Pattern pattern = null;
+    ICondition condition = null;
 }
 {
-    pattern() < WHERE > condition() (< UNION > query())?
-}
-
-void relation() :
-{
-}
-{
-    word()
-|   LOOKAHEAD(2) relation() < MULTIPLY >
-|   LOOKAHEAD(2) relation() < PLUS >
+    pattern = pattern() < WHERE > condition = condition() (< UNION > query())?    {        return new Query(pattern, condition);    }    
 }
 
-void condition() :
+Relation relation() :
 {
+    Relation relation = null;
+    String name = null, regex = null;
 }
 {
-    word() "." word() = constant()
-|   < NOT > condition()
-|   condition() (< AND > | < OR >) condition()
+    LOOKAHEAD(2) name = word() < MULTIPLY >    {        regex = token.image;
+        return new Relation(name, regex);
+    }
+|   LOOKAHEAD(2) name = word() < PLUS >
+    {
+        regex = token.image;
+        return new Relation(name, regex);
+    }
+|   < LPARANS > relation = relation() < RPARANS >    {        return relation;    }
+}
+
+ICondition condition() :
+{
+    Property property = null;
+    Boolean not = null;
+    ICondition condition = null, subCondition = null;
+}
+{
+    property = property()    {        return new BaseCondition(false, property);    }    
+|   < NOT > condition = condition()    {        not = true;
+        return new BaseCondition(not, condition.property());
+    }
+        
+|   < LPARANS > condition = condition() (< AND > | < OR >) subCondition = condition() < RPARANS >    {        return new Condition(condition, subCondition);    }
 }
 
 String word() :
@@ -58,10 +87,48 @@ String word() :
     < WORD > { return token.image; }
 }
 
-double constant() :
+String constant() :
 {
-    Token integer, decimal;
+    Token integer = null, decimal = null;
 }
 {
-    < CONSTANT > { return Double.parseDouble(token.image); }
-|   LOOKAHEAD(2) integer = < CONSTANT > "." decimal = < CONSTANT > { return Double.parseDouble(integer + "." + decimal);}}
+    LOOKAHEAD(2) < CONSTANT >    {        integer = token;
+        return integer.image;    }
+|   < CONSTANT >
+    {
+        integer = token;
+    }
+    "." < CONSTANT >
+    {
+        decimal = token;
+        return integer.image + "." + decimal.image;
+    }
+}
+
+Reference reference() :
+{
+}
+{
+    < WORD > { return new Reference(token.image); }
+}
+
+Property property() :
+{
+    Reference ref = null;
+    String name = null, value = null;
+}
+{
+    ref = reference() "." name = word() < EQUALS > value = constant()
+    {        return new Property(ref, name, value);    }    
+}
+
+IContainer parse() :
+{
+    IContainer o = null;
+}
+{
+    LOOKAHEAD(2) o = query()	{ return o; }
+|   LOOKAHEAD(2) o = pattern() 	{ return o; }
+|   LOOKAHEAD(3) o = relation()	{ return o; }
+|   o = condition()				{ return o; }
+}

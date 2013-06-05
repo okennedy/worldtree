@@ -1,0 +1,35 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */options{    JDK_VERSION = "1.5";    static = false;}PARSER_BEGIN(UIDebugParser)package test.ui;
+
+import internal.tree.IWorldTree;
+import test.ui.UIDebugEngine;
+
+public class UIDebugParser{}PARSER_END(UIDebugParser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN [IGNORE_CASE] :{
+    < UP		: "UP" >
+|   < DOWN		: "DOWN" >
+|   < LEFT		: "LEFT" >
+|   < RIGHT		: "RIGHT" >|   < PLUS 		: "+" >|   < MINUS 	: "-" >|   < MULTIPLY 	: "*" >|   < DIVIDE 	: "/" >
+|   < CONSTANT 	: (< DIGIT >)+ >
+|   < #DIGIT 	: [ "0"-"9" ] >}
+
+Direction direction() :
+{}
+{
+    (        < UP >		{ return Direction.getDirection(token.image); }    |   < DOWN >	{ return Direction.getDirection(token.image); }
+    |   < LEFT >	{ return Direction.getDirection(token.image); }
+    |   < RIGHT >	{ return Direction.getDirection(token.image); }
+    )
+}
+
+void parse(IWorldTree object) :
+{
+    Direction d = null;
+}
+{    (        d = direction()
+        {
+            object.move(d);
+            UIDebugEngine.write(object.root());
+        }
+    )
+}   
