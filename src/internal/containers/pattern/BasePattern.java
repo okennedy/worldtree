@@ -14,6 +14,11 @@ public class BasePattern implements IPattern {
 	}
 	
 	@Override
+	public String toString() {
+		return r1.toString() + " " + relation.toString() + " " + r2.toString();
+	}
+	
+	@Override
 	public String debugString() {
 		return "PATTERN(" + r1.debugString() + " " + relation.debugString() + " " + r2.debugString() + ")";
 	}

@@ -18,6 +18,16 @@ public class Pattern implements IPattern {
 	}
 
 	@Override
+	public String toString() {
+		StringBuffer result = new StringBuffer(basePattern.toString());
+		
+		if(subPattern != null)
+			result.append(" " + subPattern.toString());
+		
+		return result.toString();
+	}
+	
+	@Override
 	public String debugString() {
 		StringBuffer result = new StringBuffer("PATTERN(");
 		
