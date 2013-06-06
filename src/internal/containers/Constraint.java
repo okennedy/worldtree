@@ -1,6 +1,7 @@
 package internal.containers;
 
 import internal.containers.condition.ICondition;
+import internal.containers.query.Query;
 
 public class Constraint implements IContainer {
 	private Query query;

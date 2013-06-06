@@ -1,5 +1,6 @@
-package internal.containers;
+package internal.containers.query;
 
+import internal.containers.IContainer;
 import internal.containers.condition.ICondition;
 import internal.containers.pattern.IPattern;
 
