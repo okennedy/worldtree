@@ -31,7 +31,13 @@ public class Query implements IQuery {
 	
 	@Override
 	public String debugString() {
-		return "QUERY(" + baseQuery.debugString() + " UNION " + subQuery.debugString() + ")";
+		StringBuffer result = new StringBuffer("QUERY(" + baseQuery.debugString());
+		
+		if(subQuery != null)
+			result.append(" UNION " + subQuery.debugString());
+		
+		result.append(")");
+		return result.toString();
 	}
 
 
