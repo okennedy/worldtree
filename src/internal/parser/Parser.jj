@@ -5,6 +5,7 @@
 import internal.containers.*;
 import internal.containers.pattern.*;
 import internal.containers.condition.*;
+import internal.containers.query.*;
 
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"
 |   ";"}
@@ -48,14 +49,21 @@ BasePattern basePattern() :
 {    r1 = reference() relation = relation() r2 = reference() { return new BasePattern(r1, relation, r2); }
 }
 
-Query query() :
+IQuery query() :
+{
+    IQuery query = null, subQuery = null;
+}
+{
+    LOOKAHEAD(412421) query = baseQuery() (< UNION > subQuery = query())? { return new Query(query, subQuery); }
+|   query = baseQuery() { return query; }
+}
+
+BaseQuery baseQuery() :
 {
     IPattern pattern = null;
     ICondition condition = null;
 }
-{
-    pattern = pattern() < WHERE > condition = condition() (< UNION > query())? { return new Query(pattern, condition); }
-}
+{    pattern = pattern() < WHERE > condition = condition() { return new BaseQuery(pattern, condition); }}
 
 Relation relation() :
 {
@@ -134,7 +142,7 @@ Property property() :
 }
 
 Constraint constraint() :
-{    Query query = null;
+{    IQuery query = null;
     ICondition condition = null;
 }
 {    < FOR > < ALL > query = query() < ASSERT > condition = condition() { return new Constraint(query, condition); }

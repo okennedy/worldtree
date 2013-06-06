@@ -1,13 +1,13 @@
 package internal.containers;
 
 import internal.containers.condition.ICondition;
-import internal.containers.query.Query;
+import internal.containers.query.IQuery;
 
 public class Constraint implements IContainer {
-	private Query query;
+	private IQuery query;
 	private ICondition condition;
 	
-	public Constraint(Query query, ICondition condition) {
+	public Constraint(IQuery query, ICondition condition) {
 		this.query		= query;
 		this.condition	= condition;
 	}
