@@ -43,14 +43,10 @@ public class Condition implements ICondition {
 	public String debugString() {
 		StringBuffer result = new StringBuffer("CONDITION(" + baseCondition.debugString());
 		
-		if(subCondition == null) {
-			result.append(")");
-			return result.toString();
-		}
-		else {
+		if(subCondition != null)
 			result.append(" " + unionType + " " + subCondition.debugString());
-			result.append(")");
-			return result.toString();
-		}
+
+		result.append(")");
+		return result.toString();
 	}
 }

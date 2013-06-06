@@ -23,15 +23,10 @@ public class Relation implements IContainer {
 	public String debugString() {
 		StringBuffer result = new StringBuffer("RELATION(" + name);
 		
-		if(regex == null) {
-			result.append(")");
-			return result.toString();
-		}
-		
-		else {
+		if(regex != null)
 			result.append(regex);
-			result.append(")");
-			return result.toString();
-		}
+		
+		result.append(")");
+		return result.toString();
 	}
 }

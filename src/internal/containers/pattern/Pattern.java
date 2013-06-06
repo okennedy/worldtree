@@ -33,15 +33,10 @@ public class Pattern implements IPattern {
 		
 		result.append(basePattern.debugString());
 		
-		if(subPattern == null) {
-			result.append(")");
-			return result.toString();
-		}
-		
-		else {
+		if(subPattern != null)
 			result.append(" , " + subPattern.debugString());
-			result.append(")");
-			return result.toString();
-		}
+		
+		result.append(")");
+		return result.toString();
 	}
 }
