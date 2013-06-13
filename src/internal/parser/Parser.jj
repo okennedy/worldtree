@@ -64,7 +64,7 @@ BaseQuery baseQuery() :
     IPattern pattern = null;
     ICondition condition = null;
 }
-{    pattern = pattern() < WHERE > condition = condition() { return new BaseQuery(pattern, condition); }}
+{    pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(pattern, condition); }}
 
 Relation relation() :
 {

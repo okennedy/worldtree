@@ -17,12 +17,21 @@ public class BaseQuery extends Statement implements IQuery {
 	
 	@Override
 	public String toString() {
-		return pattern.toString() + " WHERE " + condition.toString();
+		StringBuffer result = new StringBuffer(pattern.toString());
+		if(condition != null)
+			result.append(" WHERE " + condition.toString());
+		
+		return result.toString();
 	}
 
 	@Override
 	public String debugString() {
-		return "QUERY(" + pattern.debugString() + " WHERE " + condition.debugString() + ")";
+		StringBuffer result = new StringBuffer("QUERY(" + pattern.debugString());
+		
+		if(condition != null)
+			result.append(" WHERE " + condition.debugString() + ")");
+		
+		return result.toString();
 	}
 
 	@Override
