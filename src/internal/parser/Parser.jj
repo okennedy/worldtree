@@ -6,6 +6,7 @@ import internal.containers.*;
 import internal.containers.pattern.*;
 import internal.containers.condition.*;
 import internal.containers.query.*;
+import internal.containers.property.*;
 
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"
 |   ";"}
@@ -86,18 +87,16 @@ Relation relation() :
 ICondition condition() :
 {
     Property property = null;
-    Boolean not = null;
     UnionType unionType = null;
     ICondition condition = null, subCondition = null;
 }
 {
-    property = property() { return new BaseCondition(false, property); }
-|   < NOT > condition = condition()    {        not = true;
-        return new BaseCondition(not, condition.property());
-    }
-|   < LPARANS > condition = condition()
-    (< AND > | < OR >) { unionType = UnionType.getType(token.image); }
-    subCondition = condition() < RPARANS >    { return new Condition(condition, unionType, subCondition); }
+    LOOKAHEAD(5) property() (< AND > | < OR >) 	{ unionType = UnionType.getType(token.image); }
+    subCondition = condition() 					{ return new Condition(condition, unionType, subCondition); }
+    
+|   property = property() 						{ return new BaseCondition(false, property); }
+
+|   < NOT > condition = condition()				{ return new BaseCondition(true, condition.property()); }
 }
 
 String word() :
@@ -138,8 +137,12 @@ Property property() :
     String name = null, value = null;
 }
 {
-    ref = reference() < DOT > name = word() < EQUALS > value = constant() { return new Property(ref, name, value); }
-}
+    LOOKAHEAD(4) ref = reference() < DOT > name = word() < EQUALS > value = constant()
+    {
+        return new Property(ref, name, value);
+    }
+|   ref = reference() < DOT > name = word()    {
+        return new Property(ref, name, "1");    }}
 
 Constraint constraint() :
 {    IQuery query = null;
@@ -148,9 +151,21 @@ Constraint constraint() :
 {    < FOR > < ALL > query = query() < ASSERT > condition = condition() { return new Constraint(query, condition); }
 }
 
-IContainer parse() :
-{
-    IContainer o = null;
+PropertyDef propertyDef() :
+{    String level 		= null;
+    Reference ref 		= null;
+    String property 	= null;
+    ICondition condition = null;
+    IQuery query			= null;
 }
-{    o = query()			{ return o; }|   o = constraint()	{ return o; }
+{
+    < DEFINE > level = word() ref = reference() < DOT > property = word() < AS >
+    	condition = condition() < IN > query = query() { return new PropertyDef(level, ref, property, condition, query); }}
+
+IStatement parse() :
+{
+    IStatement s = null;
+}
+{    s = query()			{ return s; }|   s = constraint()	{ return s; }
+|   s = propertyDef()	{ return s; }
 }

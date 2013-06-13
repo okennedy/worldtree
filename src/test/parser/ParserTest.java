@@ -3,6 +3,7 @@ package test.parser;
 import static org.junit.Assert.*;
 
 import internal.containers.IContainer;
+import internal.containers.IStatement;
 import internal.parser.ParseException;
 import internal.parser.Parser;
 
@@ -30,7 +31,7 @@ public class ParserTest {
 				command.append(cmd);
 				if(command.toString().contains(";")) {
 					Parser parser = new Parser(new StringReader(command.toString()));
-					IContainer o = parser.parse();
+					IStatement o = parser.parse();
 					System.out.println(o.debugString());
 					command.delete(0, command.length());
 				}
