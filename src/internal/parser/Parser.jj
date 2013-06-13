@@ -13,6 +13,7 @@ public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"
 TOKEN [IGNORE_CASE] : /* KEYWORDS */
 {    < FOR		: "FOR" >
 |   < ALL		: "ALL" >
+|   < AGGREGATE	: "AGGREGATE" >
 |   < ASSERT	: "ASSERT" >
 |   < WHERE		: "WHERE" >
 |   < UNION		: "UNION" >
@@ -162,8 +163,11 @@ PropertyDef propertyDef() :
     IQuery query			= null;
 }
 {
-    < DEFINE > level = word() ref = reference() < DOT > property = word() < AS >
-    	condition = condition() < IN > query = query() { return new PropertyDef(level, ref, property, condition, query); }}
+    LOOKAHEAD(7) < DEFINE > level = word() ref = reference() < DOT > property = word() < AS > < AGGREGATE >
+    	condition = condition() < IN > query = query() { return new PropertyDef(level, ref, property, condition, query); }
+|   < DEFINE > level = word() ref = reference() < DOT > property = word() < AS >
+    	condition = condition() < IN > query = query() { return new PropertyDef(level, ref, property, condition, query); }
+ }
 
 IStatement parse() :
 {

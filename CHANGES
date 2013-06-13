@@ -1,3 +1,14 @@
+06132013:gurupras
+	Parser now handles property definition statements
+	Parser refactored to match updates to design document
+	
+	TODO-LIST
+	    - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
 06052013:gurupras
 	Finished implementing container classes
 	Finished implementing debug engine to test parser
