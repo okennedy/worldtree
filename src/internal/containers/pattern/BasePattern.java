@@ -24,8 +24,18 @@ public class BasePattern implements IPattern {
 	}
 
 	@Override
-	public IPattern base() {
-		return this;
+	public Reference lhs() {
+		return r1;
+	}
+
+	@Override
+	public Reference rhs() {
+		return r2;
+	}
+
+	@Override
+	public Relation relation() {
+		return relation;
 	}
 
 	@Override

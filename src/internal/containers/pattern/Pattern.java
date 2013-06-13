@@ -41,8 +41,18 @@ public class Pattern implements IPattern {
 	}
 
 	@Override
-	public IPattern base() {
-		return basePattern;
+	public Reference lhs() {
+		return basePattern.lhs();
+	}
+
+	@Override
+	public Reference rhs() {
+		return basePattern.rhs();
+	}
+
+	@Override
+	public Relation relation() {
+		return basePattern.relation();
 	}
 
 	@Override
