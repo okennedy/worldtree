@@ -39,4 +39,14 @@ public class Pattern implements IPattern {
 		result.append(")");
 		return result.toString();
 	}
+
+	@Override
+	public IPattern base() {
+		return basePattern;
+	}
+
+	@Override
+	public IPattern subPattern() {
+		return subPattern;
+	}
 }
