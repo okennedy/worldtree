@@ -91,12 +91,15 @@ ICondition condition() :
     ICondition condition = null, subCondition = null;
 }
 {
-    LOOKAHEAD(5) property() (< AND > | < OR >) 	{ unionType = UnionType.getType(token.image); }
-    subCondition = condition() 					{ return new Condition(condition, unionType, subCondition); }
+    LOOKAHEAD(5) property = property()  { condition = new BaseCondition(false, property); }
+    (< AND > | < OR >) 					{ unionType = UnionType.getType(token.image); }
+    subCondition = condition()			{ return new Condition(condition, unionType, subCondition); }
     
-|   property = property() 						{ return new BaseCondition(false, property); }
+|   property = property() 				{ return new BaseCondition(false, property); }
 
-|   < NOT > condition = condition()				{ return new BaseCondition(true, condition.property()); }
+|   < NOT > condition = condition()		{ return new BaseCondition(true, condition.property()); }
+
+|   < LPARANS > condition = condition() < RPARANS >	{ return condition; }
 }
 
 String word() :
