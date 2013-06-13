@@ -1,18 +1,22 @@
 package internal.containers.query;
 
+import internal.containers.Statement;
+import internal.containers.StatementType;
 import internal.containers.condition.ICondition;
 import internal.containers.pattern.IPattern;
 
-public class Query implements IQuery {
+public class Query extends Statement implements IQuery {
 	private IQuery baseQuery;
 	private IQuery subQuery;
 	
 	public Query(IPattern pattern, ICondition condition, Query subQuery) {
+		super(StatementType.QUERY);
 		this.baseQuery	= new BaseQuery(pattern, condition);
 		this.subQuery	= subQuery;
 	}
 	
 	public Query(IQuery baseQuery, IQuery subQuery) {
+		super(StatementType.QUERY);
 		this.baseQuery	= baseQuery;
 		this.subQuery	= subQuery;
 	}

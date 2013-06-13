@@ -1,6 +1,6 @@
 package internal.containers.condition;
 
-import internal.containers.Property;
+import internal.containers.property.Property;
 
 public class BaseCondition implements ICondition {
 	private boolean not;

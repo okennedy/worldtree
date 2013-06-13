@@ -1,4 +1,7 @@
-package internal.containers;
+package internal.containers.property;
+
+import internal.containers.IContainer;
+import internal.containers.Reference;
 
 public class Property implements IContainer {
 	private Reference reference;

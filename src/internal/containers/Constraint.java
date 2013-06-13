@@ -3,11 +3,12 @@ package internal.containers;
 import internal.containers.condition.ICondition;
 import internal.containers.query.IQuery;
 
-public class Constraint implements IContainer {
+public class Constraint extends Statement {
 	private IQuery query;
 	private ICondition condition;
 	
 	public Constraint(IQuery query, ICondition condition) {
+		super(StatementType.CONSTRAINT);
 		this.query		= query;
 		this.condition	= condition;
 	}

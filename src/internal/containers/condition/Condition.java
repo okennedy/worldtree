@@ -1,6 +1,6 @@
 package internal.containers.condition;
 
-import internal.containers.Property;
+import internal.containers.property.Property;
 
 public class Condition implements ICondition {
 	private ICondition baseCondition;
