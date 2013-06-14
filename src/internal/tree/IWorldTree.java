@@ -51,7 +51,7 @@ public interface IWorldTree {
 	public String toString();
 	
 	public interface IMap extends IWorldTree {
-		
+		public void fullInit();
 	}
 	
 	public interface IRoom extends IWorldTree {

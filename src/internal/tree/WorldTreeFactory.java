@@ -62,6 +62,25 @@ public class WorldTreeFactory {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public void fullInit() {
+			this.initialize();
+			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
+			nodes.addAll(children);
+			
+			IWorldTree node = null;
+			try {
+				while(nodes.size() > 0) {
+					node = nodes.get(0);
+					node.initialize();
+					nodes.addAll(node.children());
+					nodes.remove(node);
+				}
+			} catch (Exception e) {
+				System.out.print("");
+			}
+		}
 	}
 	
 	public IMap newMap(String name, IWorldTree parent, Collection<Constraint> constraints) {
@@ -116,6 +135,7 @@ public class WorldTreeFactory {
 		@Override
 		public void initialize() {
 //			TODO: Ensure all pieces are traverse-able.
+			initRegion();
 			initString();
 		}
 		
@@ -287,6 +307,7 @@ public class WorldTreeFactory {
 		
 		@Override
 		public void initialize() {
+			children = new ArrayList<IWorldTree>();
 		}
 		
 		protected void addChild(IWorldTree child) {
