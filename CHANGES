@@ -1,3 +1,14 @@
+06142013:gurupras
+	Added fullInit method to IMap to initialize a map completely
+	Added package for the resolution engine
+	Added test package to test resolution engine
+	
+	TODO-LIST
+	    - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
 06132013:gurupras
 	Parser now handles property definition statements
 	Parser refactored to match updates to design document
