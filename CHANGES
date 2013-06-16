@@ -1,3 +1,14 @@
+06162013:gurupras
+	Modified query to the form 'AT' <LEVEL> <QUERY>
+	Updated IQuery to provide interface for the level
+
+        TODO-LIST
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
 06142013:gurupras
 	Added fullInit method to IMap to initialize a map completely
 	Added package for the resolution engine

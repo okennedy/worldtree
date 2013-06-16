@@ -8,4 +8,5 @@ public interface IQuery extends IStatement {
 	public IPattern pattern();
 	public ICondition condition();
 	public IQuery subQuery();
+	public Class<?> level();
 }

@@ -15,6 +15,7 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < ALL		: "ALL" >
 |   < AGGREGATE	: "AGGREGATE" >
 |   < ASSERT	: "ASSERT" >
+|   < AT		: "AT" >
 |   < WHERE		: "WHERE" >
 |   < UNION		: "UNION" >
 |   < AND		: "AND" >
@@ -62,10 +63,11 @@ IQuery query() :
 
 BaseQuery baseQuery() :
 {
+    String level = null;
     IPattern pattern = null;
     ICondition condition = null;
 }
-{    pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(pattern, condition); }}
+{    < AT > level = word() pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}
 
 Relation relation() :
 {

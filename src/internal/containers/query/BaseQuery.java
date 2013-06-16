@@ -4,12 +4,14 @@ import internal.containers.Statement;
 import internal.containers.StatementType;
 import internal.containers.condition.ICondition;
 import internal.containers.pattern.IPattern;
+import internal.tree.IWorldTree;
 
 public class BaseQuery extends Statement implements IQuery {
+	private String level;
 	private IPattern pattern;
 	private ICondition condition;
 	
-	public BaseQuery(IPattern pattern, ICondition condition) {
+	public BaseQuery(String level, IPattern pattern, ICondition condition) {
 		super(StatementType.QUERY);
 		this.pattern	= pattern;
 		this.condition	= condition;
@@ -26,7 +28,7 @@ public class BaseQuery extends Statement implements IQuery {
 
 	@Override
 	public String debugString() {
-		StringBuffer result = new StringBuffer("QUERY(" + pattern.debugString());
+		StringBuffer result = new StringBuffer("QUERY(AT " + level + " " + pattern.debugString());
 		
 		if(condition != null)
 			result.append(" WHERE " + condition.debugString() + ")");
@@ -46,6 +48,16 @@ public class BaseQuery extends Statement implements IQuery {
 
 	@Override
 	public IQuery subQuery() {
+		return null;
+	}
+
+	@Override
+	public Class<?> level() {
+		try {
+			return Class.forName(level);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 }

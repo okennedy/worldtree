@@ -9,9 +9,9 @@ public class Query extends Statement implements IQuery {
 	private IQuery baseQuery;
 	private IQuery subQuery;
 	
-	public Query(IPattern pattern, ICondition condition, Query subQuery) {
+	public Query(String level, IPattern pattern, ICondition condition, Query subQuery) {
 		super(StatementType.QUERY);
-		this.baseQuery	= new BaseQuery(pattern, condition);
+		this.baseQuery	= new BaseQuery(level, pattern, condition);
 		this.subQuery	= subQuery;
 	}
 	
@@ -60,5 +60,10 @@ public class Query extends Statement implements IQuery {
 	@Override
 	public IQuery subQuery() {
 		return subQuery;
+	}
+
+	@Override
+	public Class<?> level() {
+		return baseQuery.level();
 	}
 }
