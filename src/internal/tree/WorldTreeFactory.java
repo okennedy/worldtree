@@ -173,7 +173,7 @@ public class WorldTreeFactory {
 			
 			java.util.Map<String, String> interfaceMap = space.getValidInterfaces(coords);
 			String coordString = "(" + coords.x + "," + coords.y + ")";
-			ITile tile = newTile("tile" + coordString, this, null, PieceFactory.randomPiece(interfaceMap));
+			ITile tile = newTile("tile" + coordString, coords, this, null, PieceFactory.randomPiece(interfaceMap));
 //			Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles
 			return tile;
 		}
@@ -299,9 +299,11 @@ public class WorldTreeFactory {
 	 */
 	public class Tile extends WorldTree implements ITile {
 		private IPiece piece;
-		public Tile(String name, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
+		private Coordinates coordinates;
+		public Tile(String name, Coordinates coord, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
 			super(name, parent, constraints);
-			this.piece = tilePiece;
+			this.coordinates	= coord;
+			this.piece 			= tilePiece;
 			initialize();
 		}
 		
@@ -360,7 +362,8 @@ public class WorldTreeFactory {
 		}
 	}
 	
-	public ITile newTile(String name, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
-		return new Tile(name, parent, constraints, tilePiece);
+	public ITile newTile(String name, Coordinates coordinates, IWorldTree parent,  
+			Collection<Constraint> constraints, IPiece tilePiece) {
+		return new Tile(name, coordinates, parent, constraints, tilePiece);
 	}
 }
