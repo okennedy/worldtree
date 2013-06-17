@@ -5,6 +5,7 @@ import java.util.List;
 
 import internal.containers.Constraint;
 import internal.piece.IPiece;
+import internal.space.Space;
 
 public interface IWorldTree {
 	
@@ -43,6 +44,8 @@ public interface IWorldTree {
 	 * @return {@code IWorldTree} representing the root of this WorldTree
 	 */
 	public IWorldTree root();
+	
+	public IWorldTree neighbor(Space.Direction direction);
 	
 	/**
 	 * Method strictly reserved for debugging purposes

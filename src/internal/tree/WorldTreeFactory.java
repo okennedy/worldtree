@@ -58,12 +58,6 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public void move(test.ui.Direction direction) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
 		public void fullInit() {
 			this.initialize();
 			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
@@ -80,6 +74,18 @@ public class WorldTreeFactory {
 			} catch (Exception e) {
 				System.out.print("");
 			}
+		}
+		
+		@Override
+		public void move(test.ui.Direction direction) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public IWorldTree neighbor(Direction direction) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 	
@@ -111,6 +117,12 @@ public class WorldTreeFactory {
 		public void move(test.ui.Direction direction) {
 			// TODO Auto-generated method stub
 			
+		}
+
+		@Override
+		public IWorldTree neighbor(Direction direction) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 	
@@ -163,33 +175,6 @@ public class WorldTreeFactory {
 			ITile tile = newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(interfaceMap));
 //			Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles
 			return tile;
-		}
-		
-		@Override
-		public void move(test.ui.Direction direction) {		//FIXME
-			int[] coords = space.currentCoordinates();
-			switch(direction) {
-			case UP:
-				coords[1]++;
-				break;
-			case DOWN:
-				coords[1]--;
-				break;
-			case LEFT:
-				coords[0]--;
-				break;
-			case RIGHT:
-				coords[0]++;
-				break;
-			default:
-				throw new IllegalStateException("Only directions should be passed to move()");
-			}
-			
-			if(space.validate(coords[0], coords[1])) {
-				space.setCurrentCoordinates(coords[0], coords[1]);
-				initNeighbours();
-			}
-			
 		}
 		
 		private void initNeighbours() {
@@ -269,6 +254,39 @@ public class WorldTreeFactory {
 			else
 				return null;
 		}
+		
+		@Override
+		public void move(test.ui.Direction direction) {		//FIXME
+			int[] coords = space.currentCoordinates();
+			switch(direction) {
+			case UP:
+				coords[1]++;
+				break;
+			case DOWN:
+				coords[1]--;
+				break;
+			case LEFT:
+				coords[0]--;
+				break;
+			case RIGHT:
+				coords[0]++;
+				break;
+			default:
+				throw new IllegalStateException("Only directions should be passed to move()");
+			}
+			
+			if(space.validate(coords[0], coords[1])) {
+				space.setCurrentCoordinates(coords[0], coords[1]);
+				initNeighbours();
+			}
+			
+		}
+
+		@Override
+		public IWorldTree neighbor(Direction direction) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 	
 	public IRegion newRegion(String name, IWorldTree parent, Collection<Constraint> constraints, Space space) {
@@ -329,6 +347,12 @@ public class WorldTreeFactory {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public IWorldTree neighbor(Direction direction) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 	
 	public ITile newTile(String name, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
@@ -355,6 +379,12 @@ public class WorldTreeFactory {
 		public void move(test.ui.Direction direction) {
 			// TODO Auto-generated method stub
 			
+		}
+
+		@Override
+		public IWorldTree neighbor(Direction direction) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 	
