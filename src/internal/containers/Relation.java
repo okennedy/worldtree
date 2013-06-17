@@ -29,4 +29,41 @@ public class Relation implements IContainer {
 		result.append(")");
 		return result.toString();
 	}
+	
+	public Type getType(String method) {
+		InbuiltRelation rel = InbuiltRelation.check(method);
+		
+		Type t = (rel == null) ? Type.CUSTOM : Type.INBUILT;
+		return t;
+	}
+	
+	
+	public enum Type {
+		INBUILT,
+		CUSTOM
+	}
+	
+	private enum InbuiltRelation {
+		TO_EAST("toeast"),
+		TO_WEST("towest"),
+		TO_NORTH("tonorth"),
+		TO_SOUTH("tosouth"),
+		BEGIN("begin"),
+		END("end"),
+		;
+		
+		private String method;
+		
+		private InbuiltRelation(String method) {
+			this.method	= method;
+		}
+		
+		public static InbuiltRelation check(String method) {
+			for(InbuiltRelation rel : values()) {
+				if(rel.method.equalsIgnoreCase(method))
+					return rel;
+			}
+			return null;
+		}
+	}
 }
