@@ -358,37 +358,4 @@ public class WorldTreeFactory {
 	public ITile newTile(String name, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
 		return new Tile(name, parent, constraints, tilePiece);
 	}
-	
-	private  class Object extends WorldTree implements IObject {
-		private List<ITile> validTiles;
-		public Object(String name, IWorldTree parent, Collection<Constraint> constraints, List<ITile> validTiles) {
-			super(name, parent, constraints);
-			this.validTiles = validTiles;
-		}
-
-		@Override
-		public List<ITile> getValidTiles() {
-			return validTiles;
-		}
-
-		@Override
-		public void initialize() {
-		}
-
-		@Override
-		public void move(test.ui.Direction direction) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public IWorldTree neighbor(Direction direction) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-	}
-	
-	public IObject newObject(String name, IWorldTree parent, Collection<Constraint> constraints, List<ITile> validTiles) {
-		return new Object(name, parent, constraints, validTiles);
-	}
 }

@@ -72,8 +72,4 @@ public interface IWorldTree {
 	public interface ITile extends IWorldTree {
 		public IPiece piece();
 	}
-	
-	public interface IObject extends IWorldTree {
-		public List<ITile> getValidTiles();
-	}
 }
