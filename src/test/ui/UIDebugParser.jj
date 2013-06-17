@@ -16,20 +16,19 @@ public class UIDebugParser{}PARSER_END(UIDebugParser)SKIP :{    " "|   
 Direction direction() :
 {}
 {
-    (        < UP >		{ return Direction.getDirection(token.image); }    |   < DOWN >	{ return Direction.getDirection(token.image); }
-    |   < LEFT >	{ return Direction.getDirection(token.image); }
-    |   < RIGHT >	{ return Direction.getDirection(token.image); }
-    )
+    < UP >		{ return Direction.getDirection(token.image); }|   < DOWN >	{ return Direction.getDirection(token.image); }
+|   < LEFT >	{ return Direction.getDirection(token.image); }
+|   < RIGHT >	{ return Direction.getDirection(token.image); }
+    
 }
 
 void parse(IWorldTree object) :
 {
     Direction d = null;
 }
-{    (        d = direction()
-        {
-            object.move(d);
-            UIDebugEngine.write(object.root());
-        }
-    )
+{    d = direction()
+    {
+        object.move(d);
+        UIDebugEngine.write(object.root());
+    }
 }   

@@ -28,6 +28,5 @@ public class Driver {
 		new PieceFactory(pieceStrings);
 		WorldTreeFactory factory = new WorldTreeFactory();
 		IMap map = factory.newMap("TestMap", null, null);
-		UIDebugEngine.movementTest(map);
 	}
 }
