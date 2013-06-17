@@ -357,8 +357,31 @@ public class WorldTreeFactory {
 
 		@Override
 		public IWorldTree neighbour(Direction direction) {
-			// TODO Auto-generated method stub
-			return null;
+			Region parent = (Region) this.parent;
+			
+			assert(this.coordinates.cartesian());
+			
+			switch(direction) {
+			case E:
+				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x + 1, this.coordinates.y    ));
+			case N:
+				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x    , this.coordinates.y + 1));
+			case NE:
+				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x + 1, this.coordinates.y + 1));
+			case NW:
+				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x - 1, this.coordinates.y + 1));
+			case S:
+				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x    , this.coordinates.y - 1));
+			case SE:
+				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x + 1, this.coordinates.y - 1));
+			case SW:
+				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x - 1, this.coordinates.y - 1));
+			case W:
+				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x - 1, this.coordinates.y    ));
+			default:
+				throw new IllegalStateException("Should not have encountered invalid direction!");
+			
+			}
 		}
 	}
 	
