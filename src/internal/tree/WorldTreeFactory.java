@@ -141,9 +141,7 @@ public class WorldTreeFactory {
 			ITile tile = initTile(new Coordinates(true, 0, 0));
 			space.setByCoord(new Coordinates(true, 0, 0), tile);
 			space.setCurrentCoordinates(new Coordinates(true, 0, 0));
-			write(this);
 			initNeighbours();
-			write(this);
 		}
 
 		@Override
@@ -231,7 +229,6 @@ public class WorldTreeFactory {
 				if(space.validate(coords) && space.getByCoord(coords) == null) {	
 					ITile tile = initTile(coords);
 					space.setByCoord(coords, tile);
-					write(this);
 				}
 				directions.remove(direction);
 			}
