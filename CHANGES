@@ -1,4 +1,16 @@
 06172013:gurupras
+	Added Regex enum to Relation
+	Added methods to access Relation name and regex type
+	Updated gitignore to ensure CHANGES is never ignored from commits
+
+        TODO-LIST
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
+06172013:gurupras
 	Added Type enum to Relation to identify Relation types
 
         TODO-LIST

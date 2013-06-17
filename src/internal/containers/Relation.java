@@ -2,15 +2,20 @@ package internal.containers;
 
 public class Relation implements IContainer {
 	private String name;
-	private String regex;
+	private Regex regex;
 	
 	public Relation(String name, String regex) {
 		this.name	= name;
-		this.regex	= regex;
+		this.regex	= Regex.get("" + regex.indexOf(regex.length() - 1));	//Last index
 	}
 	
+	public String name() {
+		return name;
+	}
 	
-	
+	public Regex regex() {
+		return regex;
+	}
 	
 	@Override
 	public String toString() {
@@ -30,8 +35,8 @@ public class Relation implements IContainer {
 		return result.toString();
 	}
 	
-	public Type getType(String method) {
-		InbuiltRelation rel = InbuiltRelation.check(method);
+	public Type type() {
+		InbuiltRelation rel = InbuiltRelation.check(name);
 		
 		Type t = (rel == null) ? Type.CUSTOM : Type.INBUILT;
 		return t;
@@ -64,6 +69,27 @@ public class Relation implements IContainer {
 					return rel;
 			}
 			return null;
+		}
+	}
+	
+	public enum Regex {
+		STAR("*"),
+		PLUS("+"),
+		NONE(""),
+		;
+		
+		private String regex;
+		
+		private Regex(String regex) {
+			this.regex	= regex;
+		}
+		
+		public static Regex get(String regex) {
+			for(Regex r : values()) {
+				if(r.regex.equals(regex))
+					return r;
+			}
+			return NONE;
 		}
 	}
 }

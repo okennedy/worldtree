@@ -4,6 +4,8 @@ bin
 *.swp
 *.*~
 output
+build
+
 !src
 !.gitignore
-build
+!CHANGES
