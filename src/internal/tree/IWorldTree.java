@@ -45,7 +45,7 @@ public interface IWorldTree {
 	 */
 	public IWorldTree root();
 	
-	public IWorldTree neighbor(Space.Direction direction);
+	public IWorldTree neighbour(Space.Direction direction);
 	
 	/**
 	 * Method strictly reserved for debugging purposes

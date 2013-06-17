@@ -1,4 +1,18 @@
 06172013:gurupras
+	Added neighbour method to IWorldTree and updated references
+	Implemented logic for neighbour in Tile class
+	Added Coordinates class in internal.space package
+	Moved all coordinates in Space to separate class Coordinates
+	Modified references to coordinates in internal.tree package
+
+        TODO-LIST
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
+06172013:gurupras
 	Fixed some bugs in UIDebugParser
 	Modified UIDebugEngine to comply with JUnit4
 	    - Driver is now incomplete as a result of this

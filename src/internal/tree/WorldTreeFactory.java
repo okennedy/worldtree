@@ -10,12 +10,14 @@ import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
 import internal.space.Space;
+import internal.space.Coordinates;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.IWorldTree.IRoom;
 import internal.tree.IWorldTree.IRegion;
 import internal.tree.IWorldTree.ITile;
-import internal.tree.IWorldTree.IObject;
 import internal.space.Space.Direction;
+
+import static test.ui.UIDebugEngine.write;
 
 public class WorldTreeFactory {
 
@@ -83,7 +85,7 @@ public class WorldTreeFactory {
 		}
 		
 		@Override
-		public IWorldTree neighbor(Direction direction) {
+		public IWorldTree neighbour(Direction direction) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -120,7 +122,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public IWorldTree neighbor(Direction direction) {
+		public IWorldTree neighbour(Direction direction) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -136,18 +138,18 @@ public class WorldTreeFactory {
 			super(name, parent, constraints);
 			this.space = space;
 //			First tile
-			ITile tile = initTile(0, 0, true);
-			space.setByCoord(0, 0, tile);
-			space.setCurrentCoordinates(0, 0);
+			ITile tile = initTile(new Coordinates(true, 0, 0));
+			space.setByCoord(new Coordinates(true, 0, 0), tile);
+			space.setCurrentCoordinates(new Coordinates(true, 0, 0));
+			write(this);
 			initNeighbours();
-			stringRepresentation = space.getStringRepresentation();
-			
+			write(this);
 		}
 
 		@Override
 		public void initialize() {
 //			TODO: Ensure all pieces are traverse-able.
-			initRegion();
+//			initRegion();
 			initString();
 		}
 		
@@ -157,78 +159,79 @@ public class WorldTreeFactory {
 		private void initRegion() {
 			for(int i = 0; i < space.getYDimension(); i++) {
 				for(int j = 0; j < space.getXDimension(); j++) {
-					ITile tile = initTile(j, i, false);
-					space.setByArray(i, j, tile);
+					Coordinates coords = new Coordinates(true, i, j);
+					ITile tile = initTile(coords);
+					space.setByCoord(coords, tile);
 				}
 			}
 		}
 		
-		private ITile initTile(int x, int y, boolean isCoord) {
-			int[] coords = null;
-			if(!isCoord) {
-				coords = space.arrayToCoord(x, y);
-				x = coords[0];
-				y = coords[1];
+		private ITile initTile(Coordinates coordinates) {
+			int x, y;
+			Coordinates coords = coordinates;
+			if(!coordinates.cartesian()) {
+				coords = space.arrayToCoord(coordinates);
 			}
-			java.util.Map<String, String> interfaceMap = space.getValidInterfaces(x, y);
-			String coordinates = "(" + space.arrayToCoord(x, y)[0] + "," + space.arrayToCoord(x, y)[1] + ")";
-			ITile tile = newTile("tile" + coordinates, this, null, PieceFactory.randomPiece(interfaceMap));
+			
+			java.util.Map<String, String> interfaceMap = space.getValidInterfaces(coords);
+			String coordString = "(" + coords.x + "," + coords.y + ")";
+			ITile tile = newTile("tile" + coordString, this, null, PieceFactory.randomPiece(interfaceMap));
 //			Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles
 			return tile;
 		}
 		
 		private void initNeighbours() {
-			int[] coords = space.currentCoordinates();
-			initNeighbours(coords[0], coords[1]);
+			Coordinates coords = space.currentCoordinates();
+			initNeighbours(coords);
 		}
 
-		private void initNeighbours(int xCoord, int yCoord) {
-			int[] indices = null;
+		private void initNeighbours(Coordinates coordinates) {
 			
 			List<Direction> directions = new ArrayList<Direction>(Space.listDirections());
 			
 			while(directions.size() > 0) {
-				indices = space.currentCoordinates();
-				
+				Coordinates coords = new Coordinates(coordinates);
 				
 				int randomIndex = 0 + (int) (Math.random() * (directions.size() - 0) + 0);
 				Direction direction = directions.get(randomIndex);
 				switch(direction) {
 				case E:
-					indices[0]++;
+					coords.x++;
 					break;
 				case N:
-					indices[1]++;
+					coords.y++;
 					break;
 				case NE:
-					indices[0]++;
-					indices[1]++;
+					coords.x++;
+					coords.y++;
 					break;
 				case NW:
-					indices[0]--;
-					indices[1]++;
+					coords.x--;
+					coords.y++;
 					break;
 				case S:
-					indices[1]--;
+					coords.y--;
 					break;
 				case SE:
-					indices[0]++;
-					indices[1]--;
+					coords.x++;
+					coords.y--;
 					break;
 				case SW:
-					indices[0]--;
-					indices[1]--;
+					coords.x--;
+					coords.y--;
 					break;
 				case W:
-					indices[0]--;
+					coords.x--;
 					break;
 				default:
 					throw new IllegalStateException("Invalid direction? This should have never occured!\n");
 				}
 				
-				if(space.validate(indices[0], indices[1]) && space.getByCoord(indices[0], indices[1]) == null) {	
-					ITile tile = initTile(indices[0], indices[1], true);
-					space.setByCoord(indices[0], indices[1], tile);
+//				Convert to Cartesian coordinates for validate
+				if(space.validate(coords) && space.getByCoord(coords) == null) {	
+					ITile tile = initTile(coords);
+					space.setByCoord(coords, tile);
+					write(this);
 				}
 				directions.remove(direction);
 			}
@@ -257,33 +260,32 @@ public class WorldTreeFactory {
 		
 		@Override
 		public void move(test.ui.Direction direction) {		//FIXME
-			int[] coords = space.currentCoordinates();
+			Coordinates coordinates = space.currentCoordinates();
 			switch(direction) {
 			case UP:
-				coords[1]++;
+				coordinates.y++;
 				break;
 			case DOWN:
-				coords[1]--;
+				coordinates.y--;
 				break;
 			case LEFT:
-				coords[0]--;
+				coordinates.x--;
 				break;
 			case RIGHT:
-				coords[0]++;
+				coordinates.x++;
 				break;
 			default:
 				throw new IllegalStateException("Only directions should be passed to move()");
 			}
 			
-			if(space.validate(coords[0], coords[1])) {
-				space.setCurrentCoordinates(coords[0], coords[1]);
+			if(space.validate(coordinates)) {
+				space.setCurrentCoordinates(coordinates);
 				initNeighbours();
 			}
-			
 		}
 
 		@Override
-		public IWorldTree neighbor(Direction direction) {
+		public IWorldTree neighbour(Direction direction) {
 			// TODO Auto-generated method stub
 			return null;
 		}
@@ -303,6 +305,7 @@ public class WorldTreeFactory {
 		public Tile(String name, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
 			super(name, parent, constraints);
 			this.piece = tilePiece;
+			initialize();
 		}
 		
 		/**
@@ -328,6 +331,11 @@ public class WorldTreeFactory {
 			children = new ArrayList<IWorldTree>();
 		}
 		
+		@Override
+		public String toString() {
+			return piece.toString();
+		}
+		
 		protected void addChild(IWorldTree child) {
 			this.children.add(child);
 			
@@ -349,7 +357,7 @@ public class WorldTreeFactory {
 		}
 
 		@Override
-		public IWorldTree neighbor(Direction direction) {
+		public IWorldTree neighbour(Direction direction) {
 			// TODO Auto-generated method stub
 			return null;
 		}

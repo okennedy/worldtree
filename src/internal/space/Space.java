@@ -22,32 +22,24 @@ import internal.tree.WorldTreeFactory.Tile;
  *
  */
 public class Space extends Dimension {
-	protected int xCurr, yCurr;
+	protected Coordinates current;
 	protected ITile[][] matrix;
 	private List<String> stringRepresentation;
 	
 	public Space(int x, int y) {
 		super(y, x);
 		matrix = new Tile[y][x];
-		xCurr = 0;
-		yCurr = yDimension - 1;
+		current = new Coordinates(true, 0, yDimension - 1);
 		stringRepresentation = new ArrayList<String>();
 	}
 	
-	public int[] arrayToCoord(int x, int y) {
-		return new int[] {x, (yDimension - y - 1)};
-	}
-	
-	public int[] coordToArray(int x, int y) {
-		return new int[] {x, yDimension - y - 1};
-	}
 	/**
 	 * Returns the next Tile to the left
 	 * @return {@code Tile} object to the left of the current Tile
 	 */
 	public ITile nextLeft() {
-		assert(xCurr - 1 != -1);
-		return matrix[yCurr][xCurr - 1];
+		assert(current.x - 1 != -1);
+		return matrix[current.y][current.x - 1];
 	}
 	
 	/**
@@ -55,8 +47,8 @@ public class Space extends Dimension {
 	 * @return {@code Tile} object to the right of the current Tile
 	 */
 	public ITile nextRight() {
-		assert(xCurr + 1 != yDimension);
-		return matrix[yCurr][xCurr + 1];
+		assert(current.x + 1 != yDimension);
+		return matrix[current.y][current.x + 1];
 	}
 	
 	/**
@@ -64,8 +56,8 @@ public class Space extends Dimension {
 	 * @return {@code Tile} object to the top of the current Tile
 	 */
 	public ITile nextUp() {
-		assert(yCurr - 1 != -1);
-		return matrix[yCurr - 1][xCurr];
+		assert(current.y - 1 != -1);
+		return matrix[current.y - 1][current.x];
 	}
 	
 	/**
@@ -73,8 +65,8 @@ public class Space extends Dimension {
 	 * @return {@code Tile} object below the current Tile
 	 */
 	public ITile nextDown() {
-		assert(yCurr + 1 != xDimension);
-		return matrix[yCurr + 1][xCurr];
+		assert(current.y + 1 != xDimension);
+		return matrix[current.y + 1][current.x];
 	}
 
 	/**
@@ -82,76 +74,80 @@ public class Space extends Dimension {
 	 * @return {@code Tile} object referencing the current Tile
 	 */
 	public ITile currentTile() {
-		return matrix[xCurr][yCurr];
-	}
-	
-	
-	public int[] currentCoordinates() {
-		return new int[] {xCurr,yCurr};
+		return matrix[current.x][current.y];
 	}
 	
 	/**
-	 * Retrieve the Cell that is being represented by the given set of Cartesian coordinates.
-	 * @param xCoord
-	 * @param yCoord
-	 * @return {@code ITile} representing the given set of coordinates.
+	 * Obtain a copy of the current coordinates
+	 * @return {@code Coordinates} object containing the values of the current coordinates
 	 */
-	public ITile getByCoord(int xCoord, int yCoord) {
-		return matrix[yDimension - yCoord - 1][xCoord];
+	public Coordinates currentCoordinates() {
+		assert(current.cartesian == true);
+		return new Coordinates(current);
 	}
 	
 	/**
-	 * Retrieve the Cell that is being represented by the given set of array indices.
-	 * @param xIndex
-	 * @param yIndex
-	 * @return {@code ITile} representing the given set of indices.
+	 * Retrieve the Cell that is being represented by the given set of Cartesian coordinates
+	 * @param {@code Coordinates} representing the desired ITile
+	 * @return {@code ITile} representing the given set of coordinates
 	 */
-	public ITile getByArray(int xIndex, int yIndex) {
-		return matrix[xIndex][yIndex];
+	public ITile getByCoord(Coordinates coordinates) {
+		assert (coordinates.cartesian == true);
+		return matrix[yDimension - coordinates.y - 1][coordinates.x];
+	}
+	
+	/**
+	 * Retrieve the Cell that is being represented by the given set of array indices
+	 * @param {@code Coordinates} representing the desired ITile 
+	 * @return {@code ITile} representing the given set of coordinates
+	 */
+	public ITile getByArray(Coordinates coordinates) {
+		assert(coordinates.cartesian == false);
+		return matrix[coordinates.x][coordinates.y];
 	}
 
 	/**
 	 * Current x-coordinate
-	 * @return {@code Integer} holding the current x-coordinate.
+	 * @return {@code Integer} holding the current x-coordinate
 	 */
 	public int xCoord() {
-		return xCurr;
+		return current.x;
 	}
 	
 	/**
 	 * Current y-coordinate
-	 * @return {@code Integer} holding the current y-coordinate.
+	 * @return {@code Integer} holding the current y-coordinate
 	 */
 	public int yCoord() {
-		return yCurr;
+		return current.y;
 	}
 	
 	/**
-	 * Set a given tile specified by Cartesian coordinates.
-	 * @param xCoord
-	 * @param yCoord
-	 * @param tile {@code ITile} object that is to be set in the given coordinates.
+	 * Set a given tile specified by Cartesian coordinates
+	 * @param {@code Coordinates} containing the necessary location coordinates
+	 * @param tile {@code ITile} object that is to be set in the given coordinates
 	 */
-	public void setByCoord(int xCoord, int yCoord, ITile tile) {
-		int[] indices = coordToArray(xCoord, yCoord);
-		matrix[indices[1]][indices[0]] = tile;
-		updateStringRepresentation(indices[1], indices[0]);
+	public void setByCoord(Coordinates coordinates, ITile tile) {
+		assert(coordinates.cartesian == true);
+		Coordinates indices = coordToArray(coordinates);
+		matrix[indices.y][indices.x] = tile;
+		updateStringRepresentation(indices.x, indices.y);
 	}
 	
 	/**
-	 * Set a given tile specified by array indices.
-	 * @param xCoord
-	 * @param yCoord
-	 * @param tile {@code ITile} object that is to be set in the given indices of the array.
+	 * Set a given tile specified by array indices
+	 * @param {@code Coordinates} containing the necessary location coordinates
+	 * @param tile {@code ITile} object that is to be set in the given coordinates
 	 */
-	public void setByArray(int xIndex, int yIndex, ITile tile) {
-		matrix[xIndex][yIndex] = tile;
-		updateStringRepresentation(xIndex, yIndex);
+	public void setByArray(Coordinates coordinates, ITile tile) {
+		assert(coordinates.cartesian == false);
+		matrix[coordinates.x][coordinates.y] = tile;
+		updateStringRepresentation(coordinates.x, coordinates.y);
 	}
 
 	/**
-	 * Obtain a collection of all {@code ITile} objects used in this Space.
-	 * @return {@code List<IWorldTree} containing every {@code ITile} from this Space.
+	 * Obtain a collection of all {@code ITile} objects used in this Space
+	 * @return {@code List<IWorldTree} containing every {@code ITile} from this Space
 	 */
 	public List<IWorldTree> collection() {
 		List<IWorldTree> returnList = new ArrayList<IWorldTree>();
@@ -165,15 +161,17 @@ public class Space extends Dimension {
 	}
 
 	/**
-	 * Check surrounding entries in the space to find out valid interfaces. Also check for corner cases (literally).
-	 * @param xCoord
-	 * @param yCoord
-	 * @return {@code String} containing set of valid interfaces.
+	 * Check surrounding entries in the space to find out valid interfaces. Also check for corner cases (literally)
+	 * @param {@code Coordinates} containing the necessary location coordinates
+	 * @return {@code String} containing set of valid interfaces
 	 */
-	public Map<String, String> getValidInterfaces(int xCoord, int yCoord) {
-		int [] indices = coordToArray(xCoord, yCoord);
-		int xIndex = indices[0];
-		int yIndex = indices[1];
+	public Map<String, String> getValidInterfaces(Coordinates coordinates) {
+		Coordinates indices = coordinates;
+		if(coordinates.cartesian)
+			indices = coordToArray(coordinates);
+		
+		int xIndex = indices.x;
+		int yIndex = indices.y;
 		
 		StringBuffer mandatoryInterfaces = new StringBuffer();
 		StringBuffer invalidInterfaces = new StringBuffer();
@@ -223,8 +221,9 @@ public class Space extends Dimension {
 		for(int i = 0; i < getYDimension(); i++) {
 			List<String> stringList = new ArrayList<String>();
 			for(int j = 0; j < getXDimension(); j++) {
-				if(getByArray(i, j) != null)
-					stringList.add(getByArray(i, j).piece().toString());
+				Coordinates currentCoords = new Coordinates(false, i, j);
+				if(getByArray(currentCoords) != null)
+					stringList.add(getByArray(currentCoords).piece().toString());
 				else
 					stringList.add(PieceFactory.newPiece("").toString());
 			}
@@ -263,37 +262,36 @@ public class Space extends Dimension {
 
 	/**
 	 * Set current coordinates
-	 * @param x
-	 * @param y
+	 * @param {@code Coordinates} containing the new current coordinates
 	 */
-	public void setCurrentCoordinates(int x, int y) {
-		xCurr = x;
-		yCurr = y;
+	public void setCurrentCoordinates(Coordinates current) {
+		assert(current.cartesian == true);
+		this.current = current;
+		
 	}
 	
 	/**
-	 * Get a {@code Collection} of neighboring tiles
-	 * @param x x-coordinate
-	 * @param y y-coordinate
+	 * Get a {@code Collection} of neighbouring tiles
+	 * @param {@code Coordinates} containing the necessary location coordinates
 	 * @return {@code Collection<ITile>} containing neighbouring tiles
 	 */
-	public Collection<ITile> getNeighbours(int x, int y) {
+	public Collection<ITile> getNeighbours(Coordinates coordinates) {
 		
 //		pre-processing
-		int[] indices = coordToArray(x, y);
-		x = indices[0];
-		y = indices[1];
+		Coordinates indices = coordToArray(coordinates);
+		int x = indices.x;
+		int y = indices.y;
 		
 		Collection<ITile> returnCollection = new ArrayList<ITile>();
 		
-		int[] oldCurrent = currentCoordinates();
-		setCurrentCoordinates(x, y);
+		Coordinates oldCurrent = currentCoordinates();
+		setCurrentCoordinates(new Coordinates(false, x, y));
 		returnCollection.add(nextUp());
 		returnCollection.add(nextDown());
 		returnCollection.add(nextLeft());
 		returnCollection.add(nextRight());
 		
-		setCurrentCoordinates(oldCurrent[0], oldCurrent[1]);
+		setCurrentCoordinates(oldCurrent);
 		
 		return returnCollection;
 	}
@@ -303,7 +301,7 @@ public class Space extends Dimension {
 	 * @return {@code Collection<ITile>} containing neighboring tiles
 	 */
 	public Collection<ITile> getNeighbours() {
-		return getNeighbours(xCurr, yCurr);
+		return getNeighbours(current);
 	}
 	
 	/**
@@ -354,10 +352,38 @@ public class Space extends Dimension {
 		}
 	}
 
-	public boolean validate(int xCoord, int yCoord) {
-		if(xCoord >= 0 && xCoord < xDimension && yCoord >= 0 && yCoord < yDimension)
+	/**
+	 * Validates the given coordinates against the defined space. Allows <b>only</b> Cartesian coordinates
+	 * @param {@code Coordinates} containing the location coordinates that needs to be validated
+	 * @return {@code true} if valid, {@code false} otherwise
+	 */
+	public boolean validate(Coordinates coordinates) {
+		assert(coordinates.cartesian == true);
+		if(coordinates.x >= 0 && coordinates.x < xDimension && coordinates.y >= 0 && coordinates.y < yDimension)
 			return true;
 		else
 			return false;
+	}
+	
+	public Coordinates arrayToCoord(Coordinates coordinates) {
+		assert(coordinates.cartesian == false);
+		Coordinates newCoordinates = new Coordinates(true, coordinates.x, yDimension - coordinates.y - 1);
+//		coordinates.cartesian = true;
+//		int xCoord = coordinates.x;
+//		int yCoord = coordinates.y;
+//		coordinates.y = xCoord;
+//		coordinates.x = (yDimension - yCoord - 1);
+		return newCoordinates;
+	}
+	
+	public Coordinates coordToArray(Coordinates coordinates) {
+		assert(coordinates.cartesian == true);
+		Coordinates newCoordinates = new Coordinates(false, coordinates.x, yDimension - coordinates.y - 1);
+//		int xCoord = coordinates.x;
+//		int yCoord = coordinates.y;
+//		coordinates.cartesian = false;
+//		coordinates.x = yCoord;
+//		coordinates.y = yDimension - xCoord - 1; 
+		return newCoordinates;
 	}
 }
