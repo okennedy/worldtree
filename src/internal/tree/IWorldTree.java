@@ -44,6 +44,10 @@ public interface IWorldTree {
 	 */
 	public IWorldTree root();
 	
+	/**
+	 * Method strictly reserved for debugging purposes
+	 * @param direction {@code test.ui.Direction} in which to move
+	 */
 	public void move(test.ui.Direction direction);
 	
 	List<String> getStringRepresentation();
