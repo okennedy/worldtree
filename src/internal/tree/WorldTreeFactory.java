@@ -147,7 +147,7 @@ public class WorldTreeFactory {
 		@Override
 		public void initialize() {
 //			TODO: Ensure all pieces are traverse-able.
-//			initRegion();
+			initRegion();
 			initString();
 		}
 		
@@ -157,7 +157,7 @@ public class WorldTreeFactory {
 		private void initRegion() {
 			for(int i = 0; i < space.getYDimension(); i++) {
 				for(int j = 0; j < space.getXDimension(); j++) {
-					Coordinates coords = new Coordinates(true, i, j);
+					Coordinates coords = new Coordinates(true, j, i);
 					ITile tile = initTile(coords);
 					space.setByCoord(coords, tile);
 				}
