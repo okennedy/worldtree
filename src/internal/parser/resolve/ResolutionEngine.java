@@ -34,7 +34,7 @@ public class ResolutionEngine {
 		for(Collection<IWorldTree> collection : result) {
 			List<String> stringList = new ArrayList<String>();
 			for(IWorldTree obj : collection) {
-				stringList.add(obj.name() + "\n" + obj.toString());
+				stringList.add(obj.absoluteName() + "  \n" + obj.toString());
 			}
 			String multiline = multiLine(stringList);
 			sb.append(multiline + "\n\n");
