@@ -123,6 +123,25 @@ public class UIDebugEngine {
 		}
 	}
 	
+	public static void write(String string) {
+		BufferedWriter out = null;
+		try {
+			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));
+			out.write(string);
+			out.newLine();
+		} catch(IOException e) {
+			e.printStackTrace();
+		} finally {
+			if(out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Converts multiple multi-line visuals into a single string representation
 	 * @param listStringList {@code List<String>} containing the set of multi-line visuals to compact
@@ -163,6 +182,6 @@ public class UIDebugEngine {
 		while(result.length() <= length)
 			result.append(" ");
 		
-		return result.toString().trim();
+		return result.toString();
 	}
 }
