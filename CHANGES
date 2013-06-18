@@ -1,3 +1,15 @@
+06182013:gurupras
+	Added helper methods to UIDebugEngine class
+	multiline(stringList)
+	pad(string, length)
+
+        TODO-LIST
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
 06172013:gurupras
 	Added neighbour method to IWorldTree and updated references
 	Implemented logic for neighbour in Tile class

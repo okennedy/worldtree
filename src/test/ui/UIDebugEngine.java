@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.BeforeClass;
@@ -121,5 +122,47 @@ public class UIDebugEngine {
 			}
 		}
 	}
-
+	
+	/**
+	 * Converts multiple multi-line visuals into a single string representation
+	 * @param listStringList {@code List<String>} containing the set of multi-line visuals to compact
+	 */
+	public static String multiLine(List<String> stringList) {
+		StringBuffer result = new StringBuffer();
+//		Convert each String into its lines
+		List<List<String>> listStringList = new ArrayList<List<String>>();
+		for(String string : stringList)
+			listStringList.add(Arrays.asList(string.split("\n")));
+//		Verify that all Strings are of equal number of lines
+		int size = listStringList.get(0).size();
+		for(List<String> list : listStringList)
+			assert(list.size() == size);
+		
+//		Find the largest single String
+		int maxLength = 0;
+		for(List<String> list : listStringList) {
+			for(String s : list) {
+				maxLength = s.length() > maxLength ? s.length() : maxLength;
+			}
+		}
+		
+//		Do the conversion
+		for(int lineIndex = 0; lineIndex < size; lineIndex++) {
+			StringBuffer line = new StringBuffer();
+			for(List<String> list : listStringList) {
+				line.append(pad(list.get(lineIndex), maxLength));
+			}
+			result.append(line + "\n");
+		}
+		return result.toString();
+	}
+	
+	public static String pad(String string, int length) {
+		StringBuffer result = new StringBuffer(string);
+		assert(result.length() <= length);
+		while(result.length() <= length)
+			result.append(" ");
+		
+		return result.toString().trim();
+	}
 }
