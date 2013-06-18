@@ -361,27 +361,44 @@ public class WorldTreeFactory {
 			
 			assert(this.coordinates.cartesian());
 			
+			Coordinates newCoords = new Coordinates(this.coordinates);
 			switch(direction) {
 			case E:
-				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x + 1, this.coordinates.y    ));
+				newCoords.x++;
+				break;
 			case N:
-				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x    , this.coordinates.y + 1));
+				newCoords.y++;
+				break;
 			case NE:
-				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x + 1, this.coordinates.y + 1));
+				newCoords.x++;
+				newCoords.y++;
+				break;
 			case NW:
-				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x - 1, this.coordinates.y + 1));
+				newCoords.x--;
+				newCoords.y++;
+				break;
 			case S:
-				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x    , this.coordinates.y - 1));
+				newCoords.y--;
+				break;
 			case SE:
-				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x + 1, this.coordinates.y - 1));
+				newCoords.x++;
+				newCoords.y--;
+				break;
 			case SW:
-				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x - 1, this.coordinates.y - 1));
+				newCoords.x--;
+				newCoords.y--;
+				break;
 			case W:
-				return parent.space.getByCoord(new Coordinates(true, this.coordinates.x - 1, this.coordinates.y    ));
+				newCoords.x--;
+				break;
 			default:
 				throw new IllegalStateException("Should not have encountered invalid direction!");
-			
 			}
+			
+			if(parent.space.validate(newCoords))
+				return parent.space.getByCoord(newCoords);
+			else
+				return null;
 		}
 	}
 	
