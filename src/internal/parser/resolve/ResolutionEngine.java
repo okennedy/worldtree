@@ -21,6 +21,7 @@ public class ResolutionEngine {
 		Class<?> level		= query.level();
 		IPattern pattern	= query.pattern();
 		while(pattern != null) {
+//			TODO:Join?
 			resolve(node, level, pattern);
 			pattern = pattern.subPattern();
 		}
