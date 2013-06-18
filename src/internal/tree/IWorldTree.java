@@ -5,6 +5,7 @@ import java.util.List;
 
 import internal.containers.Constraint;
 import internal.piece.IPiece;
+import internal.piece.TileInterfaceType;
 import internal.space.Space;
 
 public interface IWorldTree {
@@ -51,6 +52,11 @@ public interface IWorldTree {
 	 */
 	public IWorldTree root();
 	
+	/**
+	 * Obtain a neighbour of this WorldTree instance
+	 * @param direction The direction in which the neighbour is to be located
+	 * @return {@code IWorldTree} referring the neighbour in the specified direction
+	 */
 	public IWorldTree neighbour(Space.Direction direction);
 	
 	/**
@@ -59,11 +65,18 @@ public interface IWorldTree {
 	 */
 	public void move(test.ui.Direction direction);
 	
+	/**
+	 * Get set of strings used to represent this WorldTree instance.
+	 * @return {@code List<String>} containing the strings used to visually represent this WorldTree instance.
+	 */
 	List<String> getStringRepresentation();
 	
 	public String toString();
 	
 	public interface IMap extends IWorldTree {
+		/**
+		 * Fully initialize this Map
+		 */
 		public void fullInit();
 	}
 	
@@ -76,6 +89,19 @@ public interface IWorldTree {
 	}
 	
 	public interface ITile extends IWorldTree {
+		
+		/**
+		 * Obtain reference to the piece located in this Tile
+		 * @return {@code IPiece} object referencing this Tile's piece
+		 */
 		public IPiece piece();
+		
+		/**
+		 * Check whether this Tile has the specified interface
+		 * @param it {@code TileInterfaceType} the interface to check for
+		 * @return {@code true} if the ITile contains this interface <br>
+		 * {@code false} otherwise
+		 */
+		public boolean hasInterface(TileInterfaceType it);
 	}
 }

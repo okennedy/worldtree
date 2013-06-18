@@ -153,7 +153,7 @@ public class PieceFactory {
 			visual = "";
 			BufferedReader in = null;
 			try {
-				ArrayList<TileInterfaceType> interfaceList 	= getValidInterfaces();
+				List<TileInterfaceType> interfaceList 	= getValidInterfaces();
 				in = new BufferedReader(new FileReader(new File("pieces.txt")));
 				String line;
 				while( (line = in.readLine()) != null) {
@@ -188,11 +188,6 @@ public class PieceFactory {
 			}
 		}
 
-		/**
-		 * Get the list of valid neighbouring pieces with regard to a particular interface of this Piece.
-		 * @param it {@code InterfaceType} specifying the interface of this Piece that is to be used
-		 * @return {@code ArrayList<Piece>} containing list of valid pieces.
-		 */
 		@Override
 		public ArrayList<IPiece> getValidNeighbourPieces(TileInterfaceType it) {
 			ArrayList<IPiece> returnList = new ArrayList<IPiece>();
@@ -205,19 +200,11 @@ public class PieceFactory {
 			return returnList;
 		}
 		
-		/**
-		 * Returns a visual representation of this Piece.
-		 * @return {@code String} containing visual representation of this Piece.
-		 */
 		@Override
 		public String toString() {
 			return visual;
 		}
 
-		/**
-		 * Returns a {@code String} containing the textual representation of this Piece.
-		 * @return {@code String} containing the interfaces as defined for this Piece.
-		 */
 		@Override
 		public String getText() {
 			return super.toString();

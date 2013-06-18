@@ -256,7 +256,7 @@ public class Space extends Dimension {
 	}
 	
 	private void updateStringRepresentation(int xIndex, int yIndex) {
-//		First we find the 'line' that holds this tile (using yIndex)
+//		TODO: First we find the 'line' that holds this tile (using yIndex)
 		getStringRepresentation();
 	}
 
@@ -312,6 +312,11 @@ public class Space extends Dimension {
 		return Direction.listDirections();
 	}
 	
+	/**
+	 * The Direction enum is to be used while specifying directions related to the matrix represented by Space.
+	 * @author guru
+	 *
+	 */
 	public enum Direction {
 		NW("NW"),
 		N("N"),
@@ -328,6 +333,10 @@ public class Space extends Dimension {
 			this.choice = choice;
 		}
 		
+		/**
+		 * List all the directions in this enum
+		 * @return {@code Collection<Direction>} containing all the directions of this enum
+		 */
 		public static Collection<Direction> listDirections() {
 			Collection<Direction> collection = new ArrayList<Direction>();
 			for(Direction d : values()) {
@@ -337,6 +346,12 @@ public class Space extends Dimension {
 			return collection;
 		}
 		
+		/**
+		 * Get the Direction corresponding to the specified parameter
+		 * @param choice {@code String} containing the textual representation of a Direction
+		 * @return {@code Direction} represented by the parameter<br>
+		 * <b>null</b> if there is no Direction corresponding to the parameter
+		 */
 		public static Direction getDirection(String choice) {
 			for(Direction d : values()) {
 				if(d.choice.equals(choice))
@@ -365,6 +380,11 @@ public class Space extends Dimension {
 			return false;
 	}
 	
+	/**
+	 * Convert a Coordinates object from array format to Cartesian format
+	 * @param coordinates {@code Coordinates} object representing the array format
+	 * @return {@code Coordinates} object representing the Cartesian format
+	 */
 	public Coordinates arrayToCoord(Coordinates coordinates) {
 		assert(coordinates.cartesian == false);
 		Coordinates newCoordinates = new Coordinates(true, coordinates.x, yDimension - coordinates.y - 1);
@@ -376,6 +396,11 @@ public class Space extends Dimension {
 		return newCoordinates;
 	}
 	
+	/**
+	 * Convert a Coordinates object from Cartesian format to array format
+	 * @param coordinates {@code Coordinates} object representing the Cartesian format
+	 * @return {@code Coordinates} object representing the array format
+	 */
 	public Coordinates coordToArray(Coordinates coordinates) {
 		assert(coordinates.cartesian == true);
 		Coordinates newCoordinates = new Coordinates(false, coordinates.x, yDimension - coordinates.y - 1);

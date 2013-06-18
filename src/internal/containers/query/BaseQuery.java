@@ -6,6 +6,12 @@ import internal.containers.condition.ICondition;
 import internal.containers.pattern.IPattern;
 import internal.tree.IWorldTree;
 
+/**
+ * Container class for storing a query <br>
+ * QUERY := AT LEVEL PATTERN (‘WHERE’ CONDITION)? (‘UNION’ QUERY)?
+ * @author guru
+ * 
+ */
 public class BaseQuery extends Statement implements IQuery {
 	private String level;
 	private IPattern pattern;

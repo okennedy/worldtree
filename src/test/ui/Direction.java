@@ -1,5 +1,10 @@
 package test.ui;
 
+/**
+ * Enum enumerating the various UI debugging directions supported
+ * @author guru
+ *
+ */
 public enum Direction {
 	UP("UP"),
 	DOWN("DOWN"),
@@ -13,6 +18,12 @@ public enum Direction {
 		this.direction = direction;
 	}
 	
+	/**
+	 * Obtain the direction corresponding to the specified parameter
+	 * @param string {@code String} specifying the {@code Direction}
+	 * @return {@code Direction} corresponding to the parameter <b>string</b> <br>
+	 * <b>null</b> otherwise
+	 */
 	protected static Direction getDirection(String string) {
 		for(Direction d : values()) {
 			if(d.toString().equalsIgnoreCase(string) || d.toString().substring(0, 0).equalsIgnoreCase(string))

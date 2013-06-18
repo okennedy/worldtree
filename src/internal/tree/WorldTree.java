@@ -70,10 +70,6 @@ public abstract class WorldTree implements IWorldTree {
 		return constraints;
 	}
 	
-	/**
-	 * Get set of strings used to represent this WorldTree instance.
-	 * @return {@code List<String>} containing the strings used to visually represent this WorldTree instance.
-	 */
 	public List<String> getStringRepresentation() {
 		stringRepresentation.removeAll(stringRepresentation);
 		initString();

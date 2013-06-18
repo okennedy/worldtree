@@ -5,6 +5,12 @@ import internal.containers.StatementType;
 import internal.containers.condition.ICondition;
 import internal.containers.pattern.IPattern;
 
+/**
+ * Container class for storing a query <br>
+ * QUERY := AT LEVEL PATTERN (‘WHERE’ CONDITION)? (‘UNION’ QUERY)?
+ * @author guru
+ *
+ */
 public class Query extends Statement implements IQuery {
 	private IQuery baseQuery;
 	private IQuery subQuery;

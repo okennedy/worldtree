@@ -2,6 +2,12 @@ package internal.containers.condition;
 
 import internal.containers.property.Property;
 
+/**
+ * Container class for storing a condition <br>
+ * BASECONDITION := PROPERTY | ‘NOT’ BASECONDITION | ‘(’ CONDITION ‘)’
+ * @author guru
+ *
+ */
 public class BaseCondition implements ICondition {
 	private boolean not;
 	private Property property;

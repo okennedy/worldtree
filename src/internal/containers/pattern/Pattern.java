@@ -3,6 +3,12 @@ package internal.containers.pattern;
 import internal.containers.Reference;
 import internal.containers.Relation;
 
+/**
+ * Container class for storing a pattern <br>
+ * PATTERN := REFERENCE (RELATION REFERENCE (, REFERENCE RELATION REFERENCE)* )?
+ * @author guru
+ *
+ */
 public class Pattern implements IPattern {
 	private IPattern basePattern;
 	private IPattern subPattern;

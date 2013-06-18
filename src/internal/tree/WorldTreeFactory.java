@@ -20,6 +20,11 @@ import internal.space.Space.Direction;
 
 import static test.ui.UIDebugEngine.write;
 
+/**
+ * Factory class responsible for generating objects of {@code IWorldTree}
+ * @author guru
+ *
+ */
 public class WorldTreeFactory {
 
 	private  class Map extends WorldTree implements IMap {
@@ -92,6 +97,13 @@ public class WorldTreeFactory {
 		}
 	}
 	
+	/**
+	 * Public interface for creating a new {@code IMap}
+	 * @param name {@code String} containing the name of the new {@code IMap}
+	 * @param parent {@code IWorldTree} representing the parent of the new {@code IMap}
+	 * @param constraints {@code Collection<Constraint>} containing a collection of constraints
+	 * @return {@code IMap} object corresponding to the specified parameters
+	 */
 	public IMap newMap(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		return new Map(name, parent, constraints);
 	}
@@ -129,6 +141,13 @@ public class WorldTreeFactory {
 		}
 	}
 	
+	/**
+	 * Public interface for creating a new {@code IRoom}
+	 * @param name {@code String} containing the name of the new {@code IRoom}
+	 * @param parent {@code IWorldTree} representing the parent of the new {@code IRoom}
+	 * @param constraints {@code Collection<Constraint>} containing a collection of constraints
+	 * @return {@code IRoom} object corresponding to the specified parameters
+	 */
 	public IRoom newRoom(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		return new Room(name, parent, constraints);
 	}
@@ -165,6 +184,11 @@ public class WorldTreeFactory {
 			}
 		}
 		
+		/**
+		 * Create a new {@code ITile} that satisfies the constraints specified
+		 * @param coordinates {@code Coordinates} with reference to which the {@code ITile} is to be created
+		 * @return {@code ITile}
+		 */
 		private ITile initTile(Coordinates coordinates) {
 			int x, y;
 			Coordinates coords = coordinates;
@@ -179,11 +203,18 @@ public class WorldTreeFactory {
 			return tile;
 		}
 		
+		/**
+		 * Initialize the neighbours of the current cooridnates
+		 */
 		private void initNeighbours() {
 			Coordinates coords = space.currentCoordinates();
 			initNeighbours(coords);
 		}
 
+		/**
+		 * Initialize the neighbours of the specified coordinates
+		 * @param coordinates {@code Coordinates} specifying the coordinates to which neighbours are to be initialized
+		 */
 		private void initNeighbours(Coordinates coordinates) {
 			
 			List<Direction> directions = new ArrayList<Direction>(Space.listDirections());
@@ -289,6 +320,13 @@ public class WorldTreeFactory {
 		}
 	}
 	
+	/**
+	 * Public interface for creating a new {@code IRegion}
+	 * @param name {@code String} containing the name of the new {@code IRegion}
+	 * @param parent {@code IWorldTree} representing the parent of the new {@code IRegion}
+	 * @param constraints {@code Collection<Constraint>} containing a collection of constraints
+	 * @return {@code IRegion} object corresponding to the specified parameters
+	 */
 	public IRegion newRegion(String name, IWorldTree parent, Collection<Constraint> constraints, Space space) {
 		return new Region(name, parent, constraints, space);
 	}
@@ -308,20 +346,12 @@ public class WorldTreeFactory {
 			initialize();
 		}
 		
-		/**
-		 * Get the current piece that is stored in the Tile
-		 * @return {@code Piece} object stored by this Tile.
-		 */
 		@Override
 		public IPiece piece() {
 			return piece;
 		}
-		
-		/**
-		 * Check whether this Tile has the specified interface
-		 * @param it {@code InterfaceType} the interface to check for
-		 * @return True if the Tile contains this interface; false otherwise
-		 */
+
+		@Override
 		public boolean hasInterface(TileInterfaceType it) {
 			return piece.getValidInterfaces().contains(it.toString());
 		}
@@ -407,6 +437,13 @@ public class WorldTreeFactory {
 		}
 	}
 	
+	/**
+	 * Public interface for creating a new {@code ITile}
+	 * @param name {@code String} containing the name of the new {@code ITile}
+	 * @param parent {@code IWorldTree} representing the parent of the new {@code ITile}
+	 * @param constraints {@code Collection<Constraint>} containing a collection of constraints
+	 * @return {@code ITile} object corresponding to the specified parameters
+	 */
 	public ITile newTile(String name, Coordinates coordinates, IWorldTree parent,  
 			Collection<Constraint> constraints, IPiece tilePiece) {
 		return new Tile(name, coordinates, parent, constraints, tilePiece);

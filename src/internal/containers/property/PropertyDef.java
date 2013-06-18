@@ -6,6 +6,13 @@ import internal.containers.StatementType;
 import internal.containers.condition.ICondition;
 import internal.containers.query.IQuery;
 
+/**
+ * Container class for property definitions <br>
+ *  PROPERTYDEF :=    ‘DEFINE’ LEVEL REF `.’ property ‘AS’ f(REF, REF, …) ‘IN’ QUERY <br>
+ *                |   ‘DEFINE’ LEVEL REF `.’ property ‘AS’ ‘AGGREGATE’ f(REF, REF, …) ‘IN’ QUERY
+ * @author guru
+ *
+ */
 public class PropertyDef extends Statement {
 	private String level, property;
 	private Reference reference;

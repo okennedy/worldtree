@@ -2,6 +2,12 @@ package internal.containers.condition;
 
 import internal.containers.property.Property;
 
+/**
+ * Container class for storing a condition <br>
+ * COND = BASECONDITION ((‘AND’ | ‘OR’) BASECONDITION)*
+ * @author guru
+ *
+ */
 public class Condition implements ICondition {
 	private ICondition baseCondition;
 	UnionType unionType;

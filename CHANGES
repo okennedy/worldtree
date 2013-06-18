@@ -1,4 +1,14 @@
 06182013:gurupras
+	Commented all files
+        TODO-LIST
+            - Fix PLUS regex handling in inbuilt directions
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
+06182013:gurupras
 	Renamed existing toeast method to direction
 	Added ability to handle all directions
 	Moved inbuilt methods to ResolutionEngine.InbuiltRelations

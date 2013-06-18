@@ -1,5 +1,11 @@
 package internal.containers;
 
+/**
+ * Container class for storing a reference <br>
+ * REFERENCE := WORD
+ * @author guru
+ *
+ */
 public class Reference implements IContainer {
 	private String name;
 	

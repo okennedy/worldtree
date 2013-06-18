@@ -3,6 +3,12 @@ package internal.containers;
 import internal.containers.condition.ICondition;
 import internal.containers.query.IQuery;
 
+/**
+ * Container class for storing a constraint <br>
+ * CONSTRAINT := ‘FOR’ ‘ALL’ LEVEL QUERY ‘ASSERT’ CONDITION
+ * @author guru
+ *
+ */
 public class Constraint extends Statement {
 	private IQuery query;
 	private ICondition condition;

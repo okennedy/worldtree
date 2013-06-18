@@ -3,6 +3,12 @@ package internal.containers.property;
 import internal.containers.IContainer;
 import internal.containers.Reference;
 
+/**
+ * Container class for a property <br>
+ * PROPERTY := REFERENCE '.' PROPERTY COMPARATOR CONSTANT
+ * @author guru
+ *
+ */
 public class Property implements IContainer {
 	private Reference reference;
 	private String name;

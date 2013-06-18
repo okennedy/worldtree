@@ -1,5 +1,10 @@
 package internal.space;
 
+/**
+ * The Coordinates class is used to store coordinates that are used in Space
+ * @author guru
+ *
+ */
 public class Coordinates {
 	protected boolean cartesian;
 	public int x, y;
@@ -16,14 +21,30 @@ public class Coordinates {
 		this.cartesian	= coordinates.cartesian;
 	}
 	
+	/**
+	 * Identify whether this Coordinates object is in Cartesian format
+	 * @return {@code true} if this Coordinates object is in Cartesian format<br>
+	 * {@code false} otherwise
+	 */
 	public boolean cartesian() {
 		return cartesian;
 	}
 	
+	/**
+	 * Obtain the x-coordinate from this {@code Coordinates} object<br>
+	 * This method does not convert from array to Cartesian form or vice-versa
+	 * @return {@code Integer} representing the x-coordinate
+	 */
 	public int x() {
 		return x;
 	}
 	
+	
+	/**
+	 * Obtain the y-coordinate from this {@code Coordinates} object<br>
+	 * This method does not convert from array to Cartesian form or vice-versa
+	 * @return {@code Integer} representing the y-coordinate
+	 */
 	public int y() {
 		return y;
 	}

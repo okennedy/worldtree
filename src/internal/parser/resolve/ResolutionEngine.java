@@ -25,6 +25,11 @@ import static test.ui.UIDebugEngine.pad;
 import static test.ui.UIDebugEngine.write;
 import static internal.containers.Relation.InbuiltRelationEnum;
 
+/**
+ * ResolutionEngine is a Singleton class responsible for evaluating statements issued by the user
+ * @author guru
+ *
+ */
 public class ResolutionEngine {
 	private Map<String, Method> relationMap = new HashMap<String, Method>();
 	private static ResolutionEngine instance = null;
@@ -33,12 +38,21 @@ public class ResolutionEngine {
 //		Prevent initialization of ResolutionEngine
 	}
 	
-	public static String handle(IWorldTree node, IQuery query) {
+	/**
+	 * Evaluate an {@code IQuery}
+	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
+	 * @param query {@code IQuery} object containing the query to evaluate
+	 * @return {@code String} representing the output of the {@code IQuery}
+	 */
+	public static String evaluate(IWorldTree node, IQuery query) {
 		if(instance == null)
 			init();
 		return instance.resolve(node, query);
 	}
 	
+	/**
+	 * Initialize the instance
+	 */
 	private static void init() {
 //		TODO: Figure out a nice way to add future methods similar to the way direction is being resolved
 		instance = new ResolutionEngine();
@@ -57,6 +71,12 @@ public class ResolutionEngine {
 		}
 	}
 
+	/**
+	 * Resolve method that is private to {@code ResolutionEngine} and used to evaluate an {@code IQuery}
+	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
+	 * @param query {@code IQuery} object containing the query to evaluate
+	 * @return {@code String} representing the output of the {@code IQuery}
+	 */
 	private String resolve(IWorldTree node, IQuery query) {
 		Class<?> level		= query.level();
 		IPattern pattern	= query.pattern();
@@ -70,6 +90,12 @@ public class ResolutionEngine {
 		return makeString(query, result);
 	}
 
+	/**
+	 * Helper method used to convert {@code Collection<Collection<IWorldTree>>} to a {@code String}
+	 * @param statement {@code IStatement} representing the statement that is being evaluated
+	 * @param result {@code Collection<Collection<IWorldTree>>} representing the collection that needs to be flattened
+	 * @return {@code String} representing the flattened version of the parameter <b>result</b>
+	 */
 	private String makeString(IStatement statement, Collection<Collection<IWorldTree>> result) {
 		StringBuffer sb = new StringBuffer(statement.toString() + "\n" + statement.debugString() + "\n\n");
 		for(Collection<IWorldTree> collection : result) {
@@ -90,6 +116,13 @@ public class ResolutionEngine {
 		
 	}
 
+	/**
+	 * Resolve method that is specifically designed to handle {@code IQuery}
+	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
+	 * @param level {@code Class<?>} representing the hierarchical level of WorldTree
+	 * @param pattern {@code IPattern} representing the pattern to search for
+	 * @return {@code Collection<Collection<IWorldTree>>} satisfying the {@code IQuery}
+	 */
 	private Collection<Collection<IWorldTree>> resolve(IWorldTree node, Class<?> level, IPattern pattern) {
 		List<IWorldTree> nodeList   = new ArrayList<IWorldTree>();
 		List<IWorldTree> objectList = new ArrayList<IWorldTree>();
@@ -135,18 +168,40 @@ public class ResolutionEngine {
 		return result;
 	}
 	
+	/**
+	 * Container class used to store logic for processing built-in relations
+	 * @author guru
+	 *
+	 */
 	private static class InbuiltRelations {
+		
+		/**
+		 * Annotation to suggest that a method is used as a proxy for other methods
+		 * @author guru
+		 *
+		 */
 		@Target(ElementType.METHOD)
 		@Retention(RetentionPolicy.RUNTIME)
 		public @interface Proxy {
 			String methods() default "";
 		}
 		
+		/**
+		 * Annotation to suggest that a method is built-in
+		 * @author guru
+		 *
+		 */
 		@Target(ElementType.METHOD)
 		@Retention(RetentionPolicy.RUNTIME)
 		public @interface Inbuilt {
 		}
 		
+		/**
+		 * Built-in method to handle all direction related queries
+		 * @param relation {@code Relation} object specifying the relation to test for
+		 * @param nodeList {@code List<IWorldTree>} containing all the relevant objects to test
+		 * @return {@code <Collection<Collection<IWorldTree>>} containing the various valid sets
+		 */
 		@Inbuilt
 		@Proxy(methods = "toeast towest tonorth tosouth")
 		public static Collection<Collection<IWorldTree>> direction(Relation relation, List<IWorldTree> nodeList) {
