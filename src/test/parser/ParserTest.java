@@ -107,6 +107,7 @@ public class ParserTest {
 					System.out.println(query.debugString());
 					String result = ResolutionEngine.resolve(map, query);
 					System.out.println(result);
+					write(result);
 					command.delete(0, command.length());
 				}
 			}
