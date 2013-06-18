@@ -55,7 +55,8 @@ public class BaseQuery extends Statement implements IQuery {
 	@Override
 	public Class<?> level() {
 		try {
-			return Class.forName("internal.tree.WorldTreeFactory$" + level);
+			String className = level.substring(0, 1).toUpperCase() + level.toLowerCase().substring(1);
+			return Class.forName("internal.tree.WorldTreeFactory$" + className);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
