@@ -13,13 +13,14 @@ public class BaseQuery extends Statement implements IQuery {
 	
 	public BaseQuery(String level, IPattern pattern, ICondition condition) {
 		super(StatementType.QUERY);
+		this.level		= level;
 		this.pattern	= pattern;
 		this.condition	= condition;
 	}
 	
 	@Override
 	public String toString() {
-		StringBuffer result = new StringBuffer(pattern.toString());
+		StringBuffer result = new StringBuffer("AT " + level + " " + pattern.toString());
 		if(condition != null)
 			result.append(" WHERE " + condition.toString());
 		
@@ -54,7 +55,7 @@ public class BaseQuery extends Statement implements IQuery {
 	@Override
 	public Class<?> level() {
 		try {
-			return Class.forName(level);
+			return Class.forName("internal.tree.WorldTreeFactory$" + level);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}

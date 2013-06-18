@@ -6,7 +6,10 @@ public class Relation implements IContainer {
 	
 	public Relation(String name, String regex) {
 		this.name	= name;
-		this.regex	= Regex.get("" + regex.indexOf(regex.length() - 1));	//Last index
+		if(regex == null || regex == "")
+			this.regex = Regex.NONE;
+		else
+			this.regex	= Regex.get(regex);	//Last index
 	}
 	
 	public String name() {
@@ -90,6 +93,11 @@ public class Relation implements IContainer {
 					return r;
 			}
 			return NONE;
+		}
+		
+		@Override
+		public String toString() {
+			return regex;
 		}
 	}
 }
