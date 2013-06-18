@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import internal.containers.IStatement;
 import internal.containers.Relation;
 import internal.containers.pattern.IPattern;
 import internal.containers.query.IQuery;
@@ -30,15 +32,21 @@ public class ResolutionEngine {
 			pattern = pattern.subPattern();
 		}
 		
-		return makeString(result);
+		return makeString(query, result);
 	}
 
-	public static String makeString(Collection<Collection<IWorldTree>> result) {
-		StringBuffer sb = new StringBuffer();
+	public static String makeString(IStatement statement, Collection<Collection<IWorldTree>> result) {
+		StringBuffer sb = new StringBuffer(statement.toString() + "\n" + statement.debugString() + "\n\n");
 		for(Collection<IWorldTree> collection : result) {
 			List<String> stringList = new ArrayList<String>();
+			
 			for(IWorldTree obj : collection) {
-				stringList.add(obj.absoluteName() + "  \n" + obj.toString());
+				StringBuffer visual = new StringBuffer();
+				List<String> stringRep = obj.getStringRepresentation();
+				for(String line : stringRep) {
+					visual.append(line + "\n");
+				}
+				stringList.add(obj.absoluteName() + "  \n" + visual.toString());
 			}
 			String multiline = multiLine(stringList);
 			sb.append(multiline + "\n\n");
@@ -97,12 +105,12 @@ public class ResolutionEngine {
 	@SuppressWarnings("unused")
 	private static Collection<Collection<IWorldTree>> toeast(Relation relation, List<IWorldTree> nodeList) {
 		Collection<Collection<IWorldTree>> result = new ArrayList<Collection<IWorldTree>>();
-		Map<IWorldTree, List<List<IWorldTree>>> map = new HashMap<IWorldTree, List<List<IWorldTree>>>();
+		Map<IWorldTree, List<List<IWorldTree>>> map = new LinkedHashMap<IWorldTree, List<List<IWorldTree>>>();
 		
 		for(IWorldTree node : nodeList)
 			map.put(node, new ArrayList<List<IWorldTree>>());
 
-		if(relation.regex().equals(Relation.Regex.STAR)) {
+		if(!relation.regex().equals(Relation.Regex.NONE)) {
 			for(IWorldTree node : nodeList) {
 				map.get(node).add(new ArrayList<IWorldTree>(Arrays.asList(new IWorldTree[]{node})));
 			}
@@ -121,6 +129,17 @@ public class ResolutionEngine {
 				case NONE:
 					continue;	//We got a match! Continue with next node
 				case PLUS:
+					subResult.remove(0);	//Remove first element to avoid infinite recursion
+					for(IWorldTree subNode : subResult) {
+						Collection<Collection<IWorldTree>> recursiveResult = toeast(relation, subResult);
+						for(Collection<IWorldTree> col : recursiveResult) {
+							List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
+							subCollectionList.add(node);
+							subCollectionList.addAll(col);
+							map.get(node).add(subCollectionList);
+						}
+					}
+					break;
 				case STAR:
 //					Need to recursively find all recursive sets
 					subResult.remove(0);	//Remove first element to avoid infinite recursion
@@ -128,7 +147,7 @@ public class ResolutionEngine {
 						Collection<Collection<IWorldTree>> recursiveResult = toeast(relation, subResult);
 						for(Collection<IWorldTree> col : recursiveResult) {
 							List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
-							subCollectionList.add(subNode);
+							subCollectionList.add(node);
 							subCollectionList.addAll(col);
 							map.get(node).add(subCollectionList);
 						}
