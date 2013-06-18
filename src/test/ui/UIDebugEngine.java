@@ -126,7 +126,7 @@ public class UIDebugEngine {
 	public static void write(String string) {
 		BufferedWriter out = null;
 		try {
-			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));
+			out = new BufferedWriter(new FileWriter(new File("output/text_output.txt")));
 			out.write(string);
 			out.newLine();
 		} catch(IOException e) {
