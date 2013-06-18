@@ -12,6 +12,7 @@ import java.util.Map;
 import internal.containers.Relation;
 import internal.containers.pattern.IPattern;
 import internal.containers.query.IQuery;
+import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
 
 public class ResolutionEngine {
@@ -43,6 +44,7 @@ public class ResolutionEngine {
 				else
 					nodeList.add(child);
 			}
+			nodeList.remove(currentNode);
 		}
 		
 		Relation relation = pattern.relation();
@@ -53,7 +55,7 @@ public class ResolutionEngine {
 			Method m = null;
 			try {
 				m = ResolutionEngine.class.getDeclaredMethod(relation.name(), Relation.class, List.class);
-				result = (Collection<Collection<IWorldTree>>) m.invoke(null, relation, nodeList);
+				result = (Collection<Collection<IWorldTree>>) m.invoke(null, relation, objectList);
 			} catch (SecurityException e) {
 				e.printStackTrace();
 			} catch (NoSuchMethodException e) {
@@ -82,7 +84,7 @@ public class ResolutionEngine {
 		for(IWorldTree node : nodeList) {
 			List<IWorldTree> subResult = new ArrayList<IWorldTree>();
 			subResult.add(node);
-			IWorldTree dNode = null;	//TODO: if toeast is valid for a node in the nodeList
+			IWorldTree dNode = node.neighbour(Direction.E);
 //			If null, we still need to handle *
 			if(dNode == null) {
 				if(relation.regex().equals(Relation.Regex.STAR)) {
