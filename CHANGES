@@ -1,4 +1,23 @@
 06182013:gurupras
+	Renamed existing toeast method to direction
+	Added ability to handle all directions
+	Moved inbuilt methods to ResolutionEngine.InbuiltRelations
+	Added annotations to methods in InbuiltRelations
+	ResolutionEngine is now a Singleton with dynamic method binding
+	Changed modifier on Relation.InbuiltRelations to public
+	direction currently resolves A toeast B as A,B
+	Updated references
+
+        TODO-LIST
+	    - Fix PLUS regex handling in inbuilt directions
+	    - Improve comments in newer files
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
+06182013:gurupras
 	Added helper methods to UIDebugEngine class
 	multiline(stringList)
 	pad(string, length)

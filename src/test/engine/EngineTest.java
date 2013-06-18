@@ -64,7 +64,7 @@ public class EngineTest {
 		parser.ReInit(new StringReader(string));
 		try {
 			IQuery query = parser.query();
-			System.out.println(ResolutionEngine.resolve(map, query));
+			System.out.println(ResolutionEngine.handle(map, query));
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

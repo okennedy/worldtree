@@ -39,7 +39,7 @@ public class Relation implements IContainer {
 	}
 	
 	public Type type() {
-		InbuiltRelation rel = InbuiltRelation.check(name);
+		InbuiltRelationEnum rel = InbuiltRelationEnum.check(name);
 		
 		Type t = (rel == null) ? Type.CUSTOM : Type.INBUILT;
 		return t;
@@ -51,7 +51,7 @@ public class Relation implements IContainer {
 		CUSTOM
 	}
 	
-	private enum InbuiltRelation {
+	public enum InbuiltRelationEnum {
 		TO_EAST("toeast"),
 		TO_WEST("towest"),
 		TO_NORTH("tonorth"),
@@ -62,12 +62,12 @@ public class Relation implements IContainer {
 		
 		private String method;
 		
-		private InbuiltRelation(String method) {
+		private InbuiltRelationEnum(String method) {
 			this.method	= method;
 		}
 		
-		public static InbuiltRelation check(String method) {
-			for(InbuiltRelation rel : values()) {
+		public static InbuiltRelationEnum check(String method) {
+			for(InbuiltRelationEnum rel : values()) {
 				if(rel.method.equalsIgnoreCase(method))
 					return rel;
 			}
