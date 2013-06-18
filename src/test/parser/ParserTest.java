@@ -57,36 +57,6 @@ public class ParserTest {
 		}
 		
 	}
-	
-	
-//	@Test
-	public void basicIOTest() {
-		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-			
-			StringBuffer command = new StringBuffer();
-			while(true) {
-				String cmd = in.readLine();
-				
-				if(cmd.equalsIgnoreCase("quit") || cmd.equalsIgnoreCase("exit"))
-					break;
-				
-				command.append(cmd);
-				if(command.toString().contains(";")) {
-					Parser parser = new Parser(new StringReader(command.toString()));
-					IStatement o = parser.parse();
-					System.out.println(o.debugString());
-					command.delete(0, command.length());
-				}
-			}
-		} catch(IOException e) {
-			e.printStackTrace();
-			fail();
-		} catch (ParseException e) {
-			e.printStackTrace();
-			fail();
-		}
-	}
 
 	@Test
 	public void queryResolutionTest() {
@@ -107,7 +77,36 @@ public class ParserTest {
 					System.out.println(query.debugString());
 					String result = ResolutionEngine.resolve(map, query);
 					System.out.println(result);
-					write(result);
+					write("query", result);
+					command.delete(0, command.length());
+				}
+			}
+		} catch(IOException e) {
+			e.printStackTrace();
+			fail();
+		} catch (ParseException e) {
+			e.printStackTrace();
+			fail();
+		}
+	}
+	
+//	@Test
+	public void basicIOTest() {
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			
+			StringBuffer command = new StringBuffer();
+			while(true) {
+				String cmd = in.readLine();
+				
+				if(cmd.equalsIgnoreCase("quit") || cmd.equalsIgnoreCase("exit"))
+					break;
+				
+				command.append(cmd);
+				if(command.toString().contains(";")) {
+					Parser parser = new Parser(new StringReader(command.toString()));
+					IStatement o = parser.parse();
+					System.out.println(o.debugString());
 					command.delete(0, command.length());
 				}
 			}

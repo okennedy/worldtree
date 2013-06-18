@@ -123,10 +123,12 @@ public class UIDebugEngine {
 		}
 	}
 	
-	public static void write(String string) {
+	public static void write(String fileName, String string) {
 		BufferedWriter out = null;
 		try {
-			out = new BufferedWriter(new FileWriter(new File("output/text_output.txt")));
+			if(!fileName.contains(".txt") && !fileName.substring(fileName.length() - 4).equalsIgnoreCase(".txt"))
+				fileName += ".txt";
+			out = new BufferedWriter(new FileWriter(new File("output/" + fileName)));
 			out.write(string);
 			out.newLine();
 		} catch(IOException e) {
