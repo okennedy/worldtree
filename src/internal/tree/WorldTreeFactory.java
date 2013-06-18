@@ -1,6 +1,7 @@
 package internal.tree;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -47,7 +48,7 @@ public class WorldTreeFactory {
 			
 			if(root == this) {
 				children = new ArrayList<IWorldTree>();
-				for(int i = 0; i < 3; i++) {
+				for(int i = 0; i < 1; i++) {
 					children.add(new Room("Room" + i, this, null));
 				}
 			}
@@ -109,9 +110,9 @@ public class WorldTreeFactory {
 					"Normal",
 					"Altar",
 			};
-			for(int i = 0; i < 2; i++) {
+			for(int i = 0; i < 1; i++) {
 				int nextInt = (new Random()).nextInt(regionNames.length);
-				children.add(newRegion(regionNames[nextInt], this, null, new Space(6, 6)));
+				children.add(newRegion(regionNames[nextInt], this, null, new Space(4, 4)));
 			}
 		}
 
@@ -332,7 +333,11 @@ public class WorldTreeFactory {
 		
 		@Override
 		public String toString() {
-			return piece.toString();
+			return this.name();
+		}
+		
+		public List<String> getStringRepresentation() {
+			return new ArrayList<String>(Arrays.asList(piece.toString().split("\n")));
 		}
 		
 		protected void addChild(IWorldTree child) {
