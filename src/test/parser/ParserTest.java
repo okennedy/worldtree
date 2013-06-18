@@ -59,7 +59,7 @@ public class ParserTest {
 	}
 	
 	
-	@Test
+//	@Test
 	public void basicIOTest() {
 		try {
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));

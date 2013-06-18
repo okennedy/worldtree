@@ -30,6 +30,10 @@ public class ResolutionEngine {
 			pattern = pattern.subPattern();
 		}
 		
+		return makeString(result);
+	}
+
+	public static String makeString(Collection<Collection<IWorldTree>> result) {
 		StringBuffer sb = new StringBuffer();
 		for(Collection<IWorldTree> collection : result) {
 			List<String> stringList = new ArrayList<String>();
@@ -40,6 +44,7 @@ public class ResolutionEngine {
 			sb.append(multiline + "\n\n");
 		}
 		return sb.toString();
+		
 	}
 
 	private static Collection<Collection<IWorldTree>> resolve(IWorldTree node, Class<?> level, IPattern pattern) {
@@ -69,7 +74,7 @@ public class ResolutionEngine {
 		case INBUILT:
 			Method m = null;
 			try {
-				m = ResolutionEngine.class.getDeclaredMethod(relation.name(), Relation.class, List.class);
+				m = ResolutionEngine.class.getDeclaredMethod(relation.name().toLowerCase(), Relation.class, List.class);
 				result = (Collection<Collection<IWorldTree>>) m.invoke(null, relation, objectList);
 			} catch (SecurityException e) {
 				e.printStackTrace();
@@ -96,6 +101,12 @@ public class ResolutionEngine {
 		
 		for(IWorldTree node : nodeList)
 			map.put(node, new ArrayList<List<IWorldTree>>());
+
+		if(relation.regex().equals(Relation.Regex.STAR)) {
+			for(IWorldTree node : nodeList) {
+				map.get(node).add(new ArrayList<IWorldTree>(Arrays.asList(new IWorldTree[]{node})));
+			}
+		}
 		
 //		TODO: Decide if A toeast B resolves as B,A or A,B...Currently resolves as B,A
 		for(IWorldTree node : nodeList) {
@@ -103,15 +114,9 @@ public class ResolutionEngine {
 			subResult.add(node);
 			IWorldTree dNode = node.neighbour(Direction.E);
 //			If null, we still need to handle *
-			if(dNode == null) {
-				if(relation.regex().equals(Relation.Regex.STAR)) {
-					subResult.add(node);
-					map.get(node).add(new ArrayList<IWorldTree>(subResult));
-				}
-			}
-			else {
+			if(dNode != null) {
 				subResult.add(dNode);	//Regardless of regex type, we need to add this set to the collection 
-				map.get(node).add(new ArrayList<IWorldTree>(subResult));
+//				map.get(node).add(new ArrayList<IWorldTree>(subResult));
 				switch(relation.regex()) {
 				case NONE:
 					continue;	//We got a match! Continue with next node
@@ -122,7 +127,9 @@ public class ResolutionEngine {
 					for(IWorldTree subNode : subResult) {
 						Collection<Collection<IWorldTree>> recursiveResult = toeast(relation, subResult);
 						for(Collection<IWorldTree> col : recursiveResult) {
-							List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>(col);
+							List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
+							subCollectionList.add(subNode);
+							subCollectionList.addAll(col);
 							map.get(node).add(subCollectionList);
 						}
 					}
