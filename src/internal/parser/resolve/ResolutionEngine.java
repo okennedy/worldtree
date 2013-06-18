@@ -14,21 +14,35 @@ import internal.containers.pattern.IPattern;
 import internal.containers.query.IQuery;
 import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
+import static test.ui.UIDebugEngine.multiLine;
+import static test.ui.UIDebugEngine.pad;
+import static test.ui.UIDebugEngine.write;
 
 public class ResolutionEngine {
 	
-	public static Collection<Collection<IWorldTree>> resolve(IWorldTree node, IQuery query) {
+	public static String resolve(IWorldTree node, IQuery query) {
 		Class<?> level		= query.level();
 		IPattern pattern	= query.pattern();
+		Collection<Collection<IWorldTree>> result = null;
 		while(pattern != null) {
 //			TODO:Join?
-			resolve(node, level, pattern);
+			result = resolve(node, level, pattern);
 			pattern = pattern.subPattern();
 		}
-		return null;
+		
+		StringBuffer sb = new StringBuffer();
+		for(Collection<IWorldTree> collection : result) {
+			List<String> stringList = new ArrayList<String>();
+			for(IWorldTree obj : collection) {
+				stringList.add(obj.name() + "\n" + obj.toString());
+			}
+			String multiline = multiLine(stringList);
+			sb.append(multiline + "\n\n");
+		}
+		return sb.toString();
 	}
 
-	private static void resolve(IWorldTree node, Class<?> level, IPattern pattern) {
+	private static Collection<Collection<IWorldTree>> resolve(IWorldTree node, Class<?> level, IPattern pattern) {
 		List<IWorldTree> nodeList   = new ArrayList<IWorldTree>();
 		List<IWorldTree> objectList = new ArrayList<IWorldTree>();
 		Collection<Collection<IWorldTree>> result = null;
@@ -72,6 +86,7 @@ public class ResolutionEngine {
 		default:
 			throw new IllegalStateException("Cannot have a type that does not exist in " + Relation.Type.values());
 		}
+		return result;
 	}
 	
 	@SuppressWarnings("unused")

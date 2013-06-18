@@ -105,7 +105,8 @@ public class ParserTest {
 					Parser parser = new Parser(new StringReader(command.toString()));
 					IQuery query = (IQuery) parser.parse();
 					System.out.println(query.debugString());
-					ResolutionEngine.resolve(map, query);
+					String result = ResolutionEngine.resolve(map, query);
+					System.out.println(result);
 					command.delete(0, command.length());
 				}
 			}
