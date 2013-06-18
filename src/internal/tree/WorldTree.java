@@ -5,6 +5,7 @@ import internal.containers.Constraint;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * WorldTree is the abstract class that every object in the hierarchy extends.
@@ -30,6 +31,23 @@ public abstract class WorldTree implements IWorldTree {
 
 	public String name() {
 		return name;
+	}
+	
+	public String absoluteName() {
+		Stack<String> stack = new Stack<String>();
+		
+		IWorldTree node = this;
+		while(node.parent() != null) {
+			stack.push(node.name());
+			node = node.parent();
+		}
+		
+		StringBuffer result = new StringBuffer();
+		while(stack.size() > 1)
+			result.append(stack.pop() + " -> ");
+		result.append(stack.pop());
+		
+		return result.toString();
 	}
 	
 	public IWorldTree parent() {

@@ -10,14 +10,20 @@ import internal.space.Space;
 public interface IWorldTree {
 	
 	/**
-	 * Get the name of this WorldTree instance.
-	 * @return {@code String} representing the name of this WorldTree instance.
+	 * Get the name of this WorldTree instance
+	 * @return {@code String} representing the name of this WorldTree instance
 	 */
 	public String name();
 	
 	/**
-	 * Get the parent of this WorldTree instance.
-	 * @return {@code IWroldTree} interface to the parent of this WorldTree instance.
+	 * Get the absolute name of this object
+	 * @return {@code String} representing the absolute name of this WorldTree instance
+	 */
+	public String absoluteName();
+	
+	/**
+	 * Get the parent of this WorldTree instance
+	 * @return {@code IWroldTree} interface to the parent of this WorldTree instance
 	 */
 	public IWorldTree parent();
 	
