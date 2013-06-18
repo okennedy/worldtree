@@ -17,7 +17,7 @@ import internal.tree.IWorldTree;
 
 public class ResolutionEngine {
 	
-	public static String resolve(IWorldTree node, IQuery query) {
+	public static Collection<Collection<IWorldTree>> resolve(IWorldTree node, IQuery query) {
 		Class<?> level		= query.level();
 		IPattern pattern	= query.pattern();
 		while(pattern != null) {
@@ -67,6 +67,7 @@ public class ResolutionEngine {
 			} catch (InvocationTargetException e) {
 				e.printStackTrace();
 			}
+			break;
 		default:
 			throw new IllegalStateException("Cannot have a type that does not exist in " + Relation.Type.values());
 		}
