@@ -2,11 +2,12 @@
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
  */options{  JDK_VERSION = "1.5";  static = false;}PARSER_BEGIN(Parser)package internal.parser;
 
-import internal.containers.*;
-import internal.containers.pattern.*;
-import internal.containers.condition.*;
-import internal.containers.query.*;
-import internal.containers.property.*;
+import internal.parser.containers.*;
+import internal.parser.containers.pattern.*;
+import internal.parser.containers.condition.*;
+import internal.parser.containers.query.*;
+import internal.parser.containers.property.*;
+import internal.parser.containers.property.PropertyDef.RandomSpec;
 
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"
 |   ";"}
@@ -17,13 +18,19 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < ASSERT	: "ASSERT" >
 |   < AT		: "AT" >
 |   < WHERE		: "WHERE" >
+|   < FROM		: "FROM" >
+|   < UNIFORM	: "UNIFORM" >
+|   < INT		: "INT" >
+|   < FLOAT		: "FLOAT" >
 |   < UNION		: "UNION" >
 |   < AND		: "AND" >
 |   < OR		: "OR" >
 |   < NOT		: "NOT" >
 |   < DEFINE	: "DEFINE" >
 |   < AS		: "AS" >
+|   < INHERIT	: "INHERIT" >
 |   < IN		: "IN" >
+|   < TO		: "TO" >
 |   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])* >
 |   < CONSTANT 	: (< DIGIT >)+ >
 |   < #DIGIT 	: [ "0"-"9" ] >
@@ -50,15 +57,6 @@ BasePattern basePattern() :
     Reference r1 = null, r2 = null;
     Relation relation = null;}
 {    r1 = reference() relation = relation() r2 = reference() { return new BasePattern(r1, relation, r2); }
-}
-
-IQuery query() :
-{
-    IQuery query = null, subQuery = null;
-}
-{
-    LOOKAHEAD(412421) query = baseQuery() (< UNION > subQuery = query())? { return new Query(query, subQuery); }
-|   query = baseQuery() { return query; }
 }
 
 BaseQuery baseQuery() :
@@ -150,25 +148,50 @@ Property property() :
 |   ref = reference() < DOT > name = word()    {
         return new Property(ref, name, "1");    }}
 
-Constraint constraint() :
-{    IQuery query = null;
-    ICondition condition = null;
-}
-{    < FOR > < ALL > query = query() < ASSERT > condition = condition() { return new Constraint(query, condition); }
+RandomSpec randomspec() :
+{
+    String dataType = null;
+    String low = null, high = null;}
+{    < UNIFORM > (< INT > | < FLOAT >) { dataType = token.image; }
+        < FROM > low = constant() < TO > high = constant() 		{ return new RandomSpec(dataType, low, high); }|   < IN > < LPARANS > constant() (":" constant())? (< COMMA > constant() (":" constant())?)* < RPARANS >
 }
 
-PropertyDef propertyDef() :
-{    String level 		= null;
-    Reference ref 		= null;
-    String property 	= null;
-    ICondition condition = null;
-    IQuery query			= null;
+IQuery query() :
+{
+    IQuery query = null, subQuery = null;
 }
 {
-    LOOKAHEAD(7) < DEFINE > level = word() ref = reference() < DOT > property = word() < AS > < AGGREGATE >
-    	condition = condition() < IN > query = query() { return new PropertyDef(level, ref, property, condition, query); }
+    LOOKAHEAD(412421) query = baseQuery() (< UNION > subQuery = query())? { return new Query(query, subQuery); }
+|   query = baseQuery() { return query; }
+}
+
+Constraint constraint() :
+{
+    IQuery query = null;
+    ICondition condition = null;
+}
+{
+    < FOR > < ALL > query = query() < ASSERT > condition = condition() { return new Constraint(query, condition); }
+}
+
+
+PropertyDef propertyDef() :
+{    String level 			= null;
+    Reference ref 			= null;
+    String property 		= null;
+    String parent			= null;
+    ICondition condition 	= null;
+    IQuery query			= null;
+    String agg				= null;
+}
+{
+    LOOKAHEAD(7) < DEFINE > level = word() ref = reference() < DOT > property = word() < AS > < AGGREGATE > agg = word() 
+    	condition = condition() < IN > query = query() { return new PropertyDef(level, ref, property, agg, condition, query); }
+|   LOOKAHEAD(7) < DEFINE > level = word() ref = reference() < DOT > property = word() < AS >
+		randomspec() < WHERE > condition = condition()
 |   < DEFINE > level = word() ref = reference() < DOT > property = word() < AS >
     	condition = condition() < IN > query = query() { return new PropertyDef(level, ref, property, condition, query); }
+|   < INHERIT > level = word() ref = reference() < DOT > property = word() < FROM > parent = word()
  }
 
 IStatement parse() :

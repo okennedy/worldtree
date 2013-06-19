@@ -1,3 +1,16 @@
+06192013:gurupras
+	New changes to design document..particularly PROPERTYDEF
+	Updated PropertyDef class and propertyDef grammar
+	Added RandomSpec inner-class to PropertyDef
+
+        TODO-LIST
+            - Fix PLUS regex handling in inbuilt directions
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
 06182013:gurupras
 	Commented all files
         TODO-LIST
