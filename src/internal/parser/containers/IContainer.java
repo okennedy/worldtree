@@ -1,4 +1,4 @@
-package internal.containers;
+package internal.parser.containers;
 
 /**
  * Container interface that is used while parsing statements <br>

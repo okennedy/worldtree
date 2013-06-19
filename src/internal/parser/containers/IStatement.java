@@ -1,4 +1,4 @@
-package internal.containers;
+package internal.parser.containers;
 
 /**
  * Interface that is extended by the abstract class Statement.

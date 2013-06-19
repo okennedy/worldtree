@@ -1,4 +1,4 @@
-package internal.containers;
+package internal.parser.containers;
 
 /**
  * Statement is an abstract container class that can hold different types of statements

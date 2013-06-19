@@ -4,13 +4,13 @@ import static org.junit.Assert.*;
 
 import java.io.StringReader;
 
-import internal.containers.Reference;
-import internal.containers.Relation;
-import internal.containers.pattern.BasePattern;
-import internal.containers.query.BaseQuery;
-import internal.containers.query.IQuery;
 import internal.parser.ParseException;
 import internal.parser.Parser;
+import internal.parser.containers.Reference;
+import internal.parser.containers.Relation;
+import internal.parser.containers.pattern.BasePattern;
+import internal.parser.containers.query.BaseQuery;
+import internal.parser.containers.query.IQuery;
 import internal.parser.resolve.ResolutionEngine;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;

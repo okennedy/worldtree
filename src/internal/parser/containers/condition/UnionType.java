@@ -1,4 +1,4 @@
-package internal.containers.condition;
+package internal.parser.containers.condition;
 
 /**
  * Enum enumerating the various union types

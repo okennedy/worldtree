@@ -1,4 +1,4 @@
-package internal.containers;
+package internal.parser.containers;
 
 /**
  * Container class for storing a relation <br>

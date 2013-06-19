@@ -1,7 +1,7 @@
-package internal.containers.condition;
+package internal.parser.containers.condition;
 
-import internal.containers.IContainer;
-import internal.containers.property.Property;
+import internal.parser.containers.IContainer;
+import internal.parser.containers.property.Property;
 
 public interface ICondition extends IContainer {
 	

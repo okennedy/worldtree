@@ -2,10 +2,10 @@ package test.parser;
 
 import static org.junit.Assert.*;
 
-import internal.containers.IStatement;
-import internal.containers.query.IQuery;
 import internal.parser.ParseException;
 import internal.parser.Parser;
+import internal.parser.containers.IStatement;
+import internal.parser.containers.query.IQuery;
 import internal.parser.resolve.ResolutionEngine;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;

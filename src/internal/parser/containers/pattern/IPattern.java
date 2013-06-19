@@ -1,8 +1,8 @@
-package internal.containers.pattern;
+package internal.parser.containers.pattern;
 
-import internal.containers.IContainer;
-import internal.containers.Reference;
-import internal.containers.Relation;
+import internal.parser.containers.IContainer;
+import internal.parser.containers.Reference;
+import internal.parser.containers.Relation;
 
 public interface IPattern extends IContainer {
 	

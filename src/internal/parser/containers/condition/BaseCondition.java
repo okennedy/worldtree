@@ -1,6 +1,6 @@
-package internal.containers.condition;
+package internal.parser.containers.condition;
 
-import internal.containers.property.Property;
+import internal.parser.containers.property.Property;
 
 /**
  * Container class for storing a condition <br>

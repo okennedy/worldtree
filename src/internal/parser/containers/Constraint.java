@@ -1,7 +1,7 @@
-package internal.containers;
+package internal.parser.containers;
 
-import internal.containers.condition.ICondition;
-import internal.containers.query.IQuery;
+import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.query.IQuery;
 
 /**
  * Container class for storing a constraint <br>

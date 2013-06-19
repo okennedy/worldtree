@@ -1,4 +1,4 @@
-package internal.containers;
+package internal.parser.containers;
 
 /**
  * Enum containing the various statement types <br>

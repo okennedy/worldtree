@@ -1,7 +1,7 @@
-package internal.containers.pattern;
+package internal.parser.containers.pattern;
 
-import internal.containers.Reference;
-import internal.containers.Relation;
+import internal.parser.containers.Reference;
+import internal.parser.containers.Relation;
 
 /**
  * Container class for storing a pattern <br>

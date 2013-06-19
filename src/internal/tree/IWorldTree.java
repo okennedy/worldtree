@@ -3,7 +3,7 @@ package internal.tree;
 import java.util.Collection;
 import java.util.List;
 
-import internal.containers.Constraint;
+import internal.parser.containers.Constraint;
 import internal.piece.IPiece;
 import internal.piece.TileInterfaceType;
 import internal.space.Space;

@@ -1,9 +1,9 @@
-package internal.containers.query;
+package internal.parser.containers.query;
 
-import internal.containers.Statement;
-import internal.containers.StatementType;
-import internal.containers.condition.ICondition;
-import internal.containers.pattern.IPattern;
+import internal.parser.containers.Statement;
+import internal.parser.containers.StatementType;
+import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.pattern.IPattern;
 import internal.tree.IWorldTree;
 
 /**

@@ -1,8 +1,8 @@
-package internal.containers.query;
+package internal.parser.containers.query;
 
-import internal.containers.IStatement;
-import internal.containers.condition.ICondition;
-import internal.containers.pattern.IPattern;
+import internal.parser.containers.IStatement;
+import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.pattern.IPattern;
 
 public interface IQuery extends IStatement {
 	

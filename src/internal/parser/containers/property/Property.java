@@ -1,7 +1,7 @@
-package internal.containers.property;
+package internal.parser.containers.property;
 
-import internal.containers.IContainer;
-import internal.containers.Reference;
+import internal.parser.containers.IContainer;
+import internal.parser.containers.Reference;
 
 /**
  * Container class for a property <br>

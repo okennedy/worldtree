@@ -1,19 +1,23 @@
-package internal.containers.property;
+package internal.parser.containers.property;
 
-import internal.containers.Reference;
-import internal.containers.Statement;
-import internal.containers.StatementType;
-import internal.containers.condition.ICondition;
-import internal.containers.query.IQuery;
+import internal.parser.containers.Reference;
+import internal.parser.containers.Statement;
+import internal.parser.containers.StatementType;
+import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.query.IQuery;
 
 /**
  * Container class for property definitions <br>
- *  PROPERTYDEF :=    ‘DEFINE’ LEVEL REF `.’ property ‘AS’ f(REF, REF, …) ‘IN’ QUERY <br>
- *                |   ‘DEFINE’ LEVEL REF `.’ property ‘AS’ ‘AGGREGATE’ f(REF, REF, …) ‘IN’ QUERY
+ * <pre>
+ * PROPERTYDEF := 
+ *           ‘DEFINE’ LEVEL REF `.’ property ‘AS’ f(REF, REF, …) ‘IN’ QUERY
+ *         | ‘DEFINE’ LEVEL REF `.’ property ‘AS’ ‘AGGREGATE’ f(REF, REF, …) ‘IN’ QUERY
+ *         | ‘DEFINE’ LEVEL REF `.’ property ‘AS’ ‘RANDOM’ RANDOMSPEC ‘WHERE’ CONDITION
+ *         | ‘INHERIT’ LEVEL REF `.’ property ‘FROM’ ‘PARENT’</pre>
  * @author guru
  *
  */
-public class PropertyDef extends Statement {
+public abstract class PropertyDef extends Statement {
 	private String level, property;
 	private Reference reference;
 	private ICondition condition;
