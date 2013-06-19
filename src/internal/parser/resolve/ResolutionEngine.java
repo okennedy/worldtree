@@ -217,7 +217,7 @@ public class ResolutionEngine {
 				}
 			}
 			
-//			TODO: Decide if A toeast B resolves as B,A or A,B...Currently resolves as A,B
+//			TODO: Decide if A toeast B resolves as B,A or A,B...Currently resolves as B,A
 			for(IWorldTree node : nodeList) {
 				List<IWorldTree> subResult = new ArrayList<IWorldTree>();
 				subResult.add(node);
