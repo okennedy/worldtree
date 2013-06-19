@@ -14,16 +14,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import internal.containers.IStatement;
-import internal.containers.Relation;
-import internal.containers.pattern.IPattern;
-import internal.containers.query.IQuery;
+import internal.parser.containers.IStatement;
+import internal.parser.containers.Relation;
+import internal.parser.containers.Relation.InbuiltRelationEnum;
+import internal.parser.containers.pattern.IPattern;
+import internal.parser.containers.query.IQuery;
 import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
 import static test.ui.UIDebugEngine.multiLine;
 import static test.ui.UIDebugEngine.pad;
 import static test.ui.UIDebugEngine.write;
-import static internal.containers.Relation.InbuiltRelationEnum;
 
 /**
  * ResolutionEngine is a Singleton class responsible for evaluating statements issued by the user
@@ -39,81 +39,48 @@ public class ResolutionEngine {
 	}
 	
 	/**
-	 * Evaluate an {@code IQuery}
-	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
-	 * @param query {@code IQuery} object containing the query to evaluate
-	 * @return {@code String} representing the output of the {@code IQuery}
+	 * Evaluate an {@code IStatement}
+	 * @param node {@code IWorldTree} object upon which the {@code IStatement} is to be evaluated
+	 * @param query {@code IStatement} object containing the statement to evaluate
+	 * @return {@code String} representing the output of the {@code IStatement}
 	 */
-	public static String evaluate(IWorldTree node, IQuery query) {
+	public static String evaluate(IWorldTree node, IStatement statement) {
 		if(instance == null)
 			init();
-		return instance.resolve(node, query);
-	}
-	
-	/**
-	 * Initialize the instance
-	 */
-	private static void init() {
-//		TODO: Figure out a nice way to add future methods similar to the way direction is being resolved
-		instance = new ResolutionEngine();
-		try {
-			for(Method m : InbuiltRelations.class.getMethods()) {
-				if(m.isAnnotationPresent(InbuiltRelations.Proxy.class)) {
-					assert(m.isAnnotationPresent(InbuiltRelations.Inbuilt.class));
-					InbuiltRelations.Proxy proxy = m.getAnnotation(InbuiltRelations.Proxy.class);
-					for(String proxyMethod : proxy.methods().split(" "))
-						instance.relationMap.put(proxyMethod, m);
-				}
-			}
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		return instance.resolve(node, statement);
 	}
 
 	/**
-	 * Resolve method that is private to {@code ResolutionEngine} and used to evaluate an {@code IQuery}
-	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
-	 * @param query {@code IQuery} object containing the query to evaluate
-	 * @return {@code String} representing the output of the {@code IQuery}
+	 * Resolve method that is private to {@code ResolutionEngine} and used to evaluate an {@code IStatement}
+	 * @param node {@code IWorldTree} object upon which the {@code IStatement} is to be evaluated
+	 * @param query {@code IStatement} object containing the statement to evaluate
+	 * @return {@code String} representing the output of the {@code IStatement}
 	 */
-	private String resolve(IWorldTree node, IQuery query) {
-		Class<?> level		= query.level();
-		IPattern pattern	= query.pattern();
+	private String resolve(IWorldTree node, IStatement statement) {
 		Collection<Collection<IWorldTree>> result = null;
-		while(pattern != null) {
-//			TODO:Join?
-			result = resolve(node, level, pattern);
-			pattern = pattern.subPattern();
+		switch(statement.getType()) {
+		case CONSTRAINT: {
+			break;
 		}
-		
-		return makeString(query, result);
-	}
-
-	/**
-	 * Helper method used to convert {@code Collection<Collection<IWorldTree>>} to a {@code String}
-	 * @param statement {@code IStatement} representing the statement that is being evaluated
-	 * @param result {@code Collection<Collection<IWorldTree>>} representing the collection that needs to be flattened
-	 * @return {@code String} representing the flattened version of the parameter <b>result</b>
-	 */
-	private String makeString(IStatement statement, Collection<Collection<IWorldTree>> result) {
-		StringBuffer sb = new StringBuffer(statement.toString() + "\n" + statement.debugString() + "\n\n");
-		for(Collection<IWorldTree> collection : result) {
-			List<String> stringList = new ArrayList<String>();
+		case PROPERTYDEF: {
+			break;
+		}
+		case QUERY: {
+			IQuery query = (IQuery) statement;
+			Class<?> level		= query.level();
+			IPattern pattern	= query.pattern();
 			
-			for(IWorldTree obj : collection) {
-				StringBuffer visual = new StringBuffer();
-				List<String> stringRep = obj.getStringRepresentation();
-				for(String line : stringRep) {
-					visual.append(line + "\n");
-				}
-				stringList.add(obj.absoluteName() + "  \n" + visual.toString());
+			while(pattern != null) {
+//				TODO:Join?
+				result = resolveQuery(node, level, pattern);
+				pattern = pattern.subPattern();
 			}
-			String multiline = multiLine(stringList);
-			sb.append(multiline + "\n\n");
+			break;
 		}
-		return sb.toString();
-		
+		default:
+			break;
+		}
+		return makeString(statement, result);
 	}
 
 	/**
@@ -123,7 +90,7 @@ public class ResolutionEngine {
 	 * @param pattern {@code IPattern} representing the pattern to search for
 	 * @return {@code Collection<Collection<IWorldTree>>} satisfying the {@code IQuery}
 	 */
-	private Collection<Collection<IWorldTree>> resolve(IWorldTree node, Class<?> level, IPattern pattern) {
+	private Collection<Collection<IWorldTree>> resolveQuery(IWorldTree node, Class<?> level, IPattern pattern) {
 		List<IWorldTree> nodeList   = new ArrayList<IWorldTree>();
 		List<IWorldTree> objectList = new ArrayList<IWorldTree>();
 		Collection<Collection<IWorldTree>> result = null;
@@ -167,6 +134,54 @@ public class ResolutionEngine {
 		}
 		return result;
 	}
+	
+	/**
+	 * Initialize the instance
+	 */
+	private static void init() {
+//		TODO: Figure out a nice way to add future methods similar to the way direction is being resolved
+		instance = new ResolutionEngine();
+		try {
+			for(Method m : InbuiltRelations.class.getMethods()) {
+				if(m.isAnnotationPresent(InbuiltRelations.Proxy.class)) {
+					assert(m.isAnnotationPresent(InbuiltRelations.Inbuilt.class));
+					InbuiltRelations.Proxy proxy = m.getAnnotation(InbuiltRelations.Proxy.class);
+					for(String proxyMethod : proxy.methods().split(" "))
+						instance.relationMap.put(proxyMethod, m);
+				}
+			}
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Helper method used to convert {@code Collection<Collection<IWorldTree>>} to a {@code String}
+	 * @param statement {@code IStatement} representing the statement that is being evaluated
+	 * @param result {@code Collection<Collection<IWorldTree>>} representing the collection that needs to be flattened
+	 * @return {@code String} representing the flattened version of the parameter <b>result</b>
+	 */
+	private String makeString(IStatement statement, Collection<Collection<IWorldTree>> result) {
+		StringBuffer sb = new StringBuffer(statement.toString() + "\n" + statement.debugString() + "\n\n");
+		for(Collection<IWorldTree> collection : result) {
+			List<String> stringList = new ArrayList<String>();
+			
+			for(IWorldTree obj : collection) {
+				StringBuffer visual = new StringBuffer();
+				List<String> stringRep = obj.getStringRepresentation();
+				for(String line : stringRep) {
+					visual.append(line + "\n");
+				}
+				stringList.add(obj.absoluteName() + "  \n" + visual.toString());
+			}
+			String multiline = multiLine(stringList);
+			sb.append(multiline + "\n\n");
+		}
+		return sb.toString();
+	}
+
+	
 	
 	/**
 	 * Container class used to store logic for processing built-in relations
