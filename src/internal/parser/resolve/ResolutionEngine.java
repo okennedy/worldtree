@@ -67,13 +67,17 @@ public class ResolutionEngine {
 		}
 		case QUERY: {
 			IQuery query = (IQuery) statement;
-			Class<?> level		= query.level();
-			IPattern pattern	= query.pattern();
 			
-			while(pattern != null) {
-//				TODO:Join?
-				result = resolveQuery(node, level, pattern);
-				pattern = pattern.subPattern();
+			while(query != null) {
+				Class<?> level		= query.level();
+				IPattern pattern	= query.pattern();
+				
+				while(pattern != null) {
+//					TODO:Join?
+					result = resolveQuery(node, level, pattern);
+					pattern = pattern.subPattern();
+				}
+				query = query.subQuery();
 			}
 			break;
 		}
