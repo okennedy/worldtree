@@ -48,7 +48,7 @@ public class UIDebugEngine {
 	public static void setUp() {
 		try {
 			new PieceFactory(pieceStrings);
-			WorldTreeFactory factory = new WorldTreeFactory();
+			factory = new WorldTreeFactory();
 			map = factory.newMap("TestMap", null, null);
 		} catch (Exception e) {
 			e.printStackTrace();

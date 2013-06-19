@@ -251,29 +251,26 @@ public class ResolutionEngine {
 					case NONE:
 						map.get(node).add(new ArrayList<IWorldTree>(subResult));
 						continue;	//We got a match! Continue with next node
-					case PLUS:
+					case PLUS: {
 						subResult.remove(0);	//Remove first element to avoid infinite recursion
-						for(IWorldTree subNode : subResult) {	//FIXME
-							Collection<Collection<IWorldTree>> recursiveResult = direction(relation, subResult);
-							for(Collection<IWorldTree> col : recursiveResult) {
-								List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
-								subCollectionList.add(node);
-								subCollectionList.addAll(col);
-								map.get(node).add(subCollectionList);
-							}
+						Collection<Collection<IWorldTree>> recursiveResult = direction(relation, subResult);
+						for(Collection<IWorldTree> col : recursiveResult) {
+							List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
+							subCollectionList.add(node);
+							subCollectionList.addAll(col);
+							map.get(node).add(subCollectionList);
 						}
 						break;
+					}
 					case STAR:
 //						Need to recursively find all recursive sets
 						subResult.remove(0);	//Remove first element to avoid infinite recursion
-						for(IWorldTree subNode : subResult) {	//FIXME
-							Collection<Collection<IWorldTree>> recursiveResult = direction(relation, subResult);
-							for(Collection<IWorldTree> col : recursiveResult) {
-								List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
-								subCollectionList.add(node);
-								subCollectionList.addAll(col);
-								map.get(node).add(subCollectionList);
-							}
+						Collection<Collection<IWorldTree>> recursiveResult = direction(relation, subResult);
+						for(Collection<IWorldTree> col : recursiveResult) {
+							List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
+							subCollectionList.add(node);
+							subCollectionList.addAll(col);
+							map.get(node).add(subCollectionList);
 						}
 						break;
 					}

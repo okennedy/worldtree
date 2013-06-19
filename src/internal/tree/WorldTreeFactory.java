@@ -18,8 +18,6 @@ import internal.tree.IWorldTree.IRegion;
 import internal.tree.IWorldTree.ITile;
 import internal.space.Space.Direction;
 
-import static test.ui.UIDebugEngine.write;
-
 /**
  * Factory class responsible for generating objects of {@code IWorldTree}
  * @author guru
@@ -190,7 +188,6 @@ public class WorldTreeFactory {
 		 * @return {@code ITile}
 		 */
 		private ITile initTile(Coordinates coordinates) {
-			int x, y;
 			Coordinates coords = coordinates;
 			if(!coordinates.cartesian()) {
 				coords = space.arrayToCoord(coordinates);

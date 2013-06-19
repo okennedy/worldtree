@@ -2,7 +2,6 @@ package test.parser;
 
 import static org.junit.Assert.*;
 
-import internal.containers.IContainer;
 import internal.containers.IStatement;
 import internal.containers.query.IQuery;
 import internal.parser.ParseException;
@@ -48,7 +47,7 @@ public class ParserTest {
 	public static void setUp() {
 		try {
 			new PieceFactory(pieceStrings);
-			WorldTreeFactory factory = new WorldTreeFactory();
+			factory = new WorldTreeFactory();
 			map = factory.newMap("TestMap", null, null);
 			map.fullInit();
 			write(map);
