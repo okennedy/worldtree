@@ -93,6 +93,8 @@ public class Space extends Dimension {
 	 */
 	public ITile getByCoord(Coordinates coordinates) {
 		assert (coordinates.cartesian == true);
+		if(!validate(coordinates))
+			return null;
 		return matrix[yDimension - coordinates.y - 1][coordinates.x];
 	}
 	
@@ -151,10 +153,12 @@ public class Space extends Dimension {
 	 */
 	public List<IWorldTree> collection() {
 		List<IWorldTree> returnList = new ArrayList<IWorldTree>();
-		for(int i = 0; i < getXDimension(); i++) {
-			for(int j = 0; j < getYDimension(); j++) {
-				if(matrix[i][j] != null)
-					returnList.add(matrix[i][j]);
+		for(int i = 0; i < getYDimension(); i++) {
+			for(int j = 0; j < getXDimension(); j++) {
+				Coordinates coordinates = new Coordinates(true, i, j);
+				ITile tile = getByCoord(coordinates); 
+				if(tile != null)
+					returnList.add(tile);
 			}
 		}
 		return returnList;
