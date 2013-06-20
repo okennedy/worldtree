@@ -91,23 +91,12 @@ public class ResolutionEngine {
 	 */
 	private Result resolveQuery(IWorldTree node, Class<?> level, IPattern pattern) {
 		List<IWorldTree> nodeList   = new ArrayList<IWorldTree>();
-		List<IWorldTree> objectList = new ArrayList<IWorldTree>();
+		List<IWorldTree> objectList = null;
 		Result result = new Result();
 		
 		nodeList.add(node);
 		
-//		Get collection of relevant objects
-		IWorldTree currentNode = null;
-		while(nodeList.size() > 0) {
-			currentNode = nodeList.get(0);
-			for(IWorldTree child : currentNode.children()) {
-				if(child.getClass().equals(level))
-					objectList.add(child);
-				else
-					nodeList.add(child);
-			}
-			nodeList.remove(currentNode);
-		}
+		objectList = getObjects(node, level);
 		
 		result.add(new Column(pattern.lhs().toString(), objectList));
 		
@@ -149,6 +138,31 @@ public class ResolutionEngine {
 			throw new IllegalStateException("Cannot have a type that does not exist in " + Relation.Type.values());
 		}
 		return result;
+	}
+	
+	/**
+	 * Obtain a collection of all objects in the specified hierarchy level from given {@code IWorldTree} instance <br>
+	 * The tree is traversed using the argument <b> node </b> as root
+	 * @param node {@code IWorldTree} 'root' of the tree
+	 * @param level {@code Class<?>} hierarchy level with which objects are filtered
+	 * @return {@code Collection<IWorldTree>} containing all nodes in the tree at <b> level </b> having <b> node </b> as root 
+	 */
+	private List<IWorldTree> getObjects(IWorldTree node, Class<?> level) {
+		List<IWorldTree> nodeList	= new ArrayList<IWorldTree>();
+		List<IWorldTree> objectList	= new ArrayList<IWorldTree>();
+//		Get collection of relevant objects
+		IWorldTree currentNode = null;
+		while(nodeList.size() > 0) {
+			currentNode = nodeList.get(0);
+			for(IWorldTree child : currentNode.children()) {
+				if(child.getClass().equals(level))
+					objectList.add(child);
+				else
+					nodeList.add(child);
+			}
+			nodeList.remove(currentNode);
+		}
+		return objectList;
 	}
 	
 	/**
