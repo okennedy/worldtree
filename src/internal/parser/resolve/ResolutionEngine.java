@@ -7,10 +7,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,8 +19,6 @@ import internal.parser.containers.query.IQuery;
 import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
 import static test.ui.UIDebugEngine.multiLine;
-import static test.ui.UIDebugEngine.pad;
-import static test.ui.UIDebugEngine.write;
 
 /**
  * ResolutionEngine is a Singleton class responsible for evaluating statements issued by the user
@@ -57,7 +52,7 @@ public class ResolutionEngine {
 	 * @return {@code String} representing the output of the {@code IStatement}
 	 */
 	private String resolve(IWorldTree node, IStatement statement) {
-		Collection<Collection<IWorldTree>> result = null;
+		Result result = null;
 		switch(statement.getType()) {
 		case CONSTRAINT: {
 			break;
@@ -92,12 +87,12 @@ public class ResolutionEngine {
 	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
 	 * @param level {@code Class<?>} representing the hierarchical level of WorldTree
 	 * @param pattern {@code IPattern} representing the pattern to search for
-	 * @return {@code Collection<Collection<IWorldTree>>} satisfying the {@code IQuery}
+	 * @return {@code Result} containing tuples satisfying the {@code IQuery}
 	 */
-	private Collection<Collection<IWorldTree>> resolveQuery(IWorldTree node, Class<?> level, IPattern pattern) {
+	private Result resolveQuery(IWorldTree node, Class<?> level, IPattern pattern) {
 		List<IWorldTree> nodeList   = new ArrayList<IWorldTree>();
 		List<IWorldTree> objectList = new ArrayList<IWorldTree>();
-		Collection<Collection<IWorldTree>> result = null;
+		Result result = new Result();
 		
 		nodeList.add(node);
 		
@@ -114,15 +109,32 @@ public class ResolutionEngine {
 			nodeList.remove(currentNode);
 		}
 		
+		result.add(new Column(pattern.lhs().toString(), objectList));
+		
 		Relation relation = pattern.relation();
 		switch(relation.type()) {
 		case CUSTOM:
 			break;
 		case INBUILT:
 			Method method = null;
-			try {	//FIXME
+			try {
 				method = instance.relationMap.get(relation.name().toLowerCase());
-				result = (Collection<Collection<IWorldTree>>) method.invoke(null, relation, objectList);
+				result = (Result) method.invoke(null, pattern, result);
+				if(pattern.relation().regex().equals(Relation.Regex.PLUS)) {
+//					FIXME: Remove * entries
+					Column lhs = result.get(pattern.lhs().toString());
+					Column rhs = result.get(pattern.rhs().toString());
+					int index = 0;
+					assert(lhs.size() == rhs.size());
+					while(index < lhs.size()) {
+						if(lhs.get(index).equals(rhs.get(index))) {
+							lhs.remove(index);
+							rhs.remove(index);
+							continue;
+						}
+						index++;
+					}
+				}
 			} catch (SecurityException e) {
 				e.printStackTrace();
 			} catch (IllegalArgumentException e) {
@@ -161,26 +173,30 @@ public class ResolutionEngine {
 	}
 	
 	/**
-	 * Helper method used to convert {@code Collection<Collection<IWorldTree>>} to a {@code String}
+	 * Helper method used to convert {@code Result} to a {@code String}
 	 * @param statement {@code IStatement} representing the statement that is being evaluated
-	 * @param result {@code Collection<Collection<IWorldTree>>} representing the collection that needs to be flattened
+	 * @param result {@code Result} representing the collection that needs to be flattened
 	 * @return {@code String} representing the flattened version of the parameter <b>result</b>
 	 */
-	private String makeString(IStatement statement, Collection<Collection<IWorldTree>> result) {
+	private String makeString(IStatement statement, Result result) {
 		StringBuffer sb = new StringBuffer(statement.toString() + "\n" + statement.debugString() + "\n\n");
-		for(Collection<IWorldTree> collection : result) {
-			List<String> stringList = new ArrayList<String>();
-			
-			for(IWorldTree obj : collection) {
-				StringBuffer visual = new StringBuffer();
-				List<String> stringRep = obj.getStringRepresentation();
+		
+		int rowIndex = 0;
+		while(rowIndex < result.get(0).size()) {
+			List<String> stringList 	= new ArrayList<String>();
+			for(Column t : result) {
+				IWorldTree obj 			= t.get(rowIndex);
+				StringBuffer visual 	= new StringBuffer(obj.absoluteName() + "  \n");
+				List<String> stringRep	= t.get(rowIndex).getStringRepresentation();
 				for(String line : stringRep) {
 					visual.append(line + "\n");
 				}
-				stringList.add(obj.absoluteName() + "  \n" + visual.toString());
+				stringList.add(visual.toString());
 			}
 			String multiline = multiLine(stringList);
 			sb.append(multiline + "\n\n");
+			
+			rowIndex++;
 		}
 		return sb.toString();
 	}
@@ -217,29 +233,37 @@ public class ResolutionEngine {
 		
 		/**
 		 * Built-in method to handle all direction related queries
-		 * @param relation {@code Relation} object specifying the relation to test for
-		 * @param nodeList {@code List<IWorldTree>} containing all the relevant objects to test
-		 * @return {@code <Collection<Collection<IWorldTree>>} containing the various valid sets
+		 * @param pattern {@code IPattern} object specifying the pattern to test for
+		 * @return {@code Result} containing the various valid sets
 		 */
 		@Inbuilt
 		@Proxy(methods = "toeast towest tonorth tosouth")
-		public static Collection<Collection<IWorldTree>> direction(Relation relation, List<IWorldTree> nodeList) {
-			Collection<Collection<IWorldTree>> result = new ArrayList<Collection<IWorldTree>>();
-			Map<IWorldTree, List<List<IWorldTree>>> map = new LinkedHashMap<IWorldTree, List<List<IWorldTree>>>();
-			
-			for(IWorldTree node : nodeList)
-				map.put(node, new ArrayList<List<IWorldTree>>());
+		public static Result direction(IPattern pattern, Result result) {
+			Relation relation	= pattern.relation(); 
+			Result subResult 	= new Result();
 
+			Column nodeList		= result.get(pattern.lhs().toString());
+			
+			for(Column t : result) {
+				subResult.add(new Column(t.name));
+			}
+			
+			if(!subResult.contains(pattern.rhs().toString()))
+				subResult.add(new Column(pattern.rhs().toString()));
+			
 			if(!relation.regex().equals(Relation.Regex.NONE)) {
 				for(IWorldTree node : nodeList) {
-					map.get(node).add(new ArrayList<IWorldTree>(Arrays.asList(new IWorldTree[]{node})));
+					subResult.get(pattern.lhs().toString()).add(node);
+					subResult.get(pattern.rhs().toString()).add(node);
 				}
 			}
 			
 //			TODO: Decide if A toeast B resolves as B,A or A,B...Currently resolves as B,A
 			for(IWorldTree node : nodeList) {
-				List<IWorldTree> subResult = new ArrayList<IWorldTree>();
-				subResult.add(node);
+				Result iterResult = new Result();
+				for(Column t : subResult)
+					iterResult.add(new Column(t.name));
+				List<IWorldTree> row = new ArrayList<IWorldTree>();
 				IWorldTree dNode = null;
 				switch(InbuiltRelationEnum.check(relation.name())) {
 				case BEGIN:
@@ -264,43 +288,32 @@ public class ResolutionEngine {
 				
 //				If null, we still need to handle *
 				if(dNode != null) {
-					subResult.add(dNode);	//Regardless of regex type, we need to add this set to the collection 
-//					map.get(node).add(new ArrayList<IWorldTree>(subResult));
+					//Regardless of regex type, we need to add this set to the collection
 					switch(relation.regex()) {
 					case NONE:
-						map.get(node).add(new ArrayList<IWorldTree>(subResult));
+						row.add(dNode);
+						row.add(node);
+						subResult.add(row);
 						continue;	//We got a match! Continue with next node
-					case PLUS: {
-						subResult.remove(0);	//Remove first element to avoid infinite recursion
-						Collection<Collection<IWorldTree>> recursiveResult = direction(relation, subResult);
-						for(Collection<IWorldTree> col : recursiveResult) {
-							List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
-							subCollectionList.add(node);
-							subCollectionList.addAll(col);
-							map.get(node).add(subCollectionList);
-						}
-						break;
-					}
+					case PLUS:
 					case STAR:
 //						Need to recursively find all recursive sets
-						subResult.remove(0);	//Remove first element to avoid infinite recursion
-						Collection<Collection<IWorldTree>> recursiveResult = direction(relation, subResult);
-						for(Collection<IWorldTree> col : recursiveResult) {
-							List<IWorldTree> subCollectionList = new ArrayList<IWorldTree>();
-							subCollectionList.add(node);
-							subCollectionList.addAll(col);
-							map.get(node).add(subCollectionList);
+						row.add(dNode);
+						row.add(node);
+						iterResult.add(row);
+						Result recursiveResult = direction(pattern, iterResult);
+						Column column = recursiveResult.get(pattern.lhs().toString());
+						for(IWorldTree obj : column) {
+							List<IWorldTree> subCollection = new ArrayList<IWorldTree>();
+							subCollection.add(obj);
+							subCollection.add(node);
+							subResult.add(subCollection);
 						}
 						break;
 					}
 				}
 			}
-			
-//			The actual return logic
-			for(Map.Entry<IWorldTree, List<List<IWorldTree>>> entry : map.entrySet())
-				result.addAll(entry.getValue());
-			
-			return result;
+			return subResult;
 		}
 	}
 }

@@ -1,3 +1,16 @@
+06202013:gurupras
+	Completed PLUS regex handling in ResolutionEngine inbuilt directions
+	Added Result and Column classes to represent ResolutionEngine results
+	Updated existing code to use Result and Column classes
+
+	TODO-LIST
+	    - Use java.util.Properties for initialization parameters
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Check whether movement is actually traversable
+            - Finish other parts of debug interface
+
+
 06192013:gurupras
 	New changes to design document..particularly PROPERTYDEF
 	Updated PropertyDef class and propertyDef grammar
