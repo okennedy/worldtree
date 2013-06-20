@@ -1,9 +1,15 @@
 package internal.tree;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Properties;
 import java.util.Random;
 
 import internal.parser.containers.Constraint;
@@ -24,6 +30,48 @@ import internal.space.Space.Direction;
  *
  */
 public class WorldTreeFactory {
+	private String	filePath 		= "init.properties";
+	private File	configFile		= null;
+	private Properties properties	= null;
+	
+	public WorldTreeFactory() {
+		configFile	= new File(filePath);
+		properties 	= new Properties();
+		if(!configFile.exists()) {
+			properties.put("Map.children.size", "2");
+			properties.put("Map.child0.name", "TestRoom");
+			properties.put("Room.children.size", "2");
+			properties.put("Room.children.names", "Normal Dungeon Altar");
+			properties.put("Room.child0.size", "4x4");
+			properties.put("Room.child1.size", "4x4");
+			properties.put("Room.child1.name", "TestRegion");
+			try {
+				properties.store(new FileWriter(filePath), "Auto-generated properties");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		try {
+			properties.load(new FileInputStream(configFile));
+		} catch (FileNotFoundException e) {
+			System.err.println(filePath + " does not exist");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public WorldTreeFactory(String filePath) {
+		this.filePath	= filePath;
+		configFile		= new File(filePath);
+		properties		= new Properties();
+		try {
+			properties.load(new FileInputStream(configFile));
+		} catch (FileNotFoundException e) {
+			System.err.println(filePath + " does not exist");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private  class Map extends WorldTree implements IMap {
 		public Map(String name, IWorldTree parent, Collection<Constraint> constraints) {
@@ -51,8 +99,15 @@ public class WorldTreeFactory {
 			
 			if(root == this) {
 				children = new ArrayList<IWorldTree>();
-				for(int i = 0; i < 1; i++) {
-					children.add(new Room("Room" + i, this, null));
+				String countString 	= properties.getProperty("Map.children.size");
+				if(countString == null)
+					throw new IllegalStateException("Properties file has no size for " + this.getClass());
+				int childrenCount 	= Integer.parseInt(countString);
+				for(int i = 0; i < childrenCount; i++) {
+					String name 	= properties.getProperty("Map.child" + i + ".name");
+					if(name == null)
+						name = "Room" + i;
+					children.add(new Room(name, this, null));
 				}
 			}
 			
@@ -115,14 +170,30 @@ public class WorldTreeFactory {
 		@Override
 		public void initialize() {
 			children = new ArrayList<IWorldTree>();
-			String regionNames[] = {
-					"Dungeon",
-					"Normal",
-					"Altar",
-			};
-			for(int i = 0; i < 1; i++) {
-				int nextInt = (new Random()).nextInt(regionNames.length);
-				children.add(newRegion(regionNames[nextInt], this, null, new Space(4, 4)));
+			String[] regionNames = null;
+			
+			String countString	= properties.getProperty("Room.children.size");
+			if(countString == null)
+				throw new IllegalStateException("Properties file has no size for " + this.getClass());
+			int childrenCount 	= Integer.parseInt(countString);
+			
+			if(properties.getProperty("Room.children.names") != null)
+				regionNames = properties.getProperty("Room.children.names").split(" ");
+
+			for(int i = 0; i < childrenCount; i++) {
+				String name = properties.getProperty("Room.child" + i + ".name");
+				if(name == null) {
+					if(regionNames == null)
+						throw new IllegalStateException("Properties file has no name for child of " + this.getClass());
+					int nextInt = (new Random()).nextInt(regionNames.length);
+					name 		= regionNames[nextInt];
+				}
+				
+				if(properties.getProperty("Room.child" + i + ".size") == null)
+					throw new IllegalStateException("Properties file has no size for child " + i + " of " + this.getClass());
+				String[] size 		= properties.getProperty("Room.child" + i + ".size").split("x");
+				int[] dimensions 	= new int[] {Integer.parseInt(size[0]), Integer.parseInt(size[1])}; 
+				children.add(newRegion(name, this, null, new Space(dimensions[0], dimensions[1])));
 			}
 		}
 

@@ -1,4 +1,18 @@
 06202013:gurupras
+	WorldTreeFactory now uses java.util.Properties
+	Added init.properties file to git
+	All Properties refer to initialization parameters
+	Properties defined in init.properties
+	Removing "Check whether movement is actually traversable" from TODO	
+
+        TODO-LIST
+	    - Add Tile properties to init.properties
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Finish other parts of debug interface
+
+
+06202013:gurupras
 	Completed PLUS regex handling in ResolutionEngine inbuilt directions
 	Added Result and Column classes to represent ResolutionEngine results
 	Updated existing code to use Result and Column classes
