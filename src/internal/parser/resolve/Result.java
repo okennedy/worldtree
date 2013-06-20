@@ -110,4 +110,9 @@ public class Result extends ArrayList<Column> {
 		}
 		return multiLine(stringList) + "\n";
 	}
+
+	public void removeRow(int index) {
+		for(Column c : this)
+			c.remove(index);
+	}
 }

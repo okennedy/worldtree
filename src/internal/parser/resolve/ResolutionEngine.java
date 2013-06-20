@@ -52,7 +52,7 @@ public class ResolutionEngine {
 	 * @return {@code String} representing the output of the {@code IStatement}
 	 */
 	private String resolve(IWorldTree node, IStatement statement) {
-		Result result = null;
+		Result result = new Result();
 		switch(statement.getType()) {
 		case CONSTRAINT: {
 			break;
@@ -62,14 +62,21 @@ public class ResolutionEngine {
 		}
 		case QUERY: {
 			IQuery query = (IQuery) statement;
+			Class<?> level		= query.level();
+			IPattern pattern	= query.pattern();
+			
+			List<IWorldTree> objectList = getObjects(node, level);
+			
+			result.add(new Column(pattern.lhs().toString(), objectList));
 			
 			while(query != null) {
-				Class<?> level		= query.level();
-				IPattern pattern	= query.pattern();
+				level		= query.level();
+				pattern		= query.pattern();
+				
 				
 				while(pattern != null) {
 //					TODO:Join?
-					result = resolveQuery(node, level, pattern);
+					result = resolveQuery(node, level, pattern, result);
 					pattern = pattern.subPattern();
 				}
 				query = query.subQuery();
@@ -89,17 +96,7 @@ public class ResolutionEngine {
 	 * @param pattern {@code IPattern} representing the pattern to search for
 	 * @return {@code Result} containing tuples satisfying the {@code IQuery}
 	 */
-	private Result resolveQuery(IWorldTree node, Class<?> level, IPattern pattern) {
-		List<IWorldTree> nodeList   = new ArrayList<IWorldTree>();
-		List<IWorldTree> objectList = null;
-		Result result = new Result();
-		
-		nodeList.add(node);
-		
-		objectList = getObjects(node, level);
-		
-		result.add(new Column(pattern.lhs().toString(), objectList));
-		
+	private Result resolveQuery(IWorldTree node, Class<?> level, IPattern pattern, Result result) {
 		Relation relation = pattern.relation();
 		switch(relation.type()) {
 		case CUSTOM:
@@ -151,6 +148,7 @@ public class ResolutionEngine {
 		List<IWorldTree> nodeList	= new ArrayList<IWorldTree>();
 		List<IWorldTree> objectList	= new ArrayList<IWorldTree>();
 //		Get collection of relevant objects
+		nodeList.add(node);
 		IWorldTree currentNode = null;
 		while(nodeList.size() > 0) {
 			currentNode = nodeList.get(0);
@@ -325,6 +323,11 @@ public class ResolutionEngine {
 						}
 						break;
 					}
+				}
+				else {
+//					if(result.size() > 2) {
+//						result.removeRow(nodeList.indexOf(node));
+//					}
 				}
 			}
 			return subResult;
