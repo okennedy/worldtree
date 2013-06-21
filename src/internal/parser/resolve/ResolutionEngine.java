@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 import internal.parser.containers.IStatement;
+import internal.parser.containers.Reference;
 import internal.parser.containers.Relation;
 import internal.parser.containers.Relation.InbuiltRelationEnum;
+import internal.parser.containers.Relation.Regex;
 import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.query.IQuery;
 import internal.space.Space.Direction;
@@ -75,7 +77,6 @@ public class ResolutionEngine {
 				
 				
 				while(pattern != null) {
-//					TODO:Join?
 					result = resolveQuery(node, level, pattern, result);
 					pattern = pattern.subPattern();
 				}
@@ -113,7 +114,7 @@ public class ResolutionEngine {
 					int index = 0;
 					assert(lhs.size() == rhs.size());
 					while(index < lhs.size()) {
-						if(lhs.get(index).equals(rhs.get(index))) {
+						if(lhs.get(index).equals(rhs.get(index))) {	//FIXME
 							lhs.remove(index);
 							rhs.remove(index);
 							continue;
@@ -179,7 +180,6 @@ public class ResolutionEngine {
 				}
 			}
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -251,82 +251,86 @@ public class ResolutionEngine {
 		@Inbuilt
 		@Proxy(methods = "toeast towest tonorth tosouth")
 		public static Result direction(IPattern pattern, Result result) {
-			Relation relation	= pattern.relation(); 
-			Result subResult 	= new Result();
-
-			Column nodeList		= result.get(pattern.lhs().toString());
+			Relation relation 	= pattern.relation();
+			Result subResult 	= Result.newCopy(result);
 			
-			for(Column t : result) {
-				subResult.add(new Column(t.name));
+//			Copy over any missing columns
+			for(Reference r : pattern.references()) {
+				if(!subResult.contains(r.toString()))
+					subResult.add(new Column(r.toString()));
 			}
 			
-			if(!subResult.contains(pattern.rhs().toString()))
-				subResult.add(new Column(pattern.rhs().toString()));
+//			Obtain one of the columns
+			Column nodeList = result.get(pattern.lhs().toString());
+			int columnIndex = subResult.indexOf(pattern.lhs().toString());
+			if(nodeList == null)
+				nodeList	= result.get(pattern.rhs().toString());
+			
+//			Since we're supposed to handle queries pertaining to both LHS and RHS of a previous query, we do some hacky fix here..
+			if(nodeList.name.equals(pattern.lhs().toString())) {
+				relation = Relation.InbuiltRelationEnum.invert(relation);
+				columnIndex = subResult.indexOf(pattern.rhs().toString());
+			}
+			
+			
 			
 			if(!relation.regex().equals(Relation.Regex.NONE)) {
-				for(IWorldTree node : nodeList) {
-					subResult.get(pattern.lhs().toString()).add(node);
-					subResult.get(pattern.rhs().toString()).add(node);
+				List<IWorldTree> row = new ArrayList<IWorldTree>();
+				int rowIndex = 0;
+				while(rowIndex < nodeList.size()) {
+					row.addAll(result.getRow(rowIndex));
+					row.add(columnIndex, nodeList.get(rowIndex));
+					subResult.add(row);
+					row.clear();
+					rowIndex++;
 				}
 			}
 			
-//			TODO: Decide if A toeast B resolves as B,A or A,B...Currently resolves as B,A
-			int rowIndex = 0;
-			while(rowIndex < nodeList.size()) {
-				IWorldTree node = nodeList.get(rowIndex);
-				Result iterResult = new Result();
-				for(Column t : subResult)
-					iterResult.add(new Column(t.name));
-				List<IWorldTree> row = new ArrayList<IWorldTree>();
+			int index = 0;
+			while(index < nodeList.size()) {
+				IWorldTree node = nodeList.get(index);
+				
 				IWorldTree dNode = null;
+				
+//				Find the neighbour..we are the LHS..so we invert the directions
+//				In A TOEAST B, LHS = A, thus B is actually to the west
 				switch(InbuiltRelationEnum.check(relation.name())) {
 				case BEGIN:
 					break;
 				case END:
 					break;
 				case TO_EAST:
-					dNode = node.neighbour(Direction.W);
+					dNode = node.neighbour(Direction.E);
 					break;
 				case TO_NORTH:
-					dNode = node.neighbour(Direction.S);
-					break;
-				case TO_SOUTH:
 					dNode = node.neighbour(Direction.N);
 					break;
+				case TO_SOUTH:
+					dNode = node.neighbour(Direction.S);
+					break;
 				case TO_WEST:
-					dNode = node.neighbour(Direction.E);
+					dNode = node.neighbour(Direction.W);
 					break;
 				default:
 					throw new IllegalStateException(relation.name() + " resolved to inbuilt?!\n");
 				}
 				
-//				If null, we still need to handle *
 				if(dNode != null) {
-					//Regardless of regex type, we need to add this set to the collection
 					switch(relation.regex()) {
 					case NONE:
-						row.addAll(result.getRow(rowIndex));
-						row.add(dNode);
+						List<IWorldTree> row = new ArrayList<IWorldTree>();
+						row.addAll(result.getRow(index));
+						row.add(columnIndex, dNode);
 						subResult.add(row);
 						break;
 					case PLUS:
 					case STAR:
-//						Need to recursively find all recursive sets
-						row.add(dNode);
-						row.add(node);
-						iterResult.add(row);
-						Result recursiveResult = direction(pattern, iterResult);
-						Column column = recursiveResult.get(pattern.rhs().toString());
-						for(IWorldTree obj : column) {
-							List<IWorldTree> subCollection = new ArrayList<IWorldTree>();
-							subCollection.add(node);
-							subCollection.add(obj);
-							subResult.add(subCollection);
-						}
+						break;
+					default:
 						break;
 					}
 				}
-				rowIndex++;
+				index++;
 			}
 			return subResult;
 		}

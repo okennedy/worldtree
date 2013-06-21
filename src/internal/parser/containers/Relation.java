@@ -109,6 +109,31 @@ public class Relation implements IContainer {
 			throw new IllegalStateException("Cannot be checking for inbuilt relation when it does not exist in enum\n" +
 					"Did you modify ResolutionEngine?\n");
 		}
+		
+		public static Relation invert(Relation relation) {
+			InbuiltRelationEnum rel = check(relation.name);
+			String newMethod		= null;
+			switch(rel) {
+			case TO_EAST:
+				newMethod = TO_WEST.method;
+				break;
+			case TO_NORTH:
+				newMethod = TO_SOUTH.method;
+				break;
+			case TO_SOUTH:
+				newMethod = TO_NORTH.method;
+				break;
+			case TO_WEST:
+				newMethod = TO_EAST.method;
+				break;
+			case BEGIN:
+			case END:
+			default :
+				throw new IllegalStateException("This should have been caught at InbuiltRelationEnum.check()");
+			}
+			
+			return new Relation(newMethod, relation.regex.toString());
+		}
 	}
 	
 	/**

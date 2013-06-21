@@ -1,4 +1,22 @@
 06212013:gurupras
+	Rewrote direction method
+	Unions seem to work for NONE regex
+	Hacky fix to be able to handle both, 
+	    - (A TOEAST B UNION C TOWEST B)
+	    - (A TOEAST B UNION A TONORTH C)
+	Added invert method to Relation.InbuiltRelationEnum for hack
+	Added indexOf(String) to Result class and updated comments
+
+        TODO-LIST
+	    - Finish rewriting STAR and PLUS regex
+            - Fix and test query unions
+            - Add Tile properties to init.properties
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Finish other parts of debug interface
+
+
+06212013:gurupras
 	Fixed a bug in Space.collection method
 	    - Was expecting (x,y) whereas (y,x) was being passed in
 	    - Visible only for rectangular spaces

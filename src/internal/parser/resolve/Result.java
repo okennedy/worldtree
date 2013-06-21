@@ -96,6 +96,20 @@ public class Result extends ArrayList<Column> {
 	}
 	
 	/**
+	 * Obtain the index of a {@code Column} by name
+	 * @param name {@code String} containing the name of the {@code Column}
+	 * @return {@code int} representing the index of the {@code Column} if found <br>
+	 * {@code -1} otherwise
+	 */
+	public int indexOf(String name) {
+		for(int i = 0; i < size(); i++) {
+			if(get(i).name.equals(name))
+				return i;
+		}
+		return -1;
+	}
+	
+	/**
 	 * Obtain a String representation of this result
 	 */
 	@Override
@@ -129,9 +143,15 @@ public class Result extends ArrayList<Column> {
 		}
 	}
 
+	/**
+	 * Obtain a row from this {@code Result} object
+	 * @param rowIndex {@code int} specifying the row index to fetch
+	 * @return {@code Collection<IWorldTree>} containing the elements of this row
+	 */
 	public Collection<IWorldTree> getRow(int rowIndex) {
 		Collection<IWorldTree> result = new ArrayList<IWorldTree>();
 		for(Column c : this) {
+			if(rowIndex < c.size())
 			result.add(c.get(rowIndex));
 		}
 		return result;
