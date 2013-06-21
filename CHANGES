@@ -1,4 +1,17 @@
 06202013:gurupras
+	Complex query unions seem to work
+            - Abuses the fact that new column is added to the end of result
+            - Needs further testing
+	ResolutionEngine makeString now displays reference names
+
+        TODO-LIST
+            - Add Tile properties to init.properties
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Finish other parts of debug interface
+
+
+06202013:gurupras
 	WorldTreeFactory now uses java.util.Properties
 	Added init.properties file to git
 	All Properties refer to initialization parameters

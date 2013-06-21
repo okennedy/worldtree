@@ -198,7 +198,7 @@ public class ResolutionEngine {
 			List<String> stringList 	= new ArrayList<String>();
 			for(Column t : result) {
 				IWorldTree obj 			= t.get(rowIndex);
-				StringBuffer visual 	= new StringBuffer(obj.absoluteName() + "  \n");
+				StringBuffer visual 	= new StringBuffer(t.name + "\n" + obj.absoluteName() + "  \n");
 				List<String> stringRep	= t.get(rowIndex).getStringRepresentation();
 				for(String line : stringRep) {
 					visual.append(line + "\n");
@@ -283,16 +283,16 @@ public class ResolutionEngine {
 				case END:
 					break;
 				case TO_EAST:
-					dNode = node.neighbour(Direction.E);
+					dNode = node.neighbour(Direction.W);
 					break;
 				case TO_NORTH:
-					dNode = node.neighbour(Direction.N);
-					break;
-				case TO_SOUTH:
 					dNode = node.neighbour(Direction.S);
 					break;
+				case TO_SOUTH:
+					dNode = node.neighbour(Direction.N);
+					break;
 				case TO_WEST:
-					dNode = node.neighbour(Direction.W);
+					dNode = node.neighbour(Direction.E);
 					break;
 				default:
 					throw new IllegalStateException(relation.name() + " resolved to inbuilt?!\n");
@@ -303,8 +303,9 @@ public class ResolutionEngine {
 					//Regardless of regex type, we need to add this set to the collection
 					switch(relation.regex()) {
 					case NONE:
+						int rowIndex = nodeList.indexOf(node);
+						row.addAll(result.getRow(rowIndex));
 						row.add(dNode);
-						row.add(node);
 						subResult.add(row);
 						continue;	//We got a match! Continue with next node
 					case PLUS:

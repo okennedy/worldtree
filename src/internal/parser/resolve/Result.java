@@ -3,6 +3,7 @@ package internal.parser.resolve;
 import internal.tree.IWorldTree;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import static test.ui.UIDebugEngine.multiLine;
 
@@ -114,5 +115,13 @@ public class Result extends ArrayList<Column> {
 	public void removeRow(int index) {
 		for(Column c : this)
 			c.remove(index);
+	}
+
+	public Collection<IWorldTree> getRow(int rowIndex) {
+		Collection<IWorldTree> result = new ArrayList<IWorldTree>();
+		for(Column c : this) {
+			result.add(c.get(rowIndex));
+		}
+		return result;
 	}
 }
