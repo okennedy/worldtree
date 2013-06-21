@@ -136,4 +136,17 @@ public class Result extends ArrayList<Column> {
 		}
 		return result;
 	}
+
+	/**
+	 * Create a new {@code Result} object that has the same columns as the <b> result </b> parameter <br>
+	 * <b> No column values are copied! </b>
+	 * @param result {@code Result} object to clone
+	 * @return {@code Result} object containing the same fields as <b> result </b>
+	 */
+	public static Result newCopy(Result result) {
+		Result newResult = new Result();
+		for(Column c : result)
+			newResult.add(new Column(c.name));
+		return newResult;
+	}
 }
