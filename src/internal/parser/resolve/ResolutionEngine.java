@@ -271,7 +271,9 @@ public class ResolutionEngine {
 			}
 			
 //			TODO: Decide if A toeast B resolves as B,A or A,B...Currently resolves as B,A
-			for(IWorldTree node : nodeList) {
+			int rowIndex = 0;
+			while(rowIndex < nodeList.size()) {
+				IWorldTree node = nodeList.get(rowIndex);
 				Result iterResult = new Result();
 				for(Column t : subResult)
 					iterResult.add(new Column(t.name));
@@ -303,11 +305,10 @@ public class ResolutionEngine {
 					//Regardless of regex type, we need to add this set to the collection
 					switch(relation.regex()) {
 					case NONE:
-						int rowIndex = nodeList.indexOf(node);
 						row.addAll(result.getRow(rowIndex));
 						row.add(dNode);
 						subResult.add(row);
-						continue;	//We got a match! Continue with next node
+						break;
 					case PLUS:
 					case STAR:
 //						Need to recursively find all recursive sets
@@ -315,21 +316,17 @@ public class ResolutionEngine {
 						row.add(node);
 						iterResult.add(row);
 						Result recursiveResult = direction(pattern, iterResult);
-						Column column = recursiveResult.get(pattern.lhs().toString());
+						Column column = recursiveResult.get(pattern.rhs().toString());
 						for(IWorldTree obj : column) {
 							List<IWorldTree> subCollection = new ArrayList<IWorldTree>();
-							subCollection.add(obj);
 							subCollection.add(node);
+							subCollection.add(obj);
 							subResult.add(subCollection);
 						}
 						break;
 					}
 				}
-				else {
-//					if(result.size() > 2) {
-//						result.removeRow(nodeList.indexOf(node));
-//					}
-				}
+				rowIndex++;
 			}
 			return subResult;
 		}
