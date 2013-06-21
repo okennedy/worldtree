@@ -1,5 +1,7 @@
 package internal.parser.containers.pattern;
 
+import java.util.Collection;
+
 import internal.parser.containers.Reference;
 import internal.parser.containers.Relation;
 
@@ -64,5 +66,10 @@ public class Pattern implements IPattern {
 	@Override
 	public IPattern subPattern() {
 		return subPattern;
+	}
+
+	@Override
+	public Collection<Reference> references() {
+		return basePattern.references();
 	}
 }

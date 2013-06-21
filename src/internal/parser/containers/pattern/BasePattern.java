@@ -1,5 +1,9 @@
 package internal.parser.containers.pattern;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+
 import internal.parser.containers.Reference;
 import internal.parser.containers.Relation;
 
@@ -47,6 +51,11 @@ public class BasePattern implements IPattern {
 	@Override
 	public IPattern subPattern() {
 		return null;
+	}
+
+	@Override
+	public Collection<Reference> references() {
+		return new ArrayList<Reference>(Arrays.asList(new Reference[]{r1, r2}));
 	}
 
 }

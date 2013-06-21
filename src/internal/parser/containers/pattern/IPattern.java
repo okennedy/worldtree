@@ -1,5 +1,7 @@
 package internal.parser.containers.pattern;
 
+import java.util.Collection;
+
 import internal.parser.containers.IContainer;
 import internal.parser.containers.Reference;
 import internal.parser.containers.Relation;
@@ -30,4 +32,10 @@ public interface IPattern extends IContainer {
 	 * <b>null</b> otherwise
 	 */
 	public IPattern  subPattern();
+	
+	/**
+	 * Obtain a {@code Collection<Reference>} of the references referred by this {@code IPattern}
+	 * @return {@code Collection<Reference>} containing all the references referred to by this {@code IPattern}
+	 */
+	public Collection<Reference> references();
 }
