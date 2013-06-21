@@ -4,6 +4,7 @@ import internal.tree.IWorldTree;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import static test.ui.UIDebugEngine.multiLine;
 
@@ -112,9 +113,20 @@ public class Result extends ArrayList<Column> {
 		return multiLine(stringList) + "\n";
 	}
 
-	public void removeRow(int index) {
-		for(Column c : this)
+	/**
+	 * This method is used to remove a row corresponding to the given {@code Column} and an element in that column <br>
+	 * The element specified is not removed from this {@code Result} and must be done manually to avoid
+	 * {@code ConcurrentModificationException}
+	 * @param column {@code Column} used to specify the element index
+	 * @param node {@code IWorldTree} object in the given {@code Column}
+	 */
+	public void removeRow(Column c, IWorldTree node) {
+		int index = c.indexOf(node);
+		for(Column column : this) {
+			if(column.equals(c))
+				continue;
 			c.remove(index);
+		}
 	}
 
 	public Collection<IWorldTree> getRow(int rowIndex) {
