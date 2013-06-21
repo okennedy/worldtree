@@ -155,7 +155,7 @@ public class Space extends Dimension {
 		List<IWorldTree> returnList = new ArrayList<IWorldTree>();
 		for(int i = 0; i < getYDimension(); i++) {
 			for(int j = 0; j < getXDimension(); j++) {
-				Coordinates coordinates = new Coordinates(true, i, j);
+				Coordinates coordinates = new Coordinates(true, j, i);
 				ITile tile = getByCoord(coordinates); 
 				if(tile != null)
 					returnList.add(tile);

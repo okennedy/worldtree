@@ -1,3 +1,16 @@
+06212013:gurupras
+	Fixed a bug in Space.collection method
+	    - Was expecting (x,y) whereas (y,x) was being passed in
+	    - Visible only for rectangular spaces
+
+        TODO-LIST
+	    - Fix and test query unions
+            - Add Tile properties to init.properties
+            - propertyDef aggregate logic not implemented
+            - Visually represent current tile while moving
+            - Finish other parts of debug interface
+
+
 06202013:gurupras
 	Complex query unions seem to work
             - Abuses the fact that new column is added to the end of result
