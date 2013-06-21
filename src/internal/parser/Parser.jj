@@ -161,7 +161,7 @@ IQuery query() :
     IQuery query = null, subQuery = null;
 }
 {
-    LOOKAHEAD(412421) query = baseQuery() (< UNION > subQuery = query())? { return new Query(query, subQuery); }
+    LOOKAHEAD(412421) query = baseQuery() < UNION > subQuery = query() { return new Query(query, subQuery); }
 |   query = baseQuery() { return query; }
 }
 
