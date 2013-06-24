@@ -23,4 +23,13 @@ public class Column extends ArrayList<IWorldTree> {
 		this.name 	= name;
 	}
 	
+	public String toString() {
+		StringBuffer result = new StringBuffer(name + "\n");
+		
+		for(IWorldTree obj : this) {
+			result.append(obj.name() + "\n");
+		}
+		
+		return result.toString();
+	}
 }

@@ -80,7 +80,15 @@ public class Result extends ArrayList<Column> {
 	 * {@code false} otherwise
 	 */
 	public boolean contains(List<IWorldTree> row) {
-		assert(row.size() == size());
+		StringBuffer errorMsg = new StringBuffer("Trying to insert " + row.toString() + " into ");
+		
+		List<String> stringList = new ArrayList<String>();
+		for(Column c : this) {
+			stringList.add(c.toString());
+		}
+		errorMsg.append(multiLine(stringList));
+		
+		assert row.size() == size() : errorMsg.toString();
 		
 		int rowIndex = 0;
 		while(rowIndex < get(0).size()) {
@@ -119,13 +127,7 @@ public class Result extends ArrayList<Column> {
 	public String toString() {
 		List<String> stringList = new ArrayList<String>();
 		for(Column t : this) {
-			
-			StringBuffer sb = new StringBuffer();
-			sb.append(t.name + "    \n");
-			for(IWorldTree obj : t) {
-				sb.append(obj.name() + "\n");
-			}
-			stringList.add(sb.toString());
+			stringList.add(t.toString());
 		}
 		return multiLine(stringList) + "\n";
 	}
