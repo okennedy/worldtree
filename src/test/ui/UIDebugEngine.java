@@ -154,10 +154,16 @@ public class UIDebugEngine {
 		List<List<String>> listStringList = new ArrayList<List<String>>();
 		for(String string : stringList)
 			listStringList.add(Arrays.asList(string.split("\n")));
-//		Verify that all Strings are of equal number of lines
-		int size = listStringList.get(0).size();
+
+//		Size is now determined as the size of the largest list
+		int size = -1;
 		for(List<String> list : listStringList)
-			assert(list.size() == size);
+			size = list.size() > size ? list.size() : size;
+		
+//		Throw warning in case of unequal list sizes
+//		for(List<String> list : listStringList)
+//			if(list.size() != size)
+//				System.err.println("Warning: Strings have unequal number of lines in multiLine\n");
 		
 //		Find the largest single String
 		int maxLength = 0;
@@ -171,7 +177,15 @@ public class UIDebugEngine {
 		for(int lineIndex = 0; lineIndex < size; lineIndex++) {
 			StringBuffer line = new StringBuffer();
 			for(List<String> list : listStringList) {
-				line.append(pad(list.get(lineIndex), maxLength));
+				String string = null;
+				try {
+					string = list.get(lineIndex);
+				} catch(IndexOutOfBoundsException e) 
+				{
+					string = "";
+				} finally {
+					line.append(pad(string, maxLength));
+				}
 			}
 			result.append(line + "\n");
 		}
