@@ -58,11 +58,14 @@ public class Result extends ArrayList<Column> {
 	}
 
 	/**
-	 * Add a new row to this result
+	 * Add a new row to this result <br>
+	 * If the row is already present, return immediately
 	 * @param row {@code List<IWorldTree>} containing the elements to add
 	 */
 	public void add(List<IWorldTree> row) {
-		assert(row.size() == size());
+		if(contains(row))
+			return;
+		
 		int index = 0;
 		for(Column t : this) {
 			t.add(row.get(index));
@@ -146,15 +149,18 @@ public class Result extends ArrayList<Column> {
 	/**
 	 * Obtain a row from this {@code Result} object
 	 * @param rowIndex {@code int} specifying the row index to fetch
-	 * @return {@code Collection<IWorldTree>} containing the elements of this row
+	 * @return {@code List<IWorldTree>} containing the elements of this row
 	 */
-	public Collection<IWorldTree> getRow(int rowIndex) {
-		Collection<IWorldTree> result = new ArrayList<IWorldTree>();
+	public List<IWorldTree> getRow(int rowIndex) {
+		List<IWorldTree> result = new ArrayList<IWorldTree>();
 		for(Column c : this) {
 			if(rowIndex < c.size())
 			result.add(c.get(rowIndex));
 		}
-		return result;
+		if(result.size() > 0)
+			return result;
+		else
+			return null;
 	}
 
 	/**
