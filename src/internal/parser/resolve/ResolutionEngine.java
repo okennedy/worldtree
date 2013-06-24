@@ -292,9 +292,9 @@ public class ResolutionEngine {
 				}
 			}
 			
-			int index = 0;
-			while(index < objectList.size()) {
-				IWorldTree node = objectList.get(index);
+			int objIndex = 0;
+			while(objIndex < objectList.size()) {
+				IWorldTree node = objectList.get(objIndex);
 				
 				IWorldTree dNode = null;
 				
@@ -325,18 +325,36 @@ public class ResolutionEngine {
 					switch(relation.regex()) {
 					case NONE:
 						List<IWorldTree> row = new ArrayList<IWorldTree>();
-						row.addAll(result.getRow(index));
+						row.addAll(result.getRow(objIndex));
 						row.add(columnIndex, dNode);
 						subResult.add(row);
 						break;
 					case PLUS:
 					case STAR:
+						Column recursiveList 	= new Column(objectList.name);
+						recursiveList.add(dNode);
+						Result recursiveResult 	= direction(pattern, result, recursiveList);
+						int rows = recursiveResult.get(0).size();
+						
+						row = new ArrayList<IWorldTree>();
+						for(int index = 0; index < rows; index++) {
+							if(result.size() > 2) {
+								row.addAll(result.getRow(objIndex));
+								row.add(columnIndex, dNode);
+							}
+							else {
+								row.add(columnIndex, recursiveResult.get(columnIndex).get(index));
+								row.add(node);
+							}
+							subResult.add(row);
+							row.clear();
+						}
 						break;
 					default:
 						break;
 					}
 				}
-				index++;
+				objIndex++;
 			}
 			return subResult;
 		}
