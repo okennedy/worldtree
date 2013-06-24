@@ -69,15 +69,18 @@ public class ResolutionEngine {
 			
 			List<IWorldTree> objectList = getObjects(node, level);
 			
-			result.add(new Column(pattern.lhs().toString(), objectList));
-			
 			while(query != null) {
 				level		= query.level();
 				pattern		= query.pattern();
 				
 				
+				String rhsColumnName 	= pattern.rhs().toString();
+				Column rhsColumn		= result.get(rhsColumnName);
+				if(rhsColumn == null)
+					rhsColumn			= new Column(rhsColumnName, objectList);
+				
 				while(pattern != null) {
-					result = resolveQuery(node, level, pattern, result);
+					result = resolveQuery(node, level, pattern, result, rhsColumn);
 					pattern = pattern.subPattern();
 				}
 				query = query.subQuery();
@@ -95,9 +98,11 @@ public class ResolutionEngine {
 	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
 	 * @param level {@code Class<?>} representing the hierarchical level of WorldTree
 	 * @param pattern {@code IPattern} representing the pattern to search for
+	 * @param result {@code Result} object containing previous query results(if any)
+	 * @param objects {@code Column} containing the objects to iterate over while resolving this {@code IQuery}
 	 * @return {@code Result} containing tuples satisfying the {@code IQuery}
 	 */
-	private Result resolveQuery(IWorldTree node, Class<?> level, IPattern pattern, Result result) {
+	private Result resolveQuery(IWorldTree node, Class<?> level, IPattern pattern, Result result, Column objects) {
 		Relation relation = pattern.relation();
 		switch(relation.type()) {
 		case CUSTOM:
@@ -106,7 +111,7 @@ public class ResolutionEngine {
 			Method method = null;
 			try {
 				method = instance.relationMap.get(relation.name().toLowerCase());
-				result = (Result) method.invoke(null, pattern, result);
+				result = (Result) method.invoke(null, pattern, result, objects);
 				if(pattern.relation().regex().equals(Relation.Regex.PLUS)) {
 //					FIXME: Remove * entries
 					Column lhs = result.get(pattern.lhs().toString());
@@ -246,11 +251,13 @@ public class ResolutionEngine {
 		/**
 		 * Built-in method to handle all direction related queries
 		 * @param pattern {@code IPattern} object specifying the pattern to test for
+		 * @param result {@code Result} containing previous results
+		 * @param objectList {@code Column} containing objects to iterate over 
 		 * @return {@code Result} containing the various valid sets
 		 */
 		@Inbuilt
 		@Proxy(methods = "toeast towest tonorth tosouth")
-		public static Result direction(IPattern pattern, Result result) {
+		public static Result direction(IPattern pattern, Result result, Column objectList) {
 			Relation relation 	= pattern.relation();
 			Result subResult 	= Result.newCopy(result);
 			
@@ -261,24 +268,14 @@ public class ResolutionEngine {
 			}
 			
 //			Obtain one of the columns
-			Column nodeList = result.get(pattern.lhs().toString());
 			int columnIndex = subResult.indexOf(pattern.lhs().toString());
-			if(nodeList == null)
-				nodeList	= result.get(pattern.rhs().toString());
-			
-//			Since we're supposed to handle queries pertaining to both LHS and RHS of a previous query, we do some hacky fix here..
-			if(nodeList.name.equals(pattern.lhs().toString())) {
-				relation = Relation.InbuiltRelationEnum.invert(relation);
-				columnIndex = subResult.indexOf(pattern.rhs().toString());
-			}
-			
 			
 			
 			if(!relation.regex().equals(Relation.Regex.NONE)) {
 				List<IWorldTree> row = new ArrayList<IWorldTree>();
 				int rowIndex = 0;
-				while(rowIndex < nodeList.size()) {
-					IWorldTree node = nodeList.get(rowIndex);
+				while(rowIndex < objectList.size()) {
+					IWorldTree node = objectList.get(rowIndex);
 					
 					if(result.size() > 2) {
 						row.addAll(result.getRow(rowIndex));
@@ -296,8 +293,8 @@ public class ResolutionEngine {
 			}
 			
 			int index = 0;
-			while(index < nodeList.size()) {
-				IWorldTree node = nodeList.get(index);
+			while(index < objectList.size()) {
+				IWorldTree node = objectList.get(index);
 				
 				IWorldTree dNode = null;
 				
