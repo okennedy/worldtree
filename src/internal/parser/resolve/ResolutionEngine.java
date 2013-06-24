@@ -266,7 +266,11 @@ public class ResolutionEngine {
 			if(nodeList == null)
 				nodeList	= result.get(pattern.rhs().toString());
 			
-//			Since we're supposed to handle queries pertaining to both LHS and RHS of a previous query, we do some hacky fix here..
+/*			
+ * Since we're supposed to handle queries pertaining to both LHS and RHS of a previous query, we do some hacky fix here..
+ * For queries such as AT TILE A TOEAST B, we always fill in the LHS before the first call to {@code resolveQuery}
+ * In this case, we are actually finding the {@code TO_WEST} neighbour
+ */
 			if(nodeList.name.equals(pattern.lhs().toString())) {
 				relation = Relation.InbuiltRelationEnum.invert(relation);
 				columnIndex = subResult.indexOf(pattern.rhs().toString());
@@ -292,8 +296,7 @@ public class ResolutionEngine {
 				
 				IWorldTree dNode = null;
 				
-//				Find the neighbour..we are the LHS..so we invert the directions
-//				In A TOEAST B, LHS = A, thus B is actually to the west
+//				Find the neighbour..
 				switch(InbuiltRelationEnum.check(relation.name())) {
 				case BEGIN:
 					break;
@@ -316,15 +319,21 @@ public class ResolutionEngine {
 				}
 				
 				if(dNode != null) {
+					List<IWorldTree> row = new ArrayList<IWorldTree>();
+					row.addAll(result.getRow(index));
+					row.add(columnIndex, dNode);
+
 					switch(relation.regex()) {
 					case NONE:
-						List<IWorldTree> row = new ArrayList<IWorldTree>();
-						row.addAll(result.getRow(index));
-						row.add(columnIndex, dNode);
 						subResult.add(row);
 						break;
 					case PLUS:
 					case STAR:
+//						If we don't change the position of destination, we will be recursing indefinitely
+						Result recursiveInput	= Result.newCopy(subResult);
+						recursiveInput.add(row);
+						Result recursiveResult 	= direction(pattern, recursiveInput);
+						subResult.addAll(recursiveResult);
 						break;
 					default:
 						break;
