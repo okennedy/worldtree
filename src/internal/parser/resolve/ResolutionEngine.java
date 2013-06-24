@@ -325,8 +325,14 @@ public class ResolutionEngine {
 					switch(relation.regex()) {
 					case NONE:
 						List<IWorldTree> row = new ArrayList<IWorldTree>();
-						row.addAll(result.getRow(objIndex));
-						row.add(columnIndex, dNode);
+						if(result.size() >= 2) {
+							row.addAll(result.getRow(objIndex));
+							row.add(columnIndex, dNode);
+						}
+						else {
+							row.add(columnIndex, dNode);
+							row.add(node);
+						}
 						subResult.add(row);
 						break;
 					case PLUS:
