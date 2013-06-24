@@ -278,8 +278,17 @@ public class ResolutionEngine {
 				List<IWorldTree> row = new ArrayList<IWorldTree>();
 				int rowIndex = 0;
 				while(rowIndex < nodeList.size()) {
-					row.addAll(result.getRow(rowIndex));
-					row.add(columnIndex, nodeList.get(rowIndex));
+					IWorldTree node = nodeList.get(rowIndex);
+					
+					if(result.size() > 2) {
+						row.addAll(result.getRow(rowIndex));
+						row.add(columnIndex, node);
+					}
+					else {
+						row.add(node);
+						row.add(node);
+					}
+					
 					subResult.add(row);
 					row.clear();
 					rowIndex++;
