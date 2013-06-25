@@ -277,9 +277,10 @@ public class ResolutionEngine {
 				while(rowIndex < objectList.size()) {
 					IWorldTree node = objectList.get(rowIndex);
 					
-					if(result.size() > 2) {
+					if(result.size() >= 2) {
 						row.addAll(result.getRow(rowIndex));
 						row.add(columnIndex, node);
+						assert subResult.size() == row.size() : "Trying to insert " + row.toString() + " into \n" + result.toString();
 					}
 					else {
 						row.add(node);
@@ -344,7 +345,7 @@ public class ResolutionEngine {
 						
 						row = new ArrayList<IWorldTree>();
 						for(int index = 0; index < rows; index++) {
-							if(result.size() > 2) {
+							if(result.size() >= 2) {
 								row.addAll(result.getRow(objIndex));
 								row.add(columnIndex, dNode);
 							}
