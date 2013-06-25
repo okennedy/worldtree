@@ -133,21 +133,15 @@ public class Result extends ArrayList<Column> {
 	}
 
 	/**
-	 * This method is used to remove a row corresponding to the given {@code Column} and an element in that column <br>
-	 * The element specified is not removed from this {@code Result} and must be done manually to avoid
-	 * {@code ConcurrentModificationException}
-	 * @param column {@code Column} used to specify the element index
-	 * @param node {@code IWorldTree} object in the given {@code Column}
+	 * This method is used to remove a row corresponding to the given row index <br>
+	 * @param rowIndex {@code int} specifying the index of the row to be removed
 	 */
-	public void removeRow(Column c, IWorldTree node) {
-		int index = c.indexOf(node);
+	public void removeRow(int rowIndex) {
 		for(Column column : this) {
-			if(column.equals(c))
-				continue;
-			c.remove(index);
+			column.remove(rowIndex);
 		}
 	}
-
+	
 	/**
 	 * Obtain a row from this {@code Result} object
 	 * @param rowIndex {@code int} specifying the row index to fetch
