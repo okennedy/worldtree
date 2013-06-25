@@ -15,7 +15,6 @@ import internal.parser.containers.IStatement;
 import internal.parser.containers.Reference;
 import internal.parser.containers.Relation;
 import internal.parser.containers.Relation.InbuiltRelationEnum;
-import internal.parser.containers.Relation.Regex;
 import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.query.IQuery;
 import internal.space.Space.Direction;
@@ -120,8 +119,7 @@ public class ResolutionEngine {
 					assert(lhs.size() == rhs.size());
 					while(index < lhs.size()) {
 						if(lhs.get(index).equals(rhs.get(index))) {	//FIXME
-							lhs.remove(index);
-							rhs.remove(index);
+							result.removeRow(index);
 							continue;
 						}
 						index++;
