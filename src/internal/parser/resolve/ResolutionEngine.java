@@ -345,7 +345,7 @@ public class ResolutionEngine {
 						for(int index = 0; index < rows; index++) {
 							if(result.size() >= 2) {
 								row.addAll(result.getRow(objIndex));
-								row.add(columnIndex, dNode);
+								row.add(recursiveResult.getRow(index).get(columnIndex));
 							}
 							else {
 								row.add(columnIndex, recursiveResult.get(columnIndex).get(index));
