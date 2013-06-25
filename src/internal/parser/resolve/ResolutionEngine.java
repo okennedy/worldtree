@@ -272,7 +272,7 @@ public class ResolutionEngine {
 			
 			
 			if(!relation.regex().equals(Relation.Regex.NONE)) {
-				List<IWorldTree> row = new ArrayList<IWorldTree>();
+				List<IWorldTree> row = new ArrayList<IWorldTree>(subResult.size());
 				int rowIndex = 0;
 				while(rowIndex < objectList.size()) {
 					IWorldTree node = objectList.get(rowIndex);
@@ -325,7 +325,7 @@ public class ResolutionEngine {
 				if(dNode != null) {
 					switch(relation.regex()) {
 					case NONE:
-						List<IWorldTree> row = new ArrayList<IWorldTree>();
+						List<IWorldTree> row = new ArrayList<IWorldTree>(subResult.size());
 						if(result.size() >= 2) {
 							row.addAll(result.getRow(objIndex));
 							row.add(columnIndex, dNode);
@@ -343,7 +343,7 @@ public class ResolutionEngine {
 						Result recursiveResult 	= direction(pattern, result, recursiveList);
 						int rows = recursiveResult.get(0).size();
 						
-						row = new ArrayList<IWorldTree>();
+						row = new ArrayList<IWorldTree>(subResult.size());
 						for(int index = 0; index < rows; index++) {
 							if(result.size() >= 2) {
 								row.addAll(result.getRow(objIndex));
