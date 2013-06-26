@@ -376,6 +376,7 @@ public class WorldTreeFactory {
 			}
 			
 			if(space.validate(coordinates)) {
+				space.updateCurrentVisual(coordinates);
 				space.setCurrentCoordinates(coordinates);
 				initNeighbours();
 			}

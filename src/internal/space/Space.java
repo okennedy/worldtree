@@ -133,7 +133,7 @@ public class Space extends Dimension {
 		assert(coordinates.cartesian == true);
 		Coordinates indices = coordToArray(coordinates);
 		matrix[indices.y][indices.x] = tile;
-		updateStringRepresentation(indices.x, indices.y);
+		updateStringRepresentation(indices);
 	}
 	
 	/**
@@ -144,7 +144,7 @@ public class Space extends Dimension {
 	public void setByArray(Coordinates coordinates, ITile tile) {
 		assert(coordinates.cartesian == false);
 		matrix[coordinates.x][coordinates.y] = tile;
-		updateStringRepresentation(coordinates.x, coordinates.y);
+		updateStringRepresentation(coordinates);
 	}
 
 	/**
@@ -259,8 +259,8 @@ public class Space extends Dimension {
 		return stringRepresentation;
 	}
 	
-	private void updateStringRepresentation(int xIndex, int yIndex) {
-//		TODO: First we find the 'line' that holds this tile (using yIndex)
+	private void updateStringRepresentation(Coordinates coordinates) {
+//		TODO: First we find the 'line' that holds this tile (using coordinates.y)
 		getStringRepresentation();
 	}
 
@@ -414,5 +414,32 @@ public class Space extends Dimension {
 //		coordinates.x = yCoord;
 //		coordinates.y = yDimension - xCoord - 1; 
 		return newCoordinates;
+	}
+
+	/**
+	 * Update the visual of current tile to explicitly represent the current tile <br>
+	 * This helps while running the UI debug suite
+	 * @param coordinates {@code Coordinates} containing the tile whose visual is to be modified
+	 */
+	public void updateCurrentVisual(Coordinates coordinates) {
+//		First remove it from the old tile
+		ITile currentTile = getByCoord(current);
+		List<String> stringRepresentation = currentTile.getStringRepresentation();
+		for(String string : stringRepresentation) {
+			if(string.contains("CT")) {
+				string.replace("CT", "  ");
+				break;
+			}
+		}
+		
+		ITile newCurrentTile = getByCoord(coordinates);
+		stringRepresentation = currentTile.getStringRepresentation();
+		for(String string : stringRepresentation) {
+			if(string.contains("  ")) {
+				string.replace("  ", "CT");
+				break;
+			}
+		}
+		updateStringRepresentation(coordinates);
 	}
 }
