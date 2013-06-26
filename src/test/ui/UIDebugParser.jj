@@ -6,10 +6,10 @@ import internal.tree.IWorldTree;
 import test.ui.UIDebugEngine;
 
 public class UIDebugParser{}PARSER_END(UIDebugParser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN [IGNORE_CASE] :{
-    < UP		: "UP" >
-|   < DOWN		: "DOWN" >
-|   < LEFT		: "LEFT" >
-|   < RIGHT		: "RIGHT" >|   < PLUS 		: "+" >|   < MINUS 	: "-" >|   < MULTIPLY 	: "*" >|   < DIVIDE 	: "/" >
+    < UP		: "U" ("P")?    >
+|   < DOWN		: "D" ("OWN")?  >
+|   < LEFT		: "L" ("EFT")?  >
+|   < RIGHT		: "R" ("IGHT")? >|   < PLUS 		: "+" >|   < MINUS 	: "-" >|   < MULTIPLY 	: "*" >|   < DIVIDE 	: "/" >
 |   < CONSTANT 	: (< DIGIT >)+ >
 |   < #DIGIT 	: [ "0"-"9" ] >}
 

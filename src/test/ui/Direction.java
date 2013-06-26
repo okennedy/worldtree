@@ -26,7 +26,7 @@ public enum Direction {
 	 */
 	protected static Direction getDirection(String string) {
 		for(Direction d : values()) {
-			if(d.toString().equalsIgnoreCase(string) || d.toString().substring(0, 0).equalsIgnoreCase(string))
+			if(d.toString().equalsIgnoreCase(string) || d.toString().substring(0, 1).equalsIgnoreCase(string))
 				return d;
 		}
 		
