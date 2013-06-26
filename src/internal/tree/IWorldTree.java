@@ -66,8 +66,8 @@ public interface IWorldTree {
 	public void move(test.ui.Direction direction);
 	
 	/**
-	 * Get set of strings used to represent this WorldTree instance.
-	 * @return {@code List<String>} containing the strings used to visually represent this WorldTree instance.
+	 * Get set of strings used to represent this {@code IWorldTree} instance.
+	 * @return {@code List<String>} containing the strings used to visually represent this {@code IWorldTree} instance.
 	 */
 	List<String> getStringRepresentation();
 	
@@ -89,6 +89,12 @@ public interface IWorldTree {
 	}
 	
 	public interface ITile extends IWorldTree {
+		
+		/**
+		 * Update this {@code ITile}'s visual
+		 * @param visual {@code String} containing the new visual
+		 */
+		public void updateVisual(String visual);
 		
 		/**
 		 * Obtain reference to the piece located in this Tile

@@ -29,7 +29,7 @@ public class Space extends Dimension {
 	public Space(int x, int y) {
 		super(y, x);
 		matrix = new Tile[y][x];
-		current = new Coordinates(true, 0, yDimension - 1);
+		current = new Coordinates(true, 0, 0);
 		stringRepresentation = new ArrayList<String>();
 	}
 	
@@ -270,6 +270,7 @@ public class Space extends Dimension {
 	 */
 	public void setCurrentCoordinates(Coordinates current) {
 		assert(current.cartesian == true);
+		updateCurrentVisual(current);
 		this.current = current;
 		
 	}
@@ -422,24 +423,34 @@ public class Space extends Dimension {
 	 * @param coordinates {@code Coordinates} containing the tile whose visual is to be modified
 	 */
 	public void updateCurrentVisual(Coordinates coordinates) {
-//		First remove it from the old tile
+		StringBuffer sb = new StringBuffer();
+		
+		//		First remove it from the old tile
 		ITile currentTile = getByCoord(current);
+		
 		List<String> stringRepresentation = currentTile.getStringRepresentation();
-		for(String string : stringRepresentation) {
-			if(string.contains("CT")) {
-				string.replace("CT", "  ");
-				break;
-			}
+		for(String string : stringRepresentation)
+			sb.append(string + "\n");
+		
+		int index = sb.indexOf("|CT");
+//		assert index >= 0 : "Unable to update current tile visual :old currentTile visual index = " + index;
+		if(index != -1) {
+			sb.replace(index + 1, index + 3, "  ");
+			currentTile.piece().updateVisual(sb.toString());
 		}
 		
+//		Now do the reverse in the new tile
+		sb.delete(0, sb.length());
 		ITile newCurrentTile = getByCoord(coordinates);
-		stringRepresentation = currentTile.getStringRepresentation();
-		for(String string : stringRepresentation) {
-			if(string.contains("  ")) {
-				string.replace("  ", "CT");
-				break;
-			}
-		}
+		stringRepresentation = newCurrentTile.getStringRepresentation();
+		for(String string : stringRepresentation)
+			sb.append(string + "\n");
+		
+		index = sb.indexOf("|  ");
+		assert index >= 0 : "Unable to update new tile visual :new currentTile visual index = " + index;
+		sb.replace(index + 1, index + 3, "CT");
+		newCurrentTile.piece().updateVisual(sb.toString());
+		
 		updateStringRepresentation(coordinates);
 	}
 }

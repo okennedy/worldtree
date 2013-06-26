@@ -376,7 +376,6 @@ public class WorldTreeFactory {
 			}
 			
 			if(space.validate(coordinates)) {
-				space.updateCurrentVisual(coordinates);
 				space.setCurrentCoordinates(coordinates);
 				initNeighbours();
 			}
@@ -406,7 +405,7 @@ public class WorldTreeFactory {
 	 *
 	 */
 	public class Tile extends WorldTree implements ITile {
-		private IPiece piece;
+		public IPiece piece;
 		private Coordinates coordinates;
 		public Tile(String name, Coordinates coord, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
 			super(name, parent, constraints);
@@ -436,7 +435,10 @@ public class WorldTreeFactory {
 		}
 		
 		public List<String> getStringRepresentation() {
-			return new ArrayList<String>(Arrays.asList(piece.toString().split("\n")));
+			if(stringRepresentation == null)
+				stringRepresentation = new ArrayList<String>(Arrays.asList(piece().toString().split("\n")));
+			
+			return stringRepresentation;
 		}
 		
 		protected void addChild(IWorldTree child) {
@@ -503,6 +505,15 @@ public class WorldTreeFactory {
 				return parent.space.getByCoord(newCoords);
 			else
 				return null;
+		}
+
+		@Override
+		public void updateVisual(String visual) {
+			stringRepresentation.removeAll(stringRepresentation);
+			
+			for(String s : visual.split("\n")) {
+				stringRepresentation.add(s);
+			}
 		}
 	}
 	
