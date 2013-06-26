@@ -65,6 +65,8 @@ public class UIDebugEngine {
 			String command;
 			map.initialize();	//Map initialized
 			map.initialize();	//Rooms initialized
+			write(map);
+			
 			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0
 			while(true) {
 				command = in.readLine();
