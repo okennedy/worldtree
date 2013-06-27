@@ -436,7 +436,7 @@ public class Space extends Dimension {
 //		assert index >= 0 : "Unable to update current tile visual :old currentTile visual index = " + index;
 		if(index != -1) {
 			sb.replace(index + 1, index + 3, "  ");
-			currentTile.piece().updateVisual(sb.toString());
+			currentTile.updateVisual(sb.toString());
 		}
 		
 //		Now do the reverse in the new tile
@@ -449,7 +449,7 @@ public class Space extends Dimension {
 		index = sb.indexOf("|  ");
 		assert index >= 0 : "Unable to update new tile visual :new currentTile visual index = " + index;
 		sb.replace(index + 1, index + 3, "CT");
-		newCurrentTile.piece().updateVisual(sb.toString());
+		newCurrentTile.updateVisual(sb.toString());
 		
 		updateStringRepresentation(coordinates);
 	}
