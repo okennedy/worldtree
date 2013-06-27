@@ -220,14 +220,23 @@ public class Space extends Dimension {
 	}
 	
 	public List<String> getStringRepresentation() {
+		if(stringRepresentation == null)
+			stringRepresentation = new ArrayList<String>();
+		
 		stringRepresentation.removeAll(stringRepresentation);
 		List<List<String>> listStringList = new ArrayList<List<String>>();
 		for(int i = 0; i < getYDimension(); i++) {
 			List<String> stringList = new ArrayList<String>();
 			for(int j = 0; j < getXDimension(); j++) {
 				Coordinates currentCoords = new Coordinates(false, i, j);
-				if(getByArray(currentCoords) != null)
-					stringList.add(getByArray(currentCoords).piece().toString());
+//				Get the visual of this tile
+				if(getByArray(currentCoords) != null) {
+					StringBuffer sb = new StringBuffer();
+					for(String s : getByArray(currentCoords).getStringRepresentation()) {
+						sb.append(s + "\n");
+					}
+					stringList.add(sb.toString());
+				}
 				else
 					stringList.add(PieceFactory.newPiece("").toString());
 			}

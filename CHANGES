@@ -1,3 +1,18 @@
+06272013:gurupras
+	Finished visually representing current tile while UI debugging
+	Finished rewriting STAR and PLUS regex
+	Tested few query unions
+
+	TODO-LIST
+	    - Optimize Space.updateStringRepresentation
+	        - Reacquires full visual everytime rather than incremental
+	    - Implement property parsing and evaluation
+	    - Add tile type as a property
+	    - Add arbitrary start and finish
+	        - Allow UI debug to begin from this start
+            - propertyDef aggregate logic not implemented
+
+
 06212013:gurupras
 	Rewrote direction method
 	Unions seem to work for NONE regex

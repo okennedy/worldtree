@@ -435,9 +435,10 @@ public class WorldTreeFactory {
 		}
 		
 		public List<String> getStringRepresentation() {
-			if(stringRepresentation == null || stringRepresentation.size() == 0)
+			if(stringRepresentation == null)
 				stringRepresentation = new ArrayList<String>(Arrays.asList(piece().toString().split("\n")));
-			
+			else if(stringRepresentation.size() == 0)
+				stringRepresentation.addAll(Arrays.asList(piece().toString().split("\n")));
 			return stringRepresentation;
 		}
 		
