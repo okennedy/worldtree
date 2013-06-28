@@ -146,7 +146,7 @@ public class Space extends Dimension {
 	 */
 	public void setByArray(Coordinates coordinates, ITile tile) {
 		assert(coordinates.cartesian == false);
-		matrix[coordinates.x][coordinates.y] = tile;
+		matrix[coordinates.y][coordinates.x] = tile;
 		updateStringRepresentation(coordinates);
 	}
 
@@ -452,17 +452,20 @@ public class Space extends Dimension {
 		//		First remove it from the old tile
 		ITile currentTile = getByCoord(current);
 		
-		List<String> stringRepresentation = currentTile.getStringRepresentation();
-		for(String string : stringRepresentation)
-			sb.append(string + "\n");
-		
-		int index = sb.indexOf("|CT");
-//		assert index >= 0 : "Unable to update current tile visual :old currentTile visual index = " + index;
-		if(index != -1) {
-			sb.replace(index + 1, index + 3, "  ");
-			currentTile.updateVisual(sb.toString());
+//		This is required as this.current is pointing to C(0,0) upon initialization 
+		if(currentTile != null) {
+			List<String> stringRepresentation = currentTile.getStringRepresentation();
+			for(String string : stringRepresentation)
+				sb.append(string + "\n");
+			
+			int index = sb.indexOf("|CT");
+//			assert index >= 0 : "Unable to update current tile visual :old currentTile visual index = " + index;
+			if(index != -1) {
+				sb.replace(index + 1, index + 3, "  ");
+				currentTile.updateVisual(sb.toString());
+			}
+			updateStringRepresentation(current);
 		}
-		updateStringRepresentation(current);
 		
 //		Now do the reverse in the new tile
 		sb.delete(0, sb.length());
@@ -471,7 +474,7 @@ public class Space extends Dimension {
 		for(String string : stringRepresentation)
 			sb.append(string + "\n");
 		
-		index = sb.indexOf("|  ");
+		int index = sb.indexOf("|  ");
 		assert index >= 0 : "Unable to update new tile visual :new currentTile visual index = " + index;
 		sb.replace(index + 1, index + 3, "CT");
 		newCurrentTile.updateVisual(sb.toString());

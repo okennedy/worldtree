@@ -227,10 +227,22 @@ public class WorldTreeFactory {
 			super(name, parent, constraints);
 			this.space = space;
 //			First tile
-			ITile tile = initTile(new Coordinates(true, 0, 0));
-			space.setByCoord(new Coordinates(true, 0, 0), tile);
-			space.setCurrentCoordinates(new Coordinates(true, 0, 0));
+			int startX = 0 + (int) (Math.random() * space.getXDimension());
+			int startY = 0 + (int) (Math.random() * space.getYDimension());
+			Coordinates startCoords = new Coordinates(true, startX, startY);
+			ITile tile = initTile(startCoords);
+			tile.addProperty("start", "1");
+			space.setByCoord(startCoords, tile);
+			space.setCurrentCoordinates(startCoords);
 			initNeighbours();
+			
+//			Set the end tile
+			int endX = 0 + (int) (Math.random() * space.getXDimension());
+			int endY = 0 + (int) (Math.random() * space.getYDimension());
+			Coordinates endCoords = new Coordinates(true, endX, endY);
+			ITile endTile = initTile(startCoords);
+			tile.addProperty("end", "1");
+			space.setByCoord(endCoords, endTile);
 		}
 
 		@Override

@@ -1,3 +1,15 @@
+06282013:gurupras
+	Start tile and end tile now randomly assigned during region init
+	Fixed a severe logic bug in Space.setByArray
+	    - [x][y] replaced with [y][x]
+
+        TODO-LIST
+	    - Rewrite Space.updateCurrentVisual to be reusable and generic
+            - Implement property parsing and evaluation
+            - Add tile type as a property
+            - propertyDef aggregate logic not implemented
+
+
 06272013:gurupras
 	Resolved some recurring issues with visual representation of current tile
 	Space.updateStringRepresentation now does incremental updates
