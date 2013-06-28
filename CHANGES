@@ -1,4 +1,16 @@
 06282013:gurupras
+	Start and end tiles now displayed visually
+	Added ITile.addToVisual and ITile.removeFromVisual
+	    - These are to be used to add/remove artifacts in visuals
+	    - Updated Space.updateCurrentVisual to use these methods
+
+        TODO-LIST
+            - Implement property parsing and evaluation
+            - Add tile type as a property
+            - propertyDef aggregate logic not implemented
+
+
+06282013:gurupras
 	Start tile and end tile now randomly assigned during region init
 	Fixed a severe logic bug in Space.setByArray
 	    - [x][y] replaced with [y][x]

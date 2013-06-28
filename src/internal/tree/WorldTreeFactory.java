@@ -232,17 +232,24 @@ public class WorldTreeFactory {
 			Coordinates startCoords = new Coordinates(true, startX, startY);
 			ITile tile = initTile(startCoords);
 			tile.addProperty("start", "1");
+			tile.addToVisual("S");
 			space.setByCoord(startCoords, tile);
 			space.setCurrentCoordinates(startCoords);
 			initNeighbours();
 			
 //			Set the end tile
-			int endX = 0 + (int) (Math.random() * space.getXDimension());
-			int endY = 0 + (int) (Math.random() * space.getYDimension());
-			Coordinates endCoords = new Coordinates(true, endX, endY);
-			ITile endTile = initTile(startCoords);
+			Coordinates endCoords = null;
+//			Ensure start != end
+			while(endCoords == null) {
+				int endX = 0 + (int) (Math.random() * space.getXDimension());
+				int endY = 0 + (int) (Math.random() * space.getYDimension());
+				if(startX != endX && startY != endY)
+					endCoords = new Coordinates(true, endX, endY);
+			}
+			tile = initTile(endCoords);
 			tile.addProperty("end", "1");
-			space.setByCoord(endCoords, endTile);
+			tile.addToVisual("E");
+			space.setByCoord(endCoords, tile);
 		}
 
 		@Override
@@ -455,17 +462,7 @@ public class WorldTreeFactory {
 		}
 		
 		protected void addChild(IWorldTree child) {
-			this.children.add(child);
-			
-			StringBuffer visual = new StringBuffer();
-			for(String line : this.stringRepresentation)
-				visual.append(line);
-			
-			if(visual.toString().contains("  "))
-				visual = new StringBuffer(visual.toString().replace("  ", child.toString()));
-			else
-				System.err.println("Error: " + this.name() + " is unable to accomodate more children visually\n" +
-						"\tThe object still contains these children");
+			throw new IllegalStateException("Cannot add a child to the lowest level in the hierarchy!\n");
 		}
 
 		@Override
@@ -526,6 +523,46 @@ public class WorldTreeFactory {
 			
 			for(String s : visual.split("\n")) {
 				stringRepresentation.add(s);
+			}
+		}
+
+		@Override
+		public void addToVisual(String string) {
+			assert string.length() <= 2 : "Currently, artifacts are only allowed a max length of 2";
+//			Ensure that the length is 2..for compatibility
+			while(string.length() < 2)
+				string += " ";
+			
+			StringBuffer sb = new StringBuffer();
+			List<String> stringRepresentation = getStringRepresentation();
+			for(String s : stringRepresentation)
+				sb.append(s + "\n");
+			
+			int index = sb.indexOf("|  ");
+			assert index >= 0 : "Unable to update current tile visual! No more space for artifacts";
+			if(index != -1) {
+				sb.replace(index + 1, index + 3, string);
+				updateVisual(sb.toString());
+			}
+		}
+
+		@Override
+		public void removeFromVisual(String string) {
+			assert string.length() <= 2 : "Currently, artifacts are only allowed a max length of 2";
+//			Ensure that the length is 2..for compatibility
+			while(string.length() < 2)
+				string += " ";
+			
+			StringBuffer sb = new StringBuffer();
+			List<String> stringRepresentation = getStringRepresentation();
+			for(String s : stringRepresentation)
+				sb.append(s + "\n");
+			
+			int index = sb.indexOf("|" + string);
+			assert index >= 0 : "Unable to update current tile visual! No more space for artifacts";
+			if(index != -1) {
+				sb.replace(index + 1, index + 3, "  ");
+				updateVisual(sb.toString());
 			}
 		}
 	}

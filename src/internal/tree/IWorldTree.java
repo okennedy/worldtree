@@ -111,6 +111,18 @@ public interface IWorldTree {
 		public void updateVisual(String visual);
 		
 		/**
+		 * Add an artifact to the visual of this {@code ITile}
+		 * @param string {@code String} containing the artifact to add
+		 */
+		public void addToVisual(String string);
+		
+		/**
+		 * Remove an artifact from the visual of this {@code ITile}
+		 * @param string {@code String} containing the artifact to remove
+		 */
+		public void removeFromVisual(String string);
+		
+		/**
 		 * Obtain reference to the piece located in this Tile
 		 * @return {@code IPiece} object referencing this Tile's piece
 		 */
