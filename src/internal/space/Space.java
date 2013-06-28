@@ -1,6 +1,7 @@
 package internal.space;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import internal.piece.TileInterfaceType;
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.ITile;
 import internal.tree.WorldTreeFactory.Tile;
+import static test.ui.UIDebugEngine.multiLine;
 
 /**
  * The Space class aims to provide methods to traverse the space easily.
@@ -25,12 +27,14 @@ public class Space extends Dimension {
 	protected Coordinates current;
 	protected ITile[][] matrix;
 	private List<String> stringRepresentation;
+	private List<String> columnRepresentation;
 	
 	public Space(int x, int y) {
 		super(y, x);
 		matrix = new Tile[y][x];
 		current = new Coordinates(true, 0, 0);
 		stringRepresentation = new ArrayList<String>();
+		columnRepresentation = new ArrayList<String>();
 	}
 	
 	/**
@@ -105,7 +109,7 @@ public class Space extends Dimension {
 	 */
 	public ITile getByArray(Coordinates coordinates) {
 		assert(coordinates.cartesian == false);
-		return matrix[coordinates.x][coordinates.y];
+		return matrix[coordinates.y][coordinates.x];
 	}
 
 	/**
@@ -220,49 +224,22 @@ public class Space extends Dimension {
 	}
 	
 	public List<String> getStringRepresentation() {
-		if(stringRepresentation == null)
-			stringRepresentation = new ArrayList<String>();
-		
-		stringRepresentation.removeAll(stringRepresentation);
-		List<List<String>> listStringList = new ArrayList<List<String>>();
-		for(int i = 0; i < getYDimension(); i++) {
-			List<String> stringList = new ArrayList<String>();
-			for(int j = 0; j < getXDimension(); j++) {
-				Coordinates currentCoords = new Coordinates(false, i, j);
-//				Get the visual of this tile
-				if(getByArray(currentCoords) != null) {
-					StringBuffer sb = new StringBuffer();
-					for(String s : getByArray(currentCoords).getStringRepresentation()) {
-						sb.append(s + "\n");
+//		Initial settings
+		if(columnRepresentation.size() == 0) {
+			for(int i = 0; i < xDimension; i++) {
+				StringBuffer column = new StringBuffer();
+				for(int j = 0; j < yDimension; j++) {
+					Coordinates currentCoords = new Coordinates(false, i, j);
+					ITile tile = getByArray(currentCoords);
+					if(tile == null)
+						column.append(PieceFactory.newPiece("").toString());
+					else {
+						for(String s : tile.getStringRepresentation()) {
+							column.append(s + "\n");
+						}
 					}
-					stringList.add(sb.toString());
 				}
-				else
-					stringList.add(PieceFactory.newPiece("").toString());
-			}
-			listStringList.add(stringList);
-		}
-		
-//		We use one instance of a piece's toString() to test for number of lines.
-		int lineCount = listStringList.get(0).get(0).split("\n").length;
-		
-		for(int yIndex = 0; yIndex < listStringList.size(); yIndex++) {
-			List<String> stringList = listStringList.get(yIndex);
-			for(int lineIndex = 0; lineIndex < lineCount; lineIndex++) {
-				StringBuffer fullLine = new StringBuffer(); 
-				for(int xIndex = 0; xIndex < stringList.size(); xIndex++) {
-					String[] stringArray = null;
-					try {
-						 stringArray = stringList.get(xIndex).split("\n");
-						fullLine.append(stringArray[lineIndex] + " ");
-					} catch(ArrayIndexOutOfBoundsException e) {
-						System.err.println("size :" + stringList.size() + "\n" + stringList.get(xIndex));
-						e.printStackTrace();
-					}
-					
-				}
-//				if(!stringRepresentation.contains(fullLine.toString()))
-					stringRepresentation.add(fullLine.toString());
+				columnRepresentation.add(column.toString());
 			}
 		}
 		return stringRepresentation;
@@ -270,7 +247,46 @@ public class Space extends Dimension {
 	
 	private void updateStringRepresentation(Coordinates coordinates) {
 //		TODO: First we find the 'line' that holds this tile (using coordinates.y)
-		getStringRepresentation();
+		if(coordinates.cartesian())
+			coordinates = coordToArray(coordinates);
+		
+		if(columnRepresentation.size() == 0) {
+			getStringRepresentation();
+			return;
+		}
+		
+		String visualToReplace = columnRepresentation.get(coordinates.x());
+		
+		List<String> subStrings = new ArrayList<String>(Arrays.asList(visualToReplace.split("\n")));
+//		FIXME: Should not be hard-coded as length 5
+		int replaceIndex = coordinates.y() * 5;
+		
+		ITile tile = getByArray(coordinates);
+		
+		StringBuffer sb = new StringBuffer();
+		for(String s : tile.getStringRepresentation())
+			sb.append(s + "\n");
+		
+		String[] newVisual = sb.toString().split("\n");
+		for(int i = 0; i < 5; i++) {
+			subStrings.remove(replaceIndex + i);
+			subStrings.add(replaceIndex + i, newVisual[i]);
+		}
+		
+		sb.delete(0, sb.length());
+		
+		for(String s : subStrings)
+			sb.append(s + "\n");
+		
+		columnRepresentation.remove(coordinates.x());
+		columnRepresentation.add(coordinates.x(), sb.toString());
+		
+		stringRepresentation.removeAll(stringRepresentation);
+
+		for(String s : multiLine(columnRepresentation).split("\n")) {
+			stringRepresentation.add(s);
+		}
+
 	}
 
 	/**
@@ -447,6 +463,7 @@ public class Space extends Dimension {
 			sb.replace(index + 1, index + 3, "  ");
 			currentTile.updateVisual(sb.toString());
 		}
+		updateStringRepresentation(current);
 		
 //		Now do the reverse in the new tile
 		sb.delete(0, sb.length());

@@ -1,4 +1,19 @@
 06272013:gurupras
+	Resolved some recurring issues with visual representation of current tile
+	Space.updateStringRepresentation now does incremental updates
+	    - Earlier, it used to completely reacquire stringRepresentation 
+	Fixed a severe logic bug in Space.getByArray
+	    - [x][y] replaced with [y][x]
+
+        TODO-LIST
+            - Implement property parsing and evaluation
+            - Add tile type as a property
+            - Add arbitrary start and finish
+                - Allow UI debug to begin from this start
+            - propertyDef aggregate logic not implemented
+
+
+06272013:gurupras
 	Finished visually representing current tile while UI debugging
 	Finished rewriting STAR and PLUS regex
 	Tested few query unions
