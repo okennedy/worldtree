@@ -2,6 +2,7 @@ package internal.tree;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import internal.parser.containers.Constraint;
 import internal.piece.IPiece;
@@ -45,6 +46,19 @@ public interface IWorldTree {
 	 * @return {@code Collection<Constriant>}  
 	 */
 	public Collection<Constraint> constraints();
+	
+	/**
+	 * Add a new property to this {@code IWorldTree}
+	 * @param name {@code String} containing the name of this property
+	 * @param value {@code String} containing the value of this property
+	 */
+	public void addProperty(String name, String value);
+	
+	/**
+	 * Obtain the properties of this {@code IWorldTree} instance
+	 * @return {@code Map<String, String>} containing the properties and their values of this {@code IWorldTree} instance
+	 */
+	public Map<String, String> properties();
 	
 	/**
 	 * Obtain root of this WorldTree

@@ -4,7 +4,9 @@ import internal.parser.containers.Constraint;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 /**
@@ -19,6 +21,7 @@ public abstract class WorldTree implements IWorldTree {
 	protected Collection<IWorldTree> children;
 	private String name;
 	private Collection<Constraint> constraints;
+	private Map<String, String> properties;
 	protected List<String> stringRepresentation;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
@@ -26,7 +29,8 @@ public abstract class WorldTree implements IWorldTree {
 		this.children 		= null;
 		this.name 			= name;
 		this.constraints 	= constraints;
-		this.stringRepresentation = new ArrayList<String>();
+		this.stringRepresentation 	= new ArrayList<String>();
+		this.properties				= new HashMap<String, String>();
 	}
 
 	public String name() {
@@ -70,6 +74,17 @@ public abstract class WorldTree implements IWorldTree {
 		return constraints;
 	}
 	
+	@Override
+	public void addProperty(String name, String value) {
+		properties.put(name, value);
+	}
+	
+	@Override
+	public Map<String, String> properties() {
+		return properties;
+	}
+	
+	/* -------------------------------------------  String methods  ------------------------------------------- */
 	public List<String> getStringRepresentation() {
 		stringRepresentation.removeAll(stringRepresentation);
 		initString();
