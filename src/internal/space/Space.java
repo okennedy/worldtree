@@ -136,8 +136,7 @@ public class Space extends Dimension {
 	public void setByCoord(Coordinates coordinates, ITile tile) {
 		assert(coordinates.cartesian == true);
 		Coordinates indices = coordToArray(coordinates);
-		matrix[indices.y][indices.x] = tile;
-		updateStringRepresentation(indices);
+		setByArray(indices, tile);
 	}
 	
 	/**
