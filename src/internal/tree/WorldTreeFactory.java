@@ -426,10 +426,12 @@ public class WorldTreeFactory {
 	public class Tile extends WorldTree implements ITile {
 		public IPiece piece;
 		private Coordinates coordinates;
+		private String tileType;
 		public Tile(String name, Coordinates coord, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
 			super(name, parent, constraints);
 			this.coordinates	= coord;
 			this.piece 			= tilePiece;
+			this.tileType		= this.parent.name();
 			initialize();
 		}
 		
