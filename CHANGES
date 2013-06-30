@@ -1,3 +1,13 @@
+06302013:gurupras
+	WorldTree.initString updated
+	    - Now handles children having different sizes
+	    - Aligns array indices [0][0] of each child
+
+        TODO-LIST
+            - Implement property parsing and evaluation
+            - propertyDef aggregate logic not implemented
+
+
 06292013:gurupras
 	Added tileType field to Tile
 	    - Initialized with the name of its parent

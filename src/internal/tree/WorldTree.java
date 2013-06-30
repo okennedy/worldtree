@@ -118,6 +118,30 @@ public abstract class WorldTree implements IWorldTree {
 		for(IWorldTree child : children()) {
 			listStringList.add(child.getStringRepresentation());
 		}
+		
+//		Check for equal lines
+		int maxListSize = 0;
+		for(List<String> list : listStringList) {
+			maxListSize = maxListSize > list.size() ? maxListSize : list.size();
+		}
+		
+		for(List<String> list : listStringList) {
+			if(list.size() < maxListSize) {
+//				Add new strings of largest length to this list
+				int maxLength = 0;
+				for(String s :  list) {
+					maxLength = maxLength > s.length() ? maxLength : s.length();
+				}
+				StringBuffer emptySB = new StringBuffer();
+				while(emptySB.length() < maxLength)
+					emptySB.append(" ");
+				
+//				Now add them to the list
+				while(list.size() < maxListSize)
+					list.add(emptySB.toString());
+			}
+		}
+		
 		int lineCount = 0;
 		for(List<String> stringList : listStringList)
 				lineCount = lineCount > stringList.size() ? lineCount : stringList.size();
