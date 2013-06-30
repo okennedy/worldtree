@@ -138,7 +138,7 @@ public abstract class WorldTree implements IWorldTree {
 				
 //				Now add them to the list
 				while(list.size() < maxListSize)
-					list.add(emptySB.toString());
+					list.add(0, emptySB.toString());
 			}
 		}
 		

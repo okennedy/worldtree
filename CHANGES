@@ -1,5 +1,15 @@
 06302013:gurupras
 	WorldTree.initString updated
+	    - Aligns coorindates [0][0] of each child
+	    - Coordinates are the standard form of access
+
+	TODO-LIST
+	    - Implement property parsing and evaluation
+	    - propertyDef aggregate logic not implemented
+
+
+06302013:gurupras
+	WorldTree.initString updated
 	    - Now handles children having different sizes
 	    - Aligns array indices [0][0] of each child
 
