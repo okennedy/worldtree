@@ -192,10 +192,10 @@ public abstract class WorldTree implements IWorldTree {
 		for(String string : stringRepresentation) {
 			int spaces = maxLineLength - string.length() - 2;	//The 2 is because of the starting and ending '|'
 			StringBuffer line = new StringBuffer("|");
-			for(int i = 0; i < spaces / 2; i++)
+			for(int i = 0; i <= spaces / 2; i++)
 				line.append(" ");
 			line.append(string);
-			for(int i = 0; i < (spaces - spaces / 2); i++)
+			while(line.length() < maxLineLength - 1)
 				line.append(" ");
 			line.append("|");
 			if(line.length() != newStringRepresentation.get(0).length())
