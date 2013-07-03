@@ -72,13 +72,12 @@ public class ResolutionEngine {
 				level		= query.level();
 				pattern		= query.pattern();
 				
-				
-				String rhsColumnName 	= pattern.rhs().toString();
-				Column rhsColumn		= result.get(rhsColumnName);
-				if(rhsColumn == null)
-					rhsColumn			= new Column(rhsColumnName, objectList);
-				
 				while(pattern != null) {
+					String rhsColumnName 	= pattern.rhs().toString();
+					Column rhsColumn		= result.get(rhsColumnName);
+					if(rhsColumn == null)
+						rhsColumn			= new Column(rhsColumnName, objectList);
+					
 					result = resolveQuery(node, level, pattern, result, rhsColumn);
 					pattern = pattern.subPattern();
 				}

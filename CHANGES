@@ -1,3 +1,16 @@
+07032013:gurupras
+	Fixed a bug in ResolutionEngine.resolve
+	    - Moved rhsColumn evaluation into pattern loop
+	    - Can now handle complex patterns
+
+	TODO-LIST
+	    - Fix query unions to actually union the outputs
+	    - Implement property parsing and evaluation
+	    - Implement propertyDef aggregate logic
+	    - Implement logic for computed properties
+	    - Write test cases for future validation
+
+
 06302013:gurupras
 	WorldTree.initString updated
 	    - Aligns coorindates [0][0] of each child
