@@ -1,4 +1,14 @@
 07032013:gurupras
+	Finished implementing query unions
+
+        TODO-LIST
+            - Implement property parsing and evaluation
+            - Implement propertyDef aggregate logic
+            - Implement logic for computed properties
+            - Write test cases for future validation
+
+
+07032013:gurupras
 	Fixed a bug in ResolutionEngine.resolve
 	    - Moved rhsColumn evaluation into pattern loop
 	    - Can now handle complex patterns

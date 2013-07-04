@@ -54,6 +54,7 @@ public class ResolutionEngine {
 	 */
 	private String resolve(IWorldTree node, IStatement statement) {
 		Result result = new Result();
+		Result oldResult = null;
 		switch(statement.getType()) {
 		case CONSTRAINT: {
 			break;
@@ -71,7 +72,7 @@ public class ResolutionEngine {
 			while(query != null) {
 				level		= query.level();
 				pattern		= query.pattern();
-				
+				result		= new Result();
 				while(pattern != null) {
 					String rhsColumnName 	= pattern.rhs().toString();
 					Column rhsColumn		= result.get(rhsColumnName);
@@ -81,7 +82,27 @@ public class ResolutionEngine {
 					result = resolveQuery(node, level, pattern, result, rhsColumn);
 					pattern = pattern.subPattern();
 				}
+//				Check if we need to union
+				if(oldResult != null) {
+					String errMsg = "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
+//					First check for semantics
+					assert result.size() == oldResult.size() : errMsg;
+					int index = 0;
+					while(index < result.size()) {	//We have already verified that both results have same number of columns
+						assert result.get(index).name.equals(oldResult.get(index).name) : errMsg;
+						index++;
+					}
+					
+//					Now do the actual merge
+					List<IWorldTree> row = null;
+					for(index = 0; index < oldResult.get(0).size(); index++) {
+						row = oldResult.getRow(index);
+						if(!result.contains(row))
+							result.add(row);
+					}
+				}
 				query = query.subQuery();
+				oldResult = result;
 			}
 			break;
 		}
