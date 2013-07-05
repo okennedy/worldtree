@@ -23,7 +23,7 @@ public class Driver {
 		""
 	};
 	public static void main(String[] args) throws Exception {
-		new PieceFactory(pieceStrings);
+		PieceFactory.initialize(pieceStrings);
 		WorldTreeFactory factory = new WorldTreeFactory();
 		IMap map = factory.newMap("TestMap", null, null);
 		map.fullInit();

@@ -1,4 +1,16 @@
 07052013:gurupras
+	PieceFactory initialization was dumb
+	    - Changed public constructor to private
+	    - Added methods to re-initialize PieceFactory
+
+        TODO-LIST
+            - Implement property parsing and evaluation
+	    - Implement propertyDef aggregate logic
+	    - Implement logic for computed properties
+	    - Write test cases for future validation
+
+
+07052013:gurupras
 	Moved all helper methods to internal.Helper class
 	ResolutionEngine.evaluate now returns Result
 	Updated references reflecting both changes

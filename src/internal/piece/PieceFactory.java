@@ -23,18 +23,37 @@ public class PieceFactory {
 //		Prevent initialization of PieceFactory.
 	}
 	
-	public PieceFactory(String[] pieceStrings) throws Exception {
+	/**
+	 * Public method to initialize the {@code PieceFactory}
+	 * @param pieceStrings {@code String[]} containing the pieces to initialize
+	 * @throws Exception on multiple initialization
+	 */
+	public static void initialize(String[] pieceStrings) throws Exception {
 		if(instance != null)
 			throw new Exception("Multiple initialization of singleton class");
-		instance = new PieceFactory();
-		instance.initialize(pieceStrings);
+		instance = new PieceFactory(pieceStrings);
 	}
 
+	private PieceFactory(String[] list) {
+		listOfPieces = new ArrayList<Piece>();
+		initPieces(list);
+	}
+	
 	/**
-	 * Initialize the list of pieces that this factory class is responsible to generate.
-	 * @param list {@code List} containing strings representing the interfaces of all pieces.
+	 * Re-initialize this {@code PieceFactory} with different pieces
+	 * @param pieceStrings {@code String[]} containing strings of pieces
+	 * @throws IllegalStateException if {@code PieceFactory} was never initialized
 	 */
-	private void initialize(String[] list) {
+	public static void reInit(String[] pieceStrings) throws IllegalStateException {
+		if(instance == null)
+			throw new IllegalStateException("PieceFactory has not been initialized!");
+		
+		instance.initPieces(pieceStrings);
+	}
+	
+	private void initPieces(String[] list) {
+//		Sanity check
+		listOfPieces.clear();
 		for(String s : list) {
 			Piece p = new Piece(s);
 			listOfPieces.add(p);

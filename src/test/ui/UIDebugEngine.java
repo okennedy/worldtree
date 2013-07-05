@@ -42,7 +42,7 @@ public class UIDebugEngine {
 	@BeforeClass
 	public static void setUp() {
 		try {
-			new PieceFactory(pieceStrings);
+			PieceFactory.initialize(pieceStrings);
 			factory = new WorldTreeFactory();
 			map = factory.newMap("TestMap", null, null);
 		} catch (Exception e) {
