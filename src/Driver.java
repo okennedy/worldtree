@@ -1,9 +1,7 @@
-import test.ui.UIDebugEngine;
-
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
-
+import static internal.Helper.write;
 
 public class Driver {
 	public static String[] pieceStrings = {
@@ -28,5 +26,7 @@ public class Driver {
 		new PieceFactory(pieceStrings);
 		WorldTreeFactory factory = new WorldTreeFactory();
 		IMap map = factory.newMap("TestMap", null, null);
+		map.fullInit();
+		write(map);
 	}
 }
