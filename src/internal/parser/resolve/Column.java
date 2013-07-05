@@ -4,7 +4,6 @@ import internal.tree.IWorldTree;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * The Column class is used to store each column of the output produced by the ResolutionEngine.<br>
@@ -31,5 +30,9 @@ public class Column extends ArrayList<IWorldTree> {
 		}
 		
 		return result.toString();
+	}
+
+	public String name() {
+		return name;
 	}
 }
