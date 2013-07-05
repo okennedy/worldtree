@@ -30,7 +30,7 @@ public class Pattern implements IPattern {
 		StringBuffer result = new StringBuffer(basePattern.toString());
 		
 		if(subPattern != null)
-			result.append(" " + subPattern.toString());
+			result.append(" , " + subPattern.toString());
 		
 		return result.toString();
 	}
