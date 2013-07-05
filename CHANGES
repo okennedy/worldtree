@@ -1,3 +1,15 @@
+07052013:gurupras
+	Moved all helper methods to internal.Helper class
+	ResolutionEngine.evaluate now returns Result
+	Updated references reflecting both changes
+
+        TODO-LIST
+	    - Implement property parsing and evaluation
+	    - Implement propertyDef aggregate logic
+	    - Implement logic for computed properties
+	    - Write test cases for future validation
+
+
 07032013:gurupras
 	Finished implementing query unions
 

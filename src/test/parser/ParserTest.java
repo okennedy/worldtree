@@ -7,6 +7,7 @@ import internal.parser.Parser;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.query.IQuery;
 import internal.parser.resolve.ResolutionEngine;
+import internal.parser.resolve.Result;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
@@ -19,7 +20,8 @@ import java.io.StringReader;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static test.ui.UIDebugEngine.write;
+import static internal.Helper.write;
+import static internal.Helper.makeString;
 
 public class ParserTest {
 	private static IMap map;
@@ -74,9 +76,9 @@ public class ParserTest {
 					Parser parser = new Parser(new StringReader(command.toString()));
 					IQuery query = (IQuery) parser.parse();
 					System.out.println(query.debugString());
-					String result = ResolutionEngine.evaluate(map, query);
+					Result result = ResolutionEngine.evaluate(map, query);
 					System.out.println(result);
-					write("query", result);
+					write("query", makeString(query, result));
 					command.delete(0, command.length());
 				}
 			}

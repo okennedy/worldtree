@@ -3,7 +3,7 @@
  */options{    JDK_VERSION = "1.5";    static = false;}PARSER_BEGIN(UIDebugParser)package test.ui;
 
 import internal.tree.IWorldTree;
-import test.ui.UIDebugEngine;
+import static internal.Helper.write;
 
 public class UIDebugParser{}PARSER_END(UIDebugParser)SKIP :{    " "|   "\r"|   "\t"|   "\n"}TOKEN [IGNORE_CASE] :{
     < UP		: "U" ("P")?    >
@@ -29,6 +29,6 @@ void parse(IWorldTree object) :
 {    d = direction()
     {
         object.move(d);
-        UIDebugEngine.write(object.root());
+        write(object.root());
     }
 }   

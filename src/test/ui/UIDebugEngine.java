@@ -2,6 +2,8 @@ package test.ui;
 
 import static org.junit.Assert.*;
 
+import static internal.Helper.*;
+
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree;
 import internal.tree.WorldTreeFactory;
@@ -9,16 +11,9 @@ import internal.tree.IWorldTree.IMap;
 import internal.tree.IWorldTree.IRegion;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -92,114 +87,5 @@ public class UIDebugEngine {
 				}
 			}
 		}
-	}
-	
-	public static void write(IWorldTree object) {
-		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
-		nodes.add(object);
-		while(nodes.size() > 0) {
-			IWorldTree node = nodes.get(0);
-			if(node.children() != null) {
-				for(IWorldTree child : node.children()) {
-					nodes.add(child);
-				}
-				node.getStringRepresentation();
-			}
-			nodes.remove(node);
-		}
-		
-		BufferedWriter out = null;
-		try {
-			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));
-			out.write(object.toString());
-		} catch(IOException e) {
-			e.printStackTrace();
-		} finally {
-			if(out != null) {
-				try {
-					out.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-	
-	public static void write(String fileName, String string) {
-		BufferedWriter out = null;
-		try {
-			if(!fileName.contains(".txt") && !fileName.substring(fileName.length() - 4).equalsIgnoreCase(".txt"))
-				fileName += ".txt";
-			out = new BufferedWriter(new FileWriter(new File("output/" + fileName)));
-			out.write(string);
-			out.newLine();
-		} catch(IOException e) {
-			e.printStackTrace();
-		} finally {
-			if(out != null) {
-				try {
-					out.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-	
-	/**
-	 * Converts multiple multi-line visuals into a single string representation
-	 * @param listStringList {@code List<String>} containing the set of multi-line visuals to compact
-	 */
-	public static String multiLine(List<String> stringList) {
-		StringBuffer result = new StringBuffer();
-//		Convert each String into its lines
-		List<List<String>> listStringList = new ArrayList<List<String>>();
-		for(String string : stringList)
-			listStringList.add(Arrays.asList(string.split("\n")));
-
-//		Size is now determined as the size of the largest list
-		int size = -1;
-		for(List<String> list : listStringList)
-			size = list.size() > size ? list.size() : size;
-		
-//		Throw warning in case of unequal list sizes
-//		for(List<String> list : listStringList)
-//			if(list.size() != size)
-//				System.err.println("Warning: Strings have unequal number of lines in multiLine\n");
-		
-//		Find the largest single String
-		int maxLength = 0;
-		for(List<String> list : listStringList) {
-			for(String s : list) {
-				maxLength = s.length() > maxLength ? s.length() : maxLength;
-			}
-		}
-		
-//		Do the conversion
-		for(int lineIndex = 0; lineIndex < size; lineIndex++) {
-			StringBuffer line = new StringBuffer();
-			for(List<String> list : listStringList) {
-				String string = null;
-				try {
-					string = list.get(lineIndex);
-				} catch(IndexOutOfBoundsException e) 
-				{
-					string = "";
-				} finally {
-					line.append(pad(string, maxLength));
-				}
-			}
-			result.append(line + "\n");
-		}
-		return result.toString();
-	}
-	
-	public static String pad(String string, int length) {
-		StringBuffer result = new StringBuffer(string);
-		assert(result.length() <= length);
-		while(result.length() <= length)
-			result.append(" ");
-		
-		return result.toString();
 	}
 }

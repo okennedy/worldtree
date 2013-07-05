@@ -3,10 +3,8 @@ package internal.parser.resolve;
 import internal.tree.IWorldTree;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.ConcurrentModificationException;
 import java.util.List;
-import static test.ui.UIDebugEngine.multiLine;
+import static internal.Helper.multiLine;
 
 /**
  * Result class is used to represent the output produced by the ResolutionEngine. <br>

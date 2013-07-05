@@ -19,7 +19,6 @@ import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.query.IQuery;
 import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
-import static test.ui.UIDebugEngine.multiLine;
 
 /**
  * ResolutionEngine is a Singleton class responsible for evaluating statements issued by the user
@@ -38,9 +37,9 @@ public class ResolutionEngine {
 	 * Evaluate an {@code IStatement}
 	 * @param node {@code IWorldTree} object upon which the {@code IStatement} is to be evaluated
 	 * @param query {@code IStatement} object containing the statement to evaluate
-	 * @return {@code String} representing the output of the {@code IStatement}
+	 * @return {@code Result} representing the output of the {@code IStatement}
 	 */
-	public static String evaluate(IWorldTree node, IStatement statement) {
+	public static Result evaluate(IWorldTree node, IStatement statement) {
 		if(instance == null)
 			init();
 		return instance.resolve(node, statement);
@@ -50,9 +49,9 @@ public class ResolutionEngine {
 	 * Resolve method that is private to {@code ResolutionEngine} and used to evaluate an {@code IStatement}
 	 * @param node {@code IWorldTree} object upon which the {@code IStatement} is to be evaluated
 	 * @param query {@code IStatement} object containing the statement to evaluate
-	 * @return {@code String} representing the output of the {@code IStatement}
+	 * @return {@code Result} representing the output of the {@code IStatement}
 	 */
-	private String resolve(IWorldTree node, IStatement statement) {
+	private Result resolve(IWorldTree node, IStatement statement) {
 		Result result = new Result();
 		Result oldResult = null;
 		switch(statement.getType()) {
@@ -109,7 +108,8 @@ public class ResolutionEngine {
 		default:
 			break;
 		}
-		return makeString(statement, result);
+//		return makeString(statement, result);
+		return result;
 	}
 
 	/**
@@ -206,37 +206,6 @@ public class ResolutionEngine {
 			e.printStackTrace();
 		}
 	}
-	
-	/**
-	 * Helper method used to convert {@code Result} to a {@code String}
-	 * @param statement {@code IStatement} representing the statement that is being evaluated
-	 * @param result {@code Result} representing the collection that needs to be flattened
-	 * @return {@code String} representing the flattened version of the parameter <b>result</b>
-	 */
-	private String makeString(IStatement statement, Result result) {
-		StringBuffer sb = new StringBuffer(statement.toString() + "\n" + statement.debugString() + "\n\n");
-		
-		int rowIndex = 0;
-		while(rowIndex < result.get(0).size()) {
-			List<String> stringList 	= new ArrayList<String>();
-			for(Column t : result) {
-				IWorldTree obj 			= t.get(rowIndex);
-				StringBuffer visual 	= new StringBuffer(t.name + "\n" + obj.absoluteName() + "  \n");
-				List<String> stringRep	= t.get(rowIndex).getStringRepresentation();
-				for(String line : stringRep) {
-					visual.append(line + "\n");
-				}
-				stringList.add(visual.toString());
-			}
-			String multiline = multiLine(stringList);
-			sb.append(multiline + "\n\n");
-			
-			rowIndex++;
-		}
-		return sb.toString();
-	}
-
-	
 	
 	/**
 	 * Container class used to store logic for processing built-in relations

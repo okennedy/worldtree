@@ -12,7 +12,7 @@ import internal.piece.TileInterfaceType;
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.ITile;
 import internal.tree.WorldTreeFactory.Tile;
-import static test.ui.UIDebugEngine.multiLine;
+import static internal.Helper.multiLine;
 
 /**
  * The Space class aims to provide methods to traverse the space easily.
