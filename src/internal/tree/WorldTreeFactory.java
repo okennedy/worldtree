@@ -72,6 +72,10 @@ public class WorldTreeFactory {
 			e.printStackTrace();
 		}
 	}
+	
+	public Properties properties() {
+		return properties;
+	}
 
 	private  class Map extends WorldTree implements IMap {
 		public Map(String name, IWorldTree parent, Collection<Constraint> constraints) {
