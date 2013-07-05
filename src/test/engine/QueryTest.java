@@ -2,7 +2,16 @@ package test.engine;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.Arrays;
+
+import static internal.Helper.multiLine;
 
 import internal.parser.ParseException;
 import internal.parser.Parser;
@@ -12,6 +21,7 @@ import internal.parser.containers.pattern.BasePattern;
 import internal.parser.containers.query.BaseQuery;
 import internal.parser.containers.query.IQuery;
 import internal.parser.resolve.ResolutionEngine;
+import internal.parser.resolve.Result;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
@@ -19,13 +29,12 @@ import internal.tree.WorldTreeFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static test.ui.UIDebugEngine.write;
-
-public class EngineTest {
+public class QueryTest {
 	private IMap map;
-	private WorldTreeFactory factory = new WorldTreeFactory();
+	private WorldTreeFactory factory = null;
 	private Parser parser			 = null;
-	public static String[] pieceStrings = {
+	private String dirPath		 = "src/test/engine/query tests/";
+	private static String[] pieceStrings = {
 		"LR",
 		"UD",
 		"UL",
@@ -48,9 +57,6 @@ public class EngineTest {
 	public void setUp() {
 		try {
 			new PieceFactory(pieceStrings);
-			map = factory.newMap("Map", null, null);
-			map.fullInit();
-			write(map);
 			parser = new Parser(new StringReader(""));
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -58,8 +64,12 @@ public class EngineTest {
 	}
 	
 
+	@Test
 	public void inbuiltPropertiesTest() {
 //		Direction tests
+		factory = new WorldTreeFactory("src/test/engine/query tests/inbuilt properties/init.properties");
+		map = factory.newMap("InbuiltPropertiesTestMap", null, null);
+		
 		String string = "A toeast B";
 		parser.ReInit(new StringReader(string));
 		try {
