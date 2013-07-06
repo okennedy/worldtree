@@ -121,6 +121,10 @@ public class QueryTest {
 			out.newLine();
 			out.write(query.toString());
 			out.newLine();
+			out.close();
+			
+//			Store the result
+			out = new BufferedWriter(new FileWriter(new File(testDir + "/result")));
 			out.write(result.toString());
 			out.newLine();
 			
@@ -145,7 +149,7 @@ public class QueryTest {
 
 //		Find a testID to use
 		List<String> tests	= Arrays.asList(dir.list());
-		while(validTestID > 0) {
+		while(validTestID >= 0) {
 			if(!tests.contains(testPrefix + String.format("%03d", validTestID)))
 				break;
 			validTestID++;
