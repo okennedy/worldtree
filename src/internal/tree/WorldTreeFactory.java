@@ -1,10 +1,13 @@
 package internal.tree;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,7 +15,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import internal.parser.ParseException;
+import internal.parser.Parser;
 import internal.parser.containers.Constraint;
+import internal.parser.containers.IStatement;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
@@ -30,14 +36,15 @@ import internal.space.Space.Direction;
  *
  */
 public class WorldTreeFactory {
-	private String	filePath 		= "init.properties";
-	private File	configFile		= null;
-	private Properties properties	= null;
+	private String	propFilePath 			= "init.properties";
+	private String configFilePath			= "config";
+	private List<IStatement> definitions 	= null;
+	private Properties properties			= null;
 	
 	public WorldTreeFactory() {
-		configFile	= new File(filePath);
+		File propertiesFile	= new File(propFilePath);
 		properties 	= new Properties();
-		if(!configFile.exists()) {
+		if(!propertiesFile.exists()) {
 			properties.put("Map.children.size", "2");
 			properties.put("Map.child0.name", "TestRoom");
 			properties.put("Room.children.size", "2");
@@ -46,31 +53,94 @@ public class WorldTreeFactory {
 			properties.put("Room.child1.size", "4x4");
 			properties.put("Room.child1.name", "TestRegion");
 			try {
-				properties.store(new FileWriter(filePath), "Auto-generated properties");
+				properties.store(new FileWriter(propFilePath), "Auto-generated properties");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 		try {
-			properties.load(new FileInputStream(configFile));
+			properties.load(new FileInputStream(propertiesFile));
 		} catch (FileNotFoundException e) {
-			System.err.println(filePath + " does not exist");
+			System.err.println(propFilePath + " does not exist");
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		
+		File configFile = new File(configFilePath);
+		if(configFile.exists()) {
+			definitions = new ArrayList<IStatement>();
+			try {
+				Parser parser = new Parser(new StringReader(""));
+				BufferedReader in = new BufferedReader(new FileReader(configFile));
+				
+				String line = null;
+				while( (line = in.readLine()) != null) {
+//					Trim the string
+					line = line.trim();
+//					Ignore comments
+					if(line.startsWith("#"))
+						continue;
+					parser.ReInit(new StringReader(line));
+					IStatement statement = parser.parse();
+					definitions.add(statement);
+				}
+				
+				in.close();
+			} catch(IOException e) {
+				System.err.println(e.getMessage());
+			} catch(ParseException e) {
+				System.err.println(e.getMessage());
+			}
 		}
 	}
 	
-	public WorldTreeFactory(String filePath) {
-		this.filePath	= filePath;
-		configFile		= new File(filePath);
-		properties		= new Properties();
+	public WorldTreeFactory(String propFilePath) {
+		this(propFilePath, null);
+	}
+	public WorldTreeFactory(String propFilePath, String configFilePath) {
+		this.propFilePath	= propFilePath;
+		this.configFilePath	= configFilePath;
+		properties			= new Properties();
 		try {
-			properties.load(new FileInputStream(configFile));
+			File propertiesFile	= new File(propFilePath);
+			properties.load(new FileInputStream(propertiesFile));
 		} catch (FileNotFoundException e) {
-			System.err.println(filePath + " does not exist");
+			System.err.println(propFilePath + " does not exist");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		if(this.configFilePath == null) {
+			return;
+		}
+		File configFile = new File(configFilePath);
+		if(configFile.exists()) {
+			definitions = new ArrayList<IStatement>();
+			try {
+				Parser parser = new Parser(new StringReader(""));
+				BufferedReader in = new BufferedReader(new FileReader(configFile));
+				
+				String line = null;
+				while( (line = in.readLine()) != null) {
+//					Trim the string
+					line = line.trim();
+//					Ignore comments
+					if(line.startsWith("#"))
+						continue;
+					parser.ReInit(new StringReader(line));
+					IStatement statement = parser.parse();
+					definitions.add(statement);
+				}
+				
+				in.close();
+			} catch(IOException e) {
+				System.err.println(e.getMessage());
+			} catch(ParseException e) {
+				System.err.println(e.getMessage());
+			}
+		}
+		else
+			throw new IllegalArgumentException("Definitions file :" + configFilePath + " does not exist!");
 	}
 	
 	public Properties properties() {

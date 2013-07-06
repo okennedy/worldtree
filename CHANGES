@@ -1,3 +1,17 @@
+07062013:gurupras
+	Added new file definition to WorldTreeFactory
+	    - New file defines IStatements that are parsed and stored
+	    - Paves the way for properties
+
+        TODO-LIST
+	    - Fix ResolutionEngine union logic
+	        - Ex: will not work for A TOEAST B UNION C TONORTH D
+	    - Implement property parsing and evaluation
+	    - Implement propertyDef aggregate logic
+	    - Implement logic for computed properties
+	    - Write test cases for future validation
+
+
 07052013:gurupras
 	Added createNewQueryTest to QueryTest class
 	    - Helps create new unit tests for queries
