@@ -56,8 +56,8 @@ BasePattern basePattern() :
 {
     Reference r1 = null, r2 = null;
     Relation relation = null;}
-{    r1 = reference() relation = relation() r2 = reference() { return new BasePattern(r1, relation, r2); }
-}
+{    LOOKAHEAD(2) r1 = reference() relation = relation() r2 = reference() { return new BasePattern(r1, relation, r2); }
+|   r1 = reference() { return new BasePattern(r1, null, null); }}
 
 BaseQuery baseQuery() :
 {

@@ -1,0 +1,2 @@
+DEFINE Room R.treasure AS AGGREGATE SUM(T.treasure) 
+   IN AT TILE T;

@@ -73,7 +73,14 @@ public class ResolutionEngine {
 				pattern		= query.pattern();
 				result		= new Result();
 				while(pattern != null) {
-					String rhsColumnName 	= pattern.rhs().toString();
+					String rhsColumnName	= null;
+					if(pattern.rhs() == null) {
+//						FIXME
+						result.add(new Column(pattern.lhs().toString(), objectList));
+						return result;
+					}
+					else
+						rhsColumnName 		= pattern.rhs().toString();
 					Column rhsColumn		= result.get(rhsColumnName);
 					if(rhsColumn == null)
 						rhsColumn			= new Column(rhsColumnName, objectList);

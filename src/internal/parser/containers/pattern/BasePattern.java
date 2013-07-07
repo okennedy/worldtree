@@ -25,12 +25,22 @@ public class BasePattern implements IPattern {
 	
 	@Override
 	public String toString() {
-		return r1.toString() + " " + relation.toString() + " " + r2.toString();
+		StringBuffer result = new StringBuffer(r1.toString() + " ");
+		if(relation != null) {
+			result.append(relation.toString() + " " + r2.toString());
+		}
+		
+		return result.toString();
 	}
 	
 	@Override
 	public String debugString() {
-		return "PATTERN(" + r1.debugString() + " " + relation.debugString() + " " + r2.debugString() + ")";
+		StringBuffer result = new StringBuffer("PATTERN(" + r1.debugString() + ")"); 
+		
+		if(relation != null) {
+			result.append(" " + relation.debugString() + " " + r2.debugString() + ")");
+		}
+		return result.toString();
 	}
 
 	@Override

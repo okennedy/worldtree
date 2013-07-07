@@ -1,4 +1,19 @@
 07062013:gurupras
+	Added new pattern rule to parser
+	    - No relation rule. Ex. AT TILE A;
+	    - Updated BasePattern to reflect this change
+	    - Updated ResolutionEngine.resolve to handle this case
+
+        TODO-LIST
+	    - Fix ResolutionEngine union logic
+	        - Ex: will not work for A TOEAST B UNION C TONORTH D
+	    - Implement property parsing and evaluation
+	    - Implement propertyDef aggregate logic
+	    - Implement logic for computed properties
+	    - Write test cases for future validation
+
+
+07062013:gurupras
 	Added new file definition to WorldTreeFactory
 	    - New file defines IStatements that are parsed and stored
 	    - Paves the way for properties
