@@ -74,17 +74,21 @@ public class WorldTreeFactory {
 				BufferedReader in = new BufferedReader(new FileReader(configFile));
 				
 				String line = null;
+				StringBuffer sb = new StringBuffer();
 				while( (line = in.readLine()) != null) {
 //					Trim the string
 					line = line.trim();
 //					Ignore comments
 					if(line.startsWith("#"))
 						continue;
-					parser.ReInit(new StringReader(line));
-					IStatement statement = parser.parse();
-					definitions.add(statement);
+					sb.append(line + "\n");
+					if(sb.toString().contains(";")) {
+						parser.ReInit(new StringReader(sb.toString()));
+						IStatement statement = parser.parse();
+						definitions.add(statement);
+						sb.delete(0, sb.length());
+					}
 				}
-				
 				in.close();
 			} catch(IOException e) {
 				System.err.println(e.getMessage());
@@ -120,16 +124,22 @@ public class WorldTreeFactory {
 				Parser parser = new Parser(new StringReader(""));
 				BufferedReader in = new BufferedReader(new FileReader(configFile));
 				
+				
 				String line = null;
+				StringBuffer sb = new StringBuffer();
 				while( (line = in.readLine()) != null) {
 //					Trim the string
 					line = line.trim();
 //					Ignore comments
 					if(line.startsWith("#"))
 						continue;
-					parser.ReInit(new StringReader(line));
-					IStatement statement = parser.parse();
-					definitions.add(statement);
+					sb.append(line + "\n");
+					if(sb.toString().contains(";")) {
+						parser.ReInit(new StringReader(sb.toString()));
+						IStatement statement = parser.parse();
+						definitions.add(statement);
+						sb.delete(0, sb.length());
+					}
 				}
 				
 				in.close();
