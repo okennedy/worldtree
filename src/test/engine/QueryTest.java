@@ -63,9 +63,10 @@ public class QueryTest {
 	@Test
 	public void inbuiltPropertiesTest() {
 //		Direction tests
-		factory = new WorldTreeFactory("src/test/engine/query tests/inbuilt properties/init.properties");
+		factory = new WorldTreeFactory("src/test/engine/query tests/inbuilt properties/init.properties", "config");
 		map = factory.newMap("InbuiltPropertiesTestMap", null, null);
-		
+		map.fullInit();
+		write(map);
 		String string = "A toeast B";
 		parser.ReInit(new StringReader(string));
 		try {
