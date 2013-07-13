@@ -38,7 +38,12 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < PLUS 		: "+" >
 |   < MINUS 	: "-" >
 |   < MULTIPLY	: "*" >
-|   < EQUALS	: "=" >
+|   < GE		: ">=" >
+|   < LE		: "<=" >
+|   < GT		: ">" >
+|   < LT		: "<" >
+|   < EQ		: "=" >
+|   < NOTEQ		: ("!=" | "<>") >
 |   < DIVIDE 	: "/" >
 |   < LPARANS	: "(" >
 |   < RPARANS	: ")" >
@@ -135,17 +140,29 @@ Reference reference() :
     < WORD > { return new Reference(token.image); }
 }
 
-Property property() :
+TokenOperator op() :
+{}
+{    (
+        < GE >
+    |   < LE >
+    |   < GT >
+    |   < LT >
+    |   < EQ >
+    |   < NOTEQ >
+    )
+    { return TokenOperator.parse(token.image); }
+}Property property() :
 {
     Reference ref = null;
     String name = null, value = null;
+    TokenOperator op = null;
 }
 {
-    LOOKAHEAD(4) ref = reference() < DOT > name = word() < EQUALS > value = constant()
+    LOOKAHEAD(4) ref = reference() < DOT > name = word() op = op() value = constant()
     {
-        return new Property(ref, name, value);
+        return new Property(ref, name, op, value);
     }
-|   ref = reference() < DOT > name = word()    {
+|   ref = reference() < DOT > name = word()	//FIXME    {
         return new Property(ref, name, "1");    }}
 
 RandomSpec randomspec() :
