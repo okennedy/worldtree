@@ -31,6 +31,8 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < INHERIT	: "INHERIT" >
 |   < IN		: "IN" >
 |   < TO		: "TO" >
+|   < TRUE		: "TRUE" >
+|   < FALSE		: "FALSE" >
 |   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])* >
 |   < CONSTANT 	: (< DIGIT >)+ >
 |   < #DIGIT 	: [ "0"-"9" ] >
@@ -162,8 +164,8 @@ TokenOperator op() :
     {
         return new Property(ref, name, op, value);
     }
-|   ref = reference() < DOT > name = word()	//FIXME    {
-        return new Property(ref, name, "1");    }}
+|   ref = reference() < DOT > name = word()	op = < EQ > (< TRUE > | < FALSE >) //FIXME    {
+        return new Property(ref, name, op, token.image);    }}
 
 RandomSpec randomspec() :
 {
