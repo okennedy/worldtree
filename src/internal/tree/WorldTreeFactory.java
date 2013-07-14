@@ -19,6 +19,7 @@ import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.IStatement;
+import internal.parser.containers.StatementType;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
@@ -37,7 +38,8 @@ import internal.space.Space.Direction;
  */
 public class WorldTreeFactory {
 	private String	propFilePath 			= "init.properties";
-	private String configFilePath			= "config";
+	private String worldDefPath			= "config";
+	private List<IStatement> constraints 	= null;
 	private List<IStatement> definitions 	= null;
 	private Properties properties			= null;
 	
@@ -66,12 +68,13 @@ public class WorldTreeFactory {
 			e.printStackTrace();
 		}
 		
-		File configFile = new File(configFilePath);
-		if(configFile.exists()) {
+		File worldDefinitionsFile = new File(worldDefPath);
+		if(worldDefinitionsFile.exists()) {
+			constraints = new ArrayList<IStatement>();
 			definitions = new ArrayList<IStatement>();
 			try {
 				Parser parser = new Parser(new StringReader(""));
-				BufferedReader in = new BufferedReader(new FileReader(configFile));
+				BufferedReader in = new BufferedReader(new FileReader(worldDefinitionsFile));
 				
 				String line = null;
 				StringBuffer sb = new StringBuffer();
@@ -85,7 +88,12 @@ public class WorldTreeFactory {
 					if(sb.toString().contains(";")) {
 						parser.ReInit(new StringReader(sb.toString()));
 						IStatement statement = parser.parse();
-						definitions.add(statement);
+						if(statement.getType().equals(StatementType.CONSTRAINT))
+							constraints.add(statement);
+						else if(statement.getType().equals(StatementType.PROPERTYDEF))
+							definitions.add(statement);
+						else
+							System.err.println("Warning: WorldDefinitions contains :\n\t" + statement);
 						sb.delete(0, sb.length());
 					}
 				}
@@ -101,9 +109,9 @@ public class WorldTreeFactory {
 	public WorldTreeFactory(String propFilePath) {
 		this(propFilePath, null);
 	}
-	public WorldTreeFactory(String propFilePath, String configFilePath) {
+	public WorldTreeFactory(String propFilePath, String worldDefPath) {
 		this.propFilePath	= propFilePath;
-		this.configFilePath	= configFilePath;
+		this.worldDefPath	= worldDefPath;
 		properties			= new Properties();
 		try {
 			File propertiesFile	= new File(propFilePath);
@@ -114,15 +122,16 @@ public class WorldTreeFactory {
 			e.printStackTrace();
 		}
 		
-		if(this.configFilePath == null) {
+		if(this.worldDefPath == null) {
 			return;
 		}
-		File configFile = new File(configFilePath);
-		if(configFile.exists()) {
+		File worldDefinitionsFile = new File(worldDefPath);
+		if(worldDefinitionsFile.exists()) {
+			constraints = new ArrayList<IStatement>();
 			definitions = new ArrayList<IStatement>();
 			try {
 				Parser parser = new Parser(new StringReader(""));
-				BufferedReader in = new BufferedReader(new FileReader(configFile));
+				BufferedReader in = new BufferedReader(new FileReader(worldDefinitionsFile));
 				
 				
 				String line = null;
@@ -137,7 +146,12 @@ public class WorldTreeFactory {
 					if(sb.toString().contains(";")) {
 						parser.ReInit(new StringReader(sb.toString()));
 						IStatement statement = parser.parse();
-						definitions.add(statement);
+						if(statement.getType().equals(StatementType.CONSTRAINT))
+							constraints.add(statement);
+						else if(statement.getType().equals(StatementType.PROPERTYDEF))
+							definitions.add(statement);
+						else
+							System.err.println("Warning: WorldDefinitions contains :\n\t" + statement);
 						sb.delete(0, sb.length());
 					}
 				}
@@ -150,7 +164,7 @@ public class WorldTreeFactory {
 			}
 		}
 		else
-			throw new IllegalArgumentException("Definitions file :" + configFilePath + " does not exist!");
+			throw new IllegalArgumentException("Definitions file :" + worldDefPath + " does not exist!");
 	}
 	
 	public Properties properties() {
