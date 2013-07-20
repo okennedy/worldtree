@@ -16,12 +16,14 @@ import java.util.Properties;
 import java.util.Random;
 
 import javax.sound.midi.SysexMessage;
+import javax.swing.SpringLayout.Constraints;
 
 import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.StatementType;
+import internal.parser.containers.property.PropertyDef;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
@@ -41,8 +43,8 @@ import internal.space.Space.Direction;
 public class WorldTreeFactory {
 	private String	propFilePath 			= "init.properties";
 	private String worldDefPath				= "world.definitions";
-	private List<IStatement> constraints 	= null;
-	private List<IStatement> definitions 	= null;
+	private List<Constraint> constraints 	= null;
+	private List<PropertyDef> definitions 	= null;
 	private Properties properties			= null;
 	
 	public WorldTreeFactory() {
@@ -86,8 +88,8 @@ public class WorldTreeFactory {
 	private void loadDefinitions() {
 		File worldDefinitionsFile = new File(worldDefPath);
 		if(worldDefinitionsFile.exists()) {
-			constraints = new ArrayList<IStatement>();
-			definitions = new ArrayList<IStatement>();
+			constraints = new ArrayList<Constraint>();
+			definitions = new ArrayList<PropertyDef>();
 			try {
 				Parser parser = new Parser(new StringReader(""));
 				BufferedReader in = new BufferedReader(new FileReader(worldDefinitionsFile));
@@ -106,9 +108,9 @@ public class WorldTreeFactory {
 						parser.ReInit(new StringReader(sb.toString()));
 						IStatement statement = parser.parse();
 						if(statement.getType().equals(StatementType.CONSTRAINT))
-							constraints.add(statement);
+							constraints.add((Constraint)statement);
 						else if(statement.getType().equals(StatementType.PROPERTYDEF))
-							definitions.add(statement);
+							definitions.add((PropertyDef)statement);
 						else
 							System.err.println("Warning: WorldDefinitions contains :\n\t" + statement);
 						sb.delete(0, sb.length());
@@ -128,6 +130,14 @@ public class WorldTreeFactory {
 	
 	public Properties properties() {
 		return properties;
+	}
+	
+	public Collection<Constraint> constraints() {
+		return constraints;
+	}
+	
+	public Collection<PropertyDef> definitions() {
+		return definitions;
 	}
 
 	private  class Map extends WorldTree implements IMap {
