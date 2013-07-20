@@ -40,7 +40,7 @@ import internal.space.Space.Direction;
  */
 public class WorldTreeFactory {
 	private String	propFilePath 			= "init.properties";
-	private String worldDefPath				= "config";
+	private String worldDefPath				= "world.definitions";
 	private List<IStatement> constraints 	= null;
 	private List<IStatement> definitions 	= null;
 	private Properties properties			= null;
