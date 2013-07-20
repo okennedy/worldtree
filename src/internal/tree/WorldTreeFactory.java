@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
+import javax.sound.midi.SysexMessage;
+
 import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.containers.Constraint;
@@ -38,7 +40,7 @@ import internal.space.Space.Direction;
  */
 public class WorldTreeFactory {
 	private String	propFilePath 			= "init.properties";
-	private String worldDefPath			= "config";
+	private String worldDefPath				= "config";
 	private List<IStatement> constraints 	= null;
 	private List<IStatement> definitions 	= null;
 	private Properties properties			= null;
@@ -46,64 +48,16 @@ public class WorldTreeFactory {
 	public WorldTreeFactory() {
 		File propertiesFile	= new File(propFilePath);
 		properties 	= new Properties();
-		if(!propertiesFile.exists()) {
-			properties.put("Map.children.size", "2");
-			properties.put("Map.child0.name", "TestRoom");
-			properties.put("Room.children.size", "2");
-			properties.put("Room.children.names", "Normal Dungeon Altar");
-			properties.put("Room.child0.size", "4x4");
-			properties.put("Room.child1.size", "4x4");
-			properties.put("Room.child1.name", "TestRegion");
-			try {
-				properties.store(new FileWriter(propFilePath), "Auto-generated properties");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		try {
 			properties.load(new FileInputStream(propertiesFile));
 		} catch (FileNotFoundException e) {
-			System.err.println(propFilePath + " does not exist");
+			System.err.println("Invalid properties file!\n" + propFilePath + " does not exist");
 		} catch (IOException e) {
+			System.err.println(e.getMessage());
 			e.printStackTrace();
 		}
 		
-		File worldDefinitionsFile = new File(worldDefPath);
-		if(worldDefinitionsFile.exists()) {
-			constraints = new ArrayList<IStatement>();
-			definitions = new ArrayList<IStatement>();
-			try {
-				Parser parser = new Parser(new StringReader(""));
-				BufferedReader in = new BufferedReader(new FileReader(worldDefinitionsFile));
-				
-				String line = null;
-				StringBuffer sb = new StringBuffer();
-				while( (line = in.readLine()) != null) {
-//					Trim the string
-					line = line.trim();
-//					Ignore comments
-					if(line.startsWith("#"))
-						continue;
-					sb.append(line + "\n");
-					if(sb.toString().contains(";")) {
-						parser.ReInit(new StringReader(sb.toString()));
-						IStatement statement = parser.parse();
-						if(statement.getType().equals(StatementType.CONSTRAINT))
-							constraints.add(statement);
-						else if(statement.getType().equals(StatementType.PROPERTYDEF))
-							definitions.add(statement);
-						else
-							System.err.println("Warning: WorldDefinitions contains :\n\t" + statement);
-						sb.delete(0, sb.length());
-					}
-				}
-				in.close();
-			} catch(IOException e) {
-				System.err.println(e.getMessage());
-			} catch(ParseException e) {
-				System.err.println(e.getMessage());
-			}
-		}
+		loadDefinitions();
 	}
 	
 	public WorldTreeFactory(String propFilePath) {
@@ -125,6 +79,11 @@ public class WorldTreeFactory {
 		if(this.worldDefPath == null) {
 			return;
 		}
+		else
+			loadDefinitions();
+	}
+	
+	private void loadDefinitions() {
 		File worldDefinitionsFile = new File(worldDefPath);
 		if(worldDefinitionsFile.exists()) {
 			constraints = new ArrayList<IStatement>();
