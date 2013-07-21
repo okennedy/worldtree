@@ -2,6 +2,7 @@ package internal.tree;
 
 import internal.parser.containers.Constraint;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,7 +17,9 @@ import java.util.Stack;
  * @author guru
  */
 
-public abstract class WorldTree implements IWorldTree {
+public abstract class WorldTree implements IWorldTree, Serializable {
+	private static final long serialVersionUID = -5257914696549384766L;
+	
 	protected IWorldTree parent;
 	protected Collection<IWorldTree> children;
 	private String name;

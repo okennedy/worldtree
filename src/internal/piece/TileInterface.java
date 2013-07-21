@@ -1,5 +1,6 @@
 package internal.piece;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +11,9 @@ import java.util.List;
  * @author guru
  *
  */
-public abstract class TileInterface implements ITileInterface {
+public abstract class TileInterface implements ITileInterface, Serializable {
+	private static final long serialVersionUID = 7435579309730202286L;
+	
 	private String interfaces;
 	private String binaryString;
 	private int integerFormat;

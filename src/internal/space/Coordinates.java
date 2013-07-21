@@ -1,11 +1,15 @@
 package internal.space;
 
+import java.io.Serializable;
+
 /**
  * The Coordinates class is used to store coordinates that are used in Space
  * @author guru
  *
  */
-public class Coordinates {
+public class Coordinates implements Serializable {
+	private static final long serialVersionUID = 2109376945752939066L;
+	
 	protected boolean cartesian;
 	public int x, y;
 	

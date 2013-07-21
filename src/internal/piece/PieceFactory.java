@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +16,9 @@ import java.util.Random;
  * @author Guru
  *
  */
-public class PieceFactory {
+public class PieceFactory implements Serializable {
+	private static final long serialVersionUID = -5816554261706965026L;
+	
 	private static List<Piece> listOfPieces = new ArrayList<Piece>();
 	private static PieceFactory instance = null;
 	
@@ -153,7 +156,8 @@ public class PieceFactory {
 	 * @author guru
 	 *
 	 */
-	private class Piece extends TileInterface implements IPiece {
+	private class Piece extends TileInterface implements IPiece, Serializable {
+		private static final long serialVersionUID = 8109699128257127720L;
 		
 		private String visual;
 		

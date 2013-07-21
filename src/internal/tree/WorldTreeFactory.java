@@ -7,6 +7,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +41,9 @@ import internal.space.Space.Direction;
  * @author guru
  *
  */
-public class WorldTreeFactory {
+public class WorldTreeFactory implements Serializable {
+	private static final long serialVersionUID = -981440934139213907L;
+	
 	private String	propFilePath 			= "init.properties";
 	private String worldDefPath				= "world.definitions";
 	private List<Constraint> constraints 	= null;
@@ -141,6 +144,8 @@ public class WorldTreeFactory {
 	}
 
 	private  class Map extends WorldTree implements IMap {
+		private static final long serialVersionUID = 8573337917599165863L;
+
 		public Map(String name, IWorldTree parent, Collection<Constraint> constraints) {
 			super(name, parent, constraints);
 		}
@@ -229,6 +234,8 @@ public class WorldTreeFactory {
 	}
 	
 	private  class Room extends WorldTree implements IRoom {
+		private static final long serialVersionUID = 3733417833903485812L;
+
 		public Room(String name, IWorldTree parent, Collection<Constraint> constraints) {
 			super(name, parent, constraints);
 		}
@@ -289,6 +296,8 @@ public class WorldTreeFactory {
 	}
 	
 	private  class Region extends WorldTree implements IRegion {
+		private static final long serialVersionUID = 1774553850572473379L;
+		
 		private Space space;
 		public Region(String name, IWorldTree parent, Collection<Constraint> constraints, Space space) {
 			super(name, parent, constraints);
@@ -491,6 +500,8 @@ public class WorldTreeFactory {
 	 *
 	 */
 	public class Tile extends WorldTree implements ITile {
+		private static final long serialVersionUID = 7530444796681530305L;
+		
 		public IPiece piece;
 		private Coordinates coordinates;
 		private String tileType;
