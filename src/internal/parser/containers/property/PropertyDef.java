@@ -26,44 +26,33 @@ public class PropertyDef extends Statement {
 	private RandomSpec random;
 	private Type type;
 
-	public PropertyDef(String level, Reference reference, String property, ICondition condition, IQuery query) {
+	public PropertyDef(Type type, String level, Reference reference, String property, String agg, RandomSpec random, 
+			String parent, ICondition condition, IQuery query) {
 		super(StatementType.PROPERTYDEF);
-		this.type		= Type.BASIC;
-		this.level		= level;
-		this.reference	= reference;
-		this.property	= property;
-		this.condition	= condition;
-		this.query		= query;
-	}
-	
-	public PropertyDef(String level, Reference reference, String property, String agg, ICondition condition, IQuery query) {
-		super(StatementType.PROPERTYDEF);
-		this.type		= Type.AGGREGATE;
+		this.type		= type;
 		this.level		= level;
 		this.reference	= reference;
 		this.property	= property;
 		this.aggType	= agg;
+		this.random		= random;
+		this.parent		= parent;
 		this.condition	= condition;
 		this.query		= query;
 	}
 	
+	public PropertyDef(String level, Reference reference, String property, ICondition condition, IQuery query) {
+		this(Type.BASIC, level, reference, property, null, null, null, condition, query);
+	}
+	public PropertyDef(String level, Reference reference, String property, String agg, ICondition condition, IQuery query) {
+		this(Type.RANDOM, level, reference, property, agg, null, null, condition, query);
+	}
+	
 	public PropertyDef(String level, Reference reference, String property, RandomSpec random, ICondition condition) {
-		super(StatementType.PROPERTYDEF);
-		this.type		= Type.RANDOM;
-		this.level		= level;
-		this.reference	= reference;
-		this.property	= property;
-		this.random		= random;
-		this.condition	= condition;
+		this(Type.RANDOM, level, reference, property, null, random, null, condition, null);
 	}
 	
 	public PropertyDef(String level, Reference reference, String property, String parent) {
-		super(StatementType.PROPERTYDEF);
-		this.type		= Type.INHERIT;
-		this.level		= level;
-		this.reference	= reference;
-		this.property	= property;
-		this.parent		= parent;
+		this(Type.INHERIT, level, reference, property, null, null, parent, null, null);
 	}
 
 	@Override
