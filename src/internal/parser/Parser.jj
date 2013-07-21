@@ -7,6 +7,7 @@ import internal.parser.containers.pattern.*;
 import internal.parser.containers.condition.*;
 import internal.parser.containers.query.*;
 import internal.parser.containers.property.*;
+import internal.parser.containers.expr.*;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"
@@ -176,13 +177,29 @@ TokenCmpOp op() :
 {
     ref = reference() < DOT > name = word()	{ return new Property(ref, name); }}
 
-void expr() :
-{}
+IExpr expr() :
 {
-    < LPARANS > expr() (< PLUS > | < MINUS > | < MULTIPLY > | < DIVIDE >) expr() < RPARANS >
-|   (constant() | reference() < DOT > word())
-|   (< MAX > | < MIN >) < LPARANS > expr() (< COMMA > expr())+ < RPARANS >
-|   < CASE > ( < WHEN > condition() < THEN > expr())* < ELSE > expr()
+    IExpr baseExpr 		= null;
+    IExpr subExpr  		= null;
+    IExpr whenExpr 		= null;
+    IExpr elseExpr 		= null;
+    TokenArithOp op 	= null;
+    String value		= null;
+    Property property 	= null;
+    String maxminType	= null;}
+{
+    < LPARANS > baseExpr = expr() (< PLUS > | < MINUS > | < MULTIPLY > | < DIVIDE >) { op = TokenArithOp.parse(token.image); }         subExpr = expr() < RPARANS >
+    { return new Expr(baseExpr, op, subExpr); }     
+|   (
+        value = constant() { return new Expr(Float.parseFloat(value)); }
+    |   property = property() { return new Expr(property); }
+    )
+    |   (< MAX > | < MIN >) { maxminType = token.image; }
+		< LPARANS > baseExpr = expr() < COMMA > subExpr = expr() < RPARANS >
+	{ return new Expr(maxminType, baseExpr, subExpr); }
+	
+//TODO
+//|   < CASE > < WHEN > condition() < THEN > expr()) < ELSE > expr()
 }
 
 void aggExpr() :
