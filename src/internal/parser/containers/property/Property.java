@@ -1,6 +1,6 @@
 package internal.parser.containers.property;
 
-import internal.parser.TokenOperator;
+import internal.parser.TokenCmpOp;
 import internal.parser.containers.IContainer;
 import internal.parser.containers.Reference;
 
@@ -13,23 +13,20 @@ import internal.parser.containers.Reference;
 public class Property implements IContainer {
 	private Reference reference;
 	private String name;
-	private String value;
-	TokenOperator op;
 	
-	public Property(Reference reference, String name, TokenOperator op, String value) {
+	public Property(Reference reference, String name) {
 		this.reference	= reference;
 		this.name		= name;
-		this.value		= value;
 	}
 	
 	
 	@Override
 	public String toString() {
-		return reference.toString() + "." + name + " " + op + " " + value;
+		return reference.toString() + "." + name;
 	}
 	
 	@Override
 	public String debugString() {
-		return "PROPERTY(" + reference.debugString() + "." + name + " " + op + " " + value + ")"; 
+		return "PROPERTY(" + reference.debugString() + "." + name + ")"; 
 	}
 }

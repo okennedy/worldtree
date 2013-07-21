@@ -1,5 +1,6 @@
 package internal.parser.containers.condition;
 
+import internal.parser.TokenCmpOp;
 import internal.parser.containers.property.Property;
 
 /**
@@ -13,14 +14,14 @@ public class Condition implements ICondition {
 	UnionType unionType;
 	private ICondition subCondition;
 	
-	public Condition(boolean not, Property property, UnionType unionType, ICondition subCondition) {
-		this.baseCondition	= new BaseCondition(not, property);
+	public Condition(boolean not, Property property, TokenCmpOp op, String value, UnionType unionType, ICondition subCondition) {
+		this.baseCondition	= new BaseCondition(not, property, op, value);
 		this.unionType		= unionType;
 		this.subCondition	= subCondition;
 	}
 	
 	public Condition(boolean not, ICondition condition) {
-		this.baseCondition	= new BaseCondition(not, condition.property());
+		this.baseCondition	= new BaseCondition(not, condition.property(), condition.operator(), condition.value());
 		this.subCondition	= condition.subCondition();
 	}
 	
@@ -38,6 +39,16 @@ public class Condition implements ICondition {
 	@Override
 	public ICondition subCondition() {
 		return subCondition;
+	}
+	
+	@Override
+	public TokenCmpOp operator() {
+		return baseCondition.operator();
+	}
+
+	@Override
+	public String value() {
+		return baseCondition.value();
 	}
 	
 	@Override

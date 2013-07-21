@@ -1,5 +1,6 @@
 package internal.parser.containers.condition;
 
+import internal.parser.TokenCmpOp;
 import internal.parser.containers.property.Property;
 
 /**
@@ -11,12 +12,16 @@ import internal.parser.containers.property.Property;
 public class BaseCondition implements ICondition {
 	private boolean not;
 	private Property property;
+	private TokenCmpOp cmpOp;
+	private String value;
 	
-	public BaseCondition(boolean not, Property property) {
+	public BaseCondition(boolean not, Property property, TokenCmpOp op, String value) {
 		this.not		= not;
 		this.property	= property;
+		this.cmpOp		= op;
+		this.value		= value;
 	}
-
+	
 	@Override
 	public Property property() {
 		return property;
@@ -33,7 +38,7 @@ public class BaseCondition implements ICondition {
 		if(not)
 			returnString.append("NOT ");
 		
-		returnString.append(property.toString());
+		returnString.append(property.toString() + " " + cmpOp + " " + value);
 		return returnString.toString();
 	}
 
@@ -44,9 +49,19 @@ public class BaseCondition implements ICondition {
 		if(not)
 			result.append("NOT ");
 		
-		result.append(property.debugString());
+		result.append(property.debugString() + " " + cmpOp + " " + value);
 		result.append(")");
 		
 		return result.toString();
+	}
+
+	@Override
+	public TokenCmpOp operator() {
+		return cmpOp;
+	}
+
+	@Override
+	public String value() {
+		return value;
 	}
 }

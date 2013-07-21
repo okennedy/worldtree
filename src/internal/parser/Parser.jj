@@ -104,15 +104,22 @@ ICondition condition() :
     Property property = null;
     UnionType unionType = null;
     ICondition condition = null, subCondition = null;
+    TokenCmpOp op = null;
+    String value = null;
 }
 {
-    LOOKAHEAD(5) property = property()  { condition = new BaseCondition(false, property); }
+    LOOKAHEAD(3) property = property()
+    (
+        LOOKAHEAD(2) < EQ > { op = TokenCmpOp.parse(token.image); }
+ 		(< TRUE > | < FALSE >)    |   op = op() value = constant()
+    )
+    { condition = new BaseCondition(false, property, op, value); }
     (< AND > | < OR >) 					{ unionType = UnionType.getType(token.image); }
     subCondition = condition()			{ return new Condition(condition, unionType, subCondition); }
     
-|   property = property() 				{ return new BaseCondition(false, property); }
+//|   property = property() 				{ return new BaseCondition(false, property); }
 
-|   < NOT > condition = condition()		{ return new BaseCondition(true, condition.property()); }
+|   < NOT > condition = condition()		{ return new BaseCondition(true, condition.property(), condition.operator(), condition.value()); }
 
 |   < LPARANS > condition = condition() < RPARANS >	{ return condition; }
 }
@@ -149,7 +156,7 @@ Reference reference() :
     < WORD > { return new Reference(token.image); }
 }
 
-TokenOperator op() :
+TokenCmpOp op() :
 {}
 {    (
         < GE >
@@ -159,20 +166,15 @@ TokenOperator op() :
     |   < EQ >
     |   < NOTEQ >
     )
-    { return TokenOperator.parse(token.image); }
+    { return TokenCmpOp.parse(token.image); }
 }Property property() :
 {
     Reference ref = null;
     String name = null, value = null;
-    TokenOperator op = null;
+    TokenCmpOp op = null;
 }
 {
-    LOOKAHEAD(4) ref = reference() < DOT > name = word() op = op() value = constant()
-    {
-        return new Property(ref, name, op, value);
-    }
-|   ref = reference() < DOT > name = word()	< EQ > { op = TokenOperator.parse(token.image); } (< TRUE > | < FALSE >) //FIXME    {
-        return new Property(ref, name, op, token.image);    }}
+    ref = reference() < DOT > name = word()	{ return new Property(ref, name); }}
 
 void expr() :
 {}

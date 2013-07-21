@@ -1,3 +1,18 @@
+07212013:gurupras
+	Updated Property class to ignore values 
+	    - Instead BaseCondition class stores operator and values
+	Updated Parser to reflect these changes
+	Updated all references to these classes
+
+	TODO-LIST
+            - Fix ResolutionEngine union logic
+                - Ex: will not work for A TOEAST B UNION C TONORTH D     
+            - Implement property parsing and evaluation
+            - Implement propertyDef aggregate logic
+            - Implement logic for computed properties
+            - Write test cases for future validation
+
+
 07062013:gurupras
 	Added new pattern rule to parser
 	    - No relation rule. Ex. AT TILE A;
