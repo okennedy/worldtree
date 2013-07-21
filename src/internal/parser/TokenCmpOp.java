@@ -1,6 +1,6 @@
 package internal.parser;
 
-public enum TokenOperator {
+public enum TokenCmpOp {
 	GE(">="),
 	LE("<="),
 	GT(">"),
@@ -11,12 +11,12 @@ public enum TokenOperator {
 	
 	private final String op;
 	
-	private TokenOperator(String op) {
+	private TokenCmpOp(String op) {
 		this.op = op;
 	}
 	
-	public static TokenOperator parse(String op) {
-		for(TokenOperator tk : values()) {
+	public static TokenCmpOp parse(String op) {
+		for(TokenCmpOp tk : values()) {
 			if(tk.op.equals(op))
 				return tk;
 		}
