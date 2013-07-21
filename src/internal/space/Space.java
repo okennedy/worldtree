@@ -1,6 +1,5 @@
 package internal.space;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,14 +23,17 @@ import static internal.Helper.multiLine;
  * @author Guru
  *
  */
-public class Space extends Dimension implements Serializable {
-	private static final long serialVersionUID = 2990924692792936986L;
+public class Space extends Dimension {
+	private static final long serialVersionUID = -3788398250352166358L;
 	
 	protected Coordinates current;
 	protected ITile[][] matrix;
 	private List<String> stringRepresentation;
 	private List<String> columnRepresentation;
 	
+	public Space() {
+		super(0, 0);
+	}
 	public Space(int x, int y) {
 		super(y, x);
 		matrix = new Tile[y][x];

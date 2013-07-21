@@ -1,5 +1,7 @@
 package internal.space;
 
+import java.io.Serializable;
+
 /**
  * Dimension is an abstract class that gives some sense of dimension to any space that extends it.
  * <p>
@@ -7,7 +9,9 @@ package internal.space;
  * @author Guru
  *
  */
-public abstract class Dimension {
+public abstract class Dimension implements Serializable {
+	private static final long serialVersionUID = -8922742120593608061L;
+	
 	protected int xDimension;
 	protected int yDimension;
 	
