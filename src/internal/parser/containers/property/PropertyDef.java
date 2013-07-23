@@ -4,6 +4,7 @@ import internal.parser.containers.Statement;
 import internal.parser.containers.IContainer;
 import internal.parser.containers.StatementType;
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.expr.AggExpr;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.query.IQuery;
 
@@ -19,7 +20,8 @@ import internal.parser.containers.query.IQuery;
  *
  */
 public class PropertyDef extends Statement {
-	private String level, aggType, parent;
+	private String level, parent;
+	private AggExpr aggExpr;
 	private Property property;
 	private ICondition condition;
 	private IExpr expr;
@@ -27,7 +29,7 @@ public class PropertyDef extends Statement {
 	private RandomSpec random;
 	private Type type;
 
-	public PropertyDef(Type type, String level, Property property, String agg, RandomSpec random, 
+	public PropertyDef(Type type, String level, Property property, AggExpr aggExpr, RandomSpec random, 
 			String parent, IExpr expr, ICondition condition, IQuery query) {
 		super(StatementType.PROPERTYDEF);
 		this.type		= type;
@@ -35,7 +37,7 @@ public class PropertyDef extends Statement {
 		this.property	= property;
 		this.expr		= expr;
 		this.condition	= condition;
-		this.aggType	= agg;
+		this.aggExpr	= aggExpr;
 		this.random		= random;
 		this.parent		= parent;
 		this.query		= query;
@@ -44,8 +46,8 @@ public class PropertyDef extends Statement {
 	public PropertyDef(String level, Property property, IExpr expr, ICondition condition, IQuery query) {
 		this(Type.BASIC, level, property, null, null, null, expr, condition, query);
 	}
-	public PropertyDef(String level, Property property, String agg, ICondition condition, IQuery query) {
-		this(Type.AGGREGATE, level, property, agg, null, null, null, condition, query);
+	public PropertyDef(String level, Property property, AggExpr aggExpr, IQuery query) {
+		this(Type.AGGREGATE, level, property, aggExpr, null, null, null, null, query);
 	}
 	
 	public PropertyDef(String level, Property property, RandomSpec random, ICondition condition) {
@@ -62,11 +64,11 @@ public class PropertyDef extends Statement {
 		switch(type) {
 		case AGGREGATE:
 			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " ");
-			result.append(property.debugString() + " AS " + aggType + "(" + condition.debugString() + 
-					")" + " IN " + query.debugString() + ")");
+			result.append(property.debugString() + " AS AGGREGATE " + 
+					aggExpr.debugString() + " IN " + query.debugString() + ")");
 			break;
 		case BASIC:
-			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " " + property.debugString() + "." + property + " AS ");
+			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " " + property.debugString() + " AS ");
 			if(condition != null)
 				result.append(condition.debugString());
 			else
@@ -91,8 +93,7 @@ public class PropertyDef extends Statement {
 		StringBuffer result = new StringBuffer();
 		switch(type) {
 		case AGGREGATE:
-			result.append("DEFINE " + level + " " + property + " AS " + aggType + 
-					"(" + condition + ") IN " + query);
+			result.append("DEFINE " + level + " " + property + " AS " + aggExpr + " IN " + query);
 		case BASIC:
 			result.append("DEFINE " + level + " " + property + " AS " + 
 				"(" + condition + ") IN " + query);

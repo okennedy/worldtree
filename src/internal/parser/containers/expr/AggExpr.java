@@ -13,17 +13,25 @@ public class AggExpr implements IContainer {
 	
 	@Override
 	public String debugString() {
-		StringBuffer returnString = new StringBuffer("AGGTYPE(" + type);
-		if(expr != null)
+		StringBuffer returnString = new StringBuffer("AGGTYPE(");
+		if(type.equals(AggType.COUNT)) {
+			assert expr == null : type + " with expr :" + expr + " ?\n";
+			returnString.append(type + "())");
+		}
+		else {
+			returnString.append(" " + type);
 			returnString.append(" " + expr.debugString());
-		else
-			returnString.append(" COUNT");
-		
+		}
 		return returnString.toString();
 	}
 	
 	@Override
 	public String toString() {
+		if(type.equals(AggType.COUNT)) {
+			assert expr == null : type + " with expr :" + expr + " ?\n";
+			return type + "()";
+		}
+		
 		StringBuffer returnString = new StringBuffer(type.toString());
 		if(expr != null)
 			returnString.append(" " + expr);
@@ -35,9 +43,10 @@ public class AggExpr implements IContainer {
 	
 	
 	public enum AggType {
-		SUM("SUM"),
-		MAX("MAX"),
-		MIN("MIN"),
+		SUM		("SUM"),
+		MAX		("MAX"),
+		MIN		("MIN"),
+		COUNT	("COUNT"),
 		;
 		
 		private String type;

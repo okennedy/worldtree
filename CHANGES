@@ -1,3 +1,19 @@
+07232013:gurupras
+	Added AggExpr class
+	PropertyDef now implements AggExpr
+	Parser's constant() method now handles words
+	Parser's condition grammar split similar to pattern
+	    - condition
+	    - baseCondition
+
+        TODO-LIST
+        - Implement WHEN-THEN-ELSE rule for Expr
+        - Implement property parsing and evaluation
+        - Implement logic for computed properties
+        - Write test cases for future validation
+	- Fix condition's boolproperty rule
+
+
 07212013:gurupras
 	Added Expr class
 	Added Expr grammar to Parser
@@ -5,7 +21,7 @@
         TODO-LIST
 	- Implement WHEN-THEN-ELSE rule for Expr
         - Fix ResolutionEngine union logic
-            - Ex: will not work for A TOEAST B UNION C TONORTH 
+            - Ex: will not work for A TOEAST B UNION C TONORTH D
         - Implement property parsing and evaluation
         - Implement propertyDef aggregate logic
         - Implement logic for computed properties

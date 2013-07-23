@@ -8,6 +8,7 @@ import internal.parser.containers.condition.*;
 import internal.parser.containers.query.*;
 import internal.parser.containers.property.*;
 import internal.parser.containers.expr.*;
+import internal.parser.containers.expr.AggExpr.AggType;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"
@@ -109,20 +110,33 @@ ICondition condition() :
     String value = null;
 }
 {
-    LOOKAHEAD(3) property = property()
-    (
-        LOOKAHEAD(2) < EQ > { op = TokenCmpOp.parse(token.image); }
- 		(< TRUE > | < FALSE >)    |   op = op() value = constant()
-    )
-    { condition = new BaseCondition(false, property, op, value); }
-    (< AND > | < OR >) 					{ unionType = UnionType.getType(token.image); }
-    subCondition = condition()			{ return new Condition(condition, unionType, subCondition); }
-    
-//|   property = property() 				{ return new BaseCondition(false, property); }
-
-|   < NOT > condition = condition()		{ return new BaseCondition(true, condition.property(), condition.operator(), condition.value()); }
+    LOOKAHEAD(12) condition = baseCondition()
+    	(< AND > | < OR >) { unionType = UnionType.getType(token.image); }
+    	subCondition = condition() 					{ return new Condition(condition, unionType, subCondition); }
+    	
+|   condition = baseCondition() 					{ return condition; }
 
 |   < LPARANS > condition = condition() < RPARANS >	{ return condition; }
+}
+
+ICondition baseCondition() :
+{
+    Property property 		= null;
+    ICondition condition 	= null;
+    TokenCmpOp op			= null;
+    String value			= null;}
+{    LOOKAHEAD(6) property = property()
+    (
+        LOOKAHEAD(2) (< EQ > | < NOTEQ >) { op = TokenCmpOp.parse(token.image); }
+    		(< TRUE > | < FALSE >) { value = token.image; }
+    |   op = op() value = constant()
+    
+    )
+    { return new BaseCondition(false, property, op, value); }
+
+//|   property = property() 				{ return new BaseCondition(false, property); }
+
+|   < NOT > condition = baseCondition()		{ return condition; }
 }
 
 String word() :
@@ -134,20 +148,15 @@ String word() :
 
 String constant() :
 {
-    Token integer = null, decimal = null;
+    String value = null;
 }
 {
-    LOOKAHEAD(2) < CONSTANT >    {        integer = token;
-        return integer.image;    }
-|   < CONSTANT >
-    {
-        integer = token;
-    }
-    < DOT > < CONSTANT >
-    {
-        decimal = token;
-        return integer.image + "." + decimal.image;
-    }
+    LOOKAHEAD(2) < CONSTANT > { value = token.image; }
+    	< DOT > < CONSTANT > 							{ return value + "." + token.image; }
+    	
+|   < CONSTANT > 										{ return token.image; }
+
+|   ("'" | "\"" | "`" | "“")? value = word() ("'" | "\"" | "`" | "”")?	{ return value; }
 }
 
 Reference reference() :
@@ -191,7 +200,7 @@ IExpr expr() :
     < LPARANS > baseExpr = expr() (< PLUS > | < MINUS > | < MULTIPLY > | < DIVIDE >) { op = TokenArithOp.parse(token.image); }         subExpr = expr() < RPARANS >
     { return new Expr(baseExpr, op, subExpr); }     
 |   (
-        value = constant() { return new Expr(Float.parseFloat(value)); }
+        LOOKAHEAD(2) value = constant() { return new Expr(Float.parseFloat(value)); }
     |   property = property() { return new Expr(property); }
     )
     |   (< MAX > | < MIN >) { maxminType = token.image; }
@@ -202,7 +211,7 @@ IExpr expr() :
 //|   < CASE > < WHEN > condition() < THEN > expr()) < ELSE > expr()
 }
 
-void aggExpr() :
+AggExpr aggExpr() :
 {
     AggType type 	= null;
     IExpr expr		= null;}
@@ -245,7 +254,7 @@ PropertyDef propertyDef() :
     IExpr expr				= null;
     ICondition condition 	= null;
     IQuery query			= null;
-    String agg				= null;
+    AggExpr aggExpr			= null;
     RandomSpec randomspec	= null;
 }
 {
@@ -256,8 +265,8 @@ PropertyDef propertyDef() :
             < IN > query = query()
             { return new PropertyDef(level, property, expr, condition, query); }
             
-        |   < AGGREGATE > agg = aggExpr() < IN > query = query()
-        	{ return new PropertyDef(level, property, agg, query); }
+        |   < AGGREGATE > aggExpr = aggExpr() < IN > query = query()
+        	{ return new PropertyDef(level, property, aggExpr, query); }
         			|   < RANDOM > randomspec = randomspec() < WHERE > condition = condition()
 			{ return new PropertyDef(level, property, randomspec, condition); }
         )
