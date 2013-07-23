@@ -45,7 +45,7 @@ public class WorldTreeFactory implements Serializable {
 	private static final long serialVersionUID = -981440934139213907L;
 	
 	private String	propFilePath 			= "init.properties";
-	private String worldDefPath				= "world.definitions";
+	private String worldDefPath				= null;
 	private List<Constraint> constraints 	= null;
 	private List<PropertyDef> definitions 	= null;
 	private Properties properties			= null;
@@ -61,8 +61,6 @@ public class WorldTreeFactory implements Serializable {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 		}
-		
-		loadDefinitions();
 	}
 	
 	public WorldTreeFactory(String propFilePath) {
