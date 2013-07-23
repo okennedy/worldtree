@@ -88,15 +88,15 @@ BaseQuery baseQuery() :
     String name = null, regex = null;
 }
 {
-    LOOKAHEAD(2) name = word() < MULTIPLY >    {        regex = token.image;
-        return new Relation(name, regex);
-    }
-|   LOOKAHEAD(2) name = word() < PLUS >
+    LOOKAHEAD(2) name = word()
+    (        < MULTIPLY >    |   < PLUS >
+    )
     {
         regex = token.image;
         return new Relation(name, regex);
     }
 |   < LPARANS > relation = relation() < RPARANS > { return relation; }
+
 |   name = word() { return new Relation(name, null); }
 }
 
@@ -203,10 +203,14 @@ IExpr expr() :
 }
 
 void aggExpr() :
-{}
 {
-    (< SUM > | < MAX > | < MIN >) < LPARANS > expr() < RPARANS >
-|   < COUNT > < LPARANS > < RPARANS >}
+    AggType type 	= null;
+    IExpr expr		= null;}
+{
+    (< SUM > | < MAX > | < MIN >) { type = AggType.parse(token.image); }
+    	< LPARANS > expr = expr() < RPARANS >
+    	{ return new AggExpr(type, expr); }    	|   < COUNT > < LPARANS > < RPARANS >
+		{ return new AggExpr(AggType.COUNT, null); }}
 RandomSpec randomspec() :
 {
     String dataType = null;
@@ -236,24 +240,30 @@ Constraint constraint() :
 
 PropertyDef propertyDef() :
 {    String level 			= null;
-    Reference ref 			= null;
-    String property 		= null;
+    Property property 		= null;
     String parent			= null;
+    IExpr expr				= null;
     ICondition condition 	= null;
     IQuery query			= null;
     String agg				= null;
+    RandomSpec randomspec	= null;
 }
 {
-    LOOKAHEAD(7) < DEFINE > level = word() ref = reference() < DOT > property = word() < AS > (expr() | condition())
-        < IN > query = query()
-|   LOOKAHEAD(7) < DEFINE > level = word() ref = reference() < DOT > property = word() < AS >
-		< AGGREGATE > aggExpr() < IN > query()
-|   < DEFINE > level = word() ref = reference() < DOT > property = word() < AS >
-    	< RANDOM > randomspec() < WHERE > condition()
-|   < INHERIT > level = word() ref = reference() < DOT > property = word() < FROM > parent = word()
-
-{
-    return null;}}
+    LOOKAHEAD(7) < DEFINE > level = word() property = property() < AS >
+        (            (
+                LOOKAHEAD(3) expr = expr()            |   condition = condition()
+            )
+            < IN > query = query()
+            { return new PropertyDef(level, property, expr, condition, query); }
+            
+        |   < AGGREGATE > agg = aggExpr() < IN > query = query()
+        	{ return new PropertyDef(level, property, agg, query); }
+        			|   < RANDOM > randomspec = randomspec() < WHERE > condition = condition()
+			{ return new PropertyDef(level, property, randomspec, condition); }
+        )
+        
+|   < INHERIT > level = word() property = property() < FROM > parent = word()
+			{ return new PropertyDef(level, property, parent); }}
 
 IStatement parse() :
 {
