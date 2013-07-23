@@ -1,10 +1,10 @@
 package internal.parser.containers.property;
 
-import internal.parser.containers.Reference;
 import internal.parser.containers.Statement;
 import internal.parser.containers.IContainer;
 import internal.parser.containers.StatementType;
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.query.IQuery;
 
 /**
@@ -19,40 +19,41 @@ import internal.parser.containers.query.IQuery;
  *
  */
 public class PropertyDef extends Statement {
-	private String level, property, aggType, parent;
-	private Reference reference;
+	private String level, aggType, parent;
+	private Property property;
 	private ICondition condition;
+	private IExpr expr;
 	private IQuery query;
 	private RandomSpec random;
 	private Type type;
 
-	public PropertyDef(Type type, String level, Reference reference, String property, String agg, RandomSpec random, 
-			String parent, ICondition condition, IQuery query) {
+	public PropertyDef(Type type, String level, Property property, String agg, RandomSpec random, 
+			String parent, IExpr expr, ICondition condition, IQuery query) {
 		super(StatementType.PROPERTYDEF);
 		this.type		= type;
 		this.level		= level;
-		this.reference	= reference;
 		this.property	= property;
+		this.expr		= expr;
+		this.condition	= condition;
 		this.aggType	= agg;
 		this.random		= random;
 		this.parent		= parent;
-		this.condition	= condition;
 		this.query		= query;
 	}
 	
-	public PropertyDef(String level, Reference reference, String property, ICondition condition, IQuery query) {
-		this(Type.BASIC, level, reference, property, null, null, null, condition, query);
+	public PropertyDef(String level, Property property, IExpr expr, ICondition condition, IQuery query) {
+		this(Type.BASIC, level, property, null, null, null, expr, condition, query);
 	}
-	public PropertyDef(String level, Reference reference, String property, String agg, ICondition condition, IQuery query) {
-		this(Type.RANDOM, level, reference, property, agg, null, null, condition, query);
-	}
-	
-	public PropertyDef(String level, Reference reference, String property, RandomSpec random, ICondition condition) {
-		this(Type.RANDOM, level, reference, property, null, random, null, condition, null);
+	public PropertyDef(String level, Property property, String agg, ICondition condition, IQuery query) {
+		this(Type.AGGREGATE, level, property, agg, null, null, null, condition, query);
 	}
 	
-	public PropertyDef(String level, Reference reference, String property, String parent) {
-		this(Type.INHERIT, level, reference, property, null, null, parent, null, null);
+	public PropertyDef(String level, Property property, RandomSpec random, ICondition condition) {
+		this(Type.RANDOM, level, property, null, random, null, null, condition, null);
+	}
+	
+	public PropertyDef(String level, Property property, String parent) {
+		this(Type.INHERIT, level, property, null, null, parent, null, null, null);
 	}
 
 	@Override
@@ -61,21 +62,24 @@ public class PropertyDef extends Statement {
 		switch(type) {
 		case AGGREGATE:
 			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " ");
-			result.append(reference.debugString() + "." + property + " AS " + aggType + "(" + condition.debugString() + 
+			result.append(property.debugString() + " AS " + aggType + "(" + condition.debugString() + 
 					")" + " IN " + query.debugString() + ")");
 			break;
 		case BASIC:
-			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " ");
-			result.append(reference.debugString() + "." + property + " AS " + condition.debugString() + 
-				" IN " + query.debugString() + ")");
+			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " " + property.debugString() + "." + property + " AS ");
+			if(condition != null)
+				result.append(condition.debugString());
+			else
+				result.append(expr.debugString());
+			result.append(" IN " + query.debugString() + ")");
 			break;
 		case INHERIT:
 			result = new StringBuffer("PROPERTYDEF(INHERIT " + level + " ");
-			result.append(reference.debugString() + "." + property + " FROM " + parent + ")");
+			result.append(property.debugString() + " FROM " + parent + ")");
 			break;
 		case RANDOM:
 			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " ");
-			result.append(reference.debugString() + "." + property + " AS " + random.debugString() + " WHERE " + 
+			result.append(property.debugString() + " AS " + random.debugString() + " WHERE " + 
 				condition.debugString() + ")");
 		}
 		
@@ -87,15 +91,15 @@ public class PropertyDef extends Statement {
 		StringBuffer result = new StringBuffer();
 		switch(type) {
 		case AGGREGATE:
-			result.append("DEFINE " + level + " " + reference + "." + property + " AS " + aggType + 
+			result.append("DEFINE " + level + " " + property + " AS " + aggType + 
 					"(" + condition + ") IN " + query);
 		case BASIC:
-			result.append("DEFINE " + level + " " + reference + "." + property + " AS " + 
+			result.append("DEFINE " + level + " " + property + " AS " + 
 				"(" + condition + ") IN " + query);
 		case INHERIT:
-			result.append("INHERIT " + level + " " + reference + "." + property + " FROM " + parent);
+			result.append("INHERIT " + level + " " + property + " FROM " + parent);
 		case RANDOM:
-			result.append("DEFINE " + level + reference + "." + property + " AS " + random + " WHERE " + condition);
+			result.append("DEFINE " + level + property + " AS " + random + " WHERE " + condition);
 		}
 		return result.toString();
 	}
