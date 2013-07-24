@@ -204,8 +204,8 @@ IExpr expr() :
     < LPARANS > baseExpr = expr() (< PLUS > | < MINUS > | < MULTIPLY > | < DIVIDE >) { op = TokenArithOp.parse(token.image); }         subExpr = expr() < RPARANS >
     { return new Expr(baseExpr, op, subExpr); }     
 |   (
-        LOOKAHEAD(2) value = constant() { return new Expr(Float.parseFloat(value)); }
-    |   property = property() { return new Expr(property); }
+        LOOKAHEAD(3)property = property() { return new Expr(property); }
+    |   value = constant() { return new Expr(Float.parseFloat(value)); }
     )
     |   (< MAX > | < MIN >) { maxminType = token.image; }
 		< LPARANS > baseExpr = expr() < COMMA > subExpr = expr() < RPARANS >
