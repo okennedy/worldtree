@@ -1,3 +1,15 @@
+07242013:gurupras
+	Query grammar does not require 'AT' keyword anymore
+	Condition grammar's boolean rule tweaked to match design
+	Condition class now has CondType enum - BASIC / BOOLEAN
+
+        TODO-LIST
+            - Implement WHEN-THEN-ELSE rule for Expr
+            - Implement property parsing and evaluation
+            - Implement logic for computed properties
+            - Write test cases for future validation
+
+
 07232013:gurupras
 	Added AggExpr class
 	PropertyDef now implements AggExpr

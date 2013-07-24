@@ -11,12 +11,14 @@ import internal.parser.containers.property.Property;
  */
 public class BaseCondition implements ICondition {
 	private boolean not;
+	private ConditionType type;
 	private Property property;
 	private TokenCmpOp cmpOp;
 	private String value;
 	
-	public BaseCondition(boolean not, Property property, TokenCmpOp op, String value) {
+	public BaseCondition(boolean not, ConditionType type, Property property, TokenCmpOp op, String value) {
 		this.not		= not;
+		this.type		= type;
 		this.property	= property;
 		this.cmpOp		= op;
 		this.value		= value;
@@ -33,13 +35,30 @@ public class BaseCondition implements ICondition {
 	}
 	
 	@Override
+	public ConditionType type() {
+		return type;
+	}
+	
+	@Override
 	public String toString() {
-		StringBuffer returnString = new StringBuffer();
+		StringBuffer result = new StringBuffer();
 		if(not)
-			returnString.append("NOT ");
+			result.append("NOT ");
 		
-		returnString.append(property.toString() + " " + cmpOp + " " + value);
-		return returnString.toString();
+		result.append(property.toString());
+		switch(type) {
+		case BASIC:
+			result.append(" " + cmpOp + " " + value);
+			break;
+		case BOOLEAN:
+			break;
+		case COMPLEX:
+			break;
+		default:
+			break;
+		}
+		
+		return result.toString();
 	}
 
 	@Override
@@ -49,8 +68,18 @@ public class BaseCondition implements ICondition {
 		if(not)
 			result.append("NOT ");
 		
-		result.append(property.debugString() + " " + cmpOp + " " + value);
-		result.append(")");
+		result.append(property.debugString());
+		switch(type) {
+		case BASIC:
+			result.append(" " + cmpOp + " " + value);
+			break;
+		case BOOLEAN:
+			break;
+		case COMPLEX:
+			break;
+		default:
+			break;
+		}
 		
 		return result.toString();
 	}
@@ -63,5 +92,12 @@ public class BaseCondition implements ICondition {
 	@Override
 	public String value() {
 		return value;
+	}
+	
+	public enum ConditionType {
+		BASIC,
+		BOOLEAN,
+		COMPLEX,
+		;
 	}
 }

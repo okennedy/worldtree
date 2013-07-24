@@ -26,7 +26,7 @@ public class BaseQuery extends Statement implements IQuery {
 	
 	@Override
 	public String toString() {
-		StringBuffer result = new StringBuffer("AT " + level + " " + pattern.toString());
+		StringBuffer result = new StringBuffer(level + " " + pattern.toString());
 		if(condition != null)
 			result.append(" WHERE " + condition.toString());
 		
@@ -35,7 +35,7 @@ public class BaseQuery extends Statement implements IQuery {
 
 	@Override
 	public String debugString() {
-		StringBuffer result = new StringBuffer("QUERY(AT " + level + " " + pattern.debugString());
+		StringBuffer result = new StringBuffer("QUERY(" + level + " " + pattern.debugString());
 		
 		if(condition != null)
 			result.append(" WHERE " + condition.debugString() + ")");

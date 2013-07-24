@@ -13,16 +13,16 @@ public class AggExpr implements IContainer {
 	
 	@Override
 	public String debugString() {
-		StringBuffer returnString = new StringBuffer("AGGTYPE(");
+		StringBuffer result = new StringBuffer("AGGTYPE(");
 		if(type.equals(AggType.COUNT)) {
 			assert expr == null : type + " with expr :" + expr + " ?\n";
-			returnString.append(type + "())");
+			result.append(type + "())");
 		}
 		else {
-			returnString.append(" " + type);
-			returnString.append(" " + expr.debugString());
+			result.append(" " + type);
+			result.append(" " + expr.debugString());
 		}
-		return returnString.toString();
+		return result.toString();
 	}
 	
 	@Override
@@ -32,13 +32,13 @@ public class AggExpr implements IContainer {
 			return type + "()";
 		}
 		
-		StringBuffer returnString = new StringBuffer(type.toString());
+		StringBuffer result = new StringBuffer(type.toString());
 		if(expr != null)
-			returnString.append(" " + expr);
+			result.append(" " + expr);
 		else
-			returnString.append(" COUNT");
+			result.append(" COUNT");
 		
-		return returnString.toString();
+		return result.toString();
 	}
 	
 	

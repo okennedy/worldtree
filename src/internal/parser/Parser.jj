@@ -5,6 +5,7 @@
 import internal.parser.containers.*;
 import internal.parser.containers.pattern.*;
 import internal.parser.containers.condition.*;
+import internal.parser.containers.condition.BaseCondition.ConditionType;
 import internal.parser.containers.query.*;
 import internal.parser.containers.property.*;
 import internal.parser.containers.expr.*;
@@ -83,7 +84,7 @@ BaseQuery baseQuery() :
     IPattern pattern = null;
     ICondition condition = null;
 }
-{    < AT > level = word() pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
+{    level = word() pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
 {
     Relation relation = null;
     String name = null, regex = null;
@@ -124,19 +125,22 @@ ICondition baseCondition() :
     Property property 		= null;
     ICondition condition 	= null;
     TokenCmpOp op			= null;
+    ConditionType type		= null;
     String value			= null;}
 {    LOOKAHEAD(6) property = property()
     (
         LOOKAHEAD(2) (< EQ > | < NOTEQ >) { op = TokenCmpOp.parse(token.image); }
-    		(< TRUE > | < FALSE >) { value = token.image; }
-    |   op = op() value = constant()
+    		(< TRUE > | < FALSE >) 		{ value = token.image; type = ConditionType.BOOLEAN; }
+    |   op = op() value = constant()	{ type = ConditionType.BASIC; }
     
     )
-    { return new BaseCondition(false, property, op, value); }
+    	{ return new BaseCondition(false, type, property, op, value); }
 
-//|   property = property() 				{ return new BaseCondition(false, property); }
+|   property = property()
+		{ return new BaseCondition(false, ConditionType.BOOLEAN, property, null, null); }
 
-|   < NOT > condition = baseCondition()		{ return condition; }
+|   < NOT > condition = baseCondition()
+		{ return new BaseCondition(true, condition.type(), condition.property(), condition.operator(), condition.value()); }
 }
 
 String word() :
@@ -260,7 +264,7 @@ PropertyDef propertyDef() :
 {
     LOOKAHEAD(7) < DEFINE > level = word() property = property() < AS >
         (            (
-                LOOKAHEAD(3) expr = expr()            |   condition = condition()
+                LOOKAHEAD(8) condition = condition()            |	expr = expr()
             )
             < IN > query = query()
             { return new PropertyDef(level, property, expr, condition, query); }

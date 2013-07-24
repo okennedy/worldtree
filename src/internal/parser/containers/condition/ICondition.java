@@ -2,6 +2,7 @@ package internal.parser.containers.condition;
 
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.IContainer;
+import internal.parser.containers.condition.BaseCondition.ConditionType;
 import internal.parser.containers.property.Property;
 
 public interface ICondition extends IContainer {
@@ -30,4 +31,10 @@ public interface ICondition extends IContainer {
 	 * @return {@code String}
 	 */
 	public String value();
+	
+	/**
+	 * Obtain the condition type of this {@code ICondition}
+	 * @return {@code ConditionType}
+	 */
+	public ConditionType type();
 }
