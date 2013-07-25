@@ -153,7 +153,9 @@ public class WorldTreeFactory implements Serializable {
 			Collection<Constraint> constraints = new ArrayList<Constraint>();
 			
 			for(Constraint c : this.constraints()) {
-				if(c.level().equalsIgnoreCase("Room"))
+				String className = c.query().level().getName();
+				String level = className.substring(className.indexOf("$") + 1);
+				if(level.equalsIgnoreCase("Room"))
 					constraints.add(c);
 			}
 			children = new ArrayList<IWorldTree>();
@@ -239,12 +241,12 @@ public class WorldTreeFactory implements Serializable {
 //		The Room must decide the location of the tiles (I think..)
 		@Override
 		public void initialize() {
-			IWorldTree root = this.root();
-			
 			Collection<Constraint> constraints = new ArrayList<Constraint>();
 			
-			for(Constraint c : root.constraints()) {
-				if(c.level().equalsIgnoreCase("Region"))
+			for(Constraint c : this.constraints()) {
+				String className = c.query().level().getName();
+				String level = className.substring(className.indexOf("$") + 1);
+				if(level.equalsIgnoreCase("Region"))
 					constraints.add(c);
 			}
 			
@@ -348,8 +350,10 @@ public class WorldTreeFactory implements Serializable {
 			
 			Collection<Constraint> constraints = new ArrayList<Constraint>();
 			
-			for(Constraint c : root.constraints()) {
-				if(c.level().equalsIgnoreCase("Tile"))
+			for(Constraint c : this.constraints()) {
+				String className = c.query().level().getName();
+				String level = className.substring(className.indexOf("$") + 1);
+				if(level.equalsIgnoreCase("Tile"))
 					constraints.add(c);
 			}
 			
