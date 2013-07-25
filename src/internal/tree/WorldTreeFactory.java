@@ -150,6 +150,12 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void initialize() {
+			Collection<Constraint> constraints = new ArrayList<Constraint>();
+			
+			for(Constraint c : this.constraints()) {
+				if(c.level().equalsIgnoreCase("Room"))
+					constraints.add(c);
+			}
 			children = new ArrayList<IWorldTree>();
 			String countString 	= properties.getProperty("Map.children.size");
 			if(countString == null)
@@ -159,12 +165,13 @@ public class WorldTreeFactory implements Serializable {
 				String name 	= properties.getProperty("Map.child" + i + ".name");
 				if(name == null)
 					name = "Room" + i;
-				children.add(new Room(name, this, null));
+				children.add(new Room(name, this, constraints));
 			}
 		}
 		
 		@Override
 		public void initRooms() {
+			
 			initialize();
 		}
 		
@@ -232,6 +239,15 @@ public class WorldTreeFactory implements Serializable {
 //		The Room must decide the location of the tiles (I think..)
 		@Override
 		public void initialize() {
+			IWorldTree root = this.root();
+			
+			Collection<Constraint> constraints = new ArrayList<Constraint>();
+			
+			for(Constraint c : root.constraints()) {
+				if(c.level().equalsIgnoreCase("Region"))
+					constraints.add(c);
+			}
+			
 			children = new ArrayList<IWorldTree>();
 			String[] regionNames = null;
 			
@@ -256,7 +272,7 @@ public class WorldTreeFactory implements Serializable {
 					throw new IllegalStateException("Properties file has no size for child " + i + " of " + this.getClass());
 				String[] size 		= properties.getProperty("Room.child" + i + ".size").split("x");
 				int[] dimensions 	= new int[] {Integer.parseInt(size[0]), Integer.parseInt(size[1])}; 
-				children.add(newRegion(name, this, null, new Space(dimensions[0], dimensions[1])));
+				children.add(newRegion(name, this, constraints, new Space(dimensions[0], dimensions[1])));
 			}
 		}
 
@@ -295,7 +311,7 @@ public class WorldTreeFactory implements Serializable {
 			int startX = 0 + (int) (Math.random() * space.getXDimension());
 			int startY = 0 + (int) (Math.random() * space.getYDimension());
 			Coordinates startCoords = new Coordinates(true, startX, startY);
-			ITile tile = initTile(startCoords);
+			ITile tile = initTile(startCoords, null);	//FIXME
 			tile.addProperty("start", "1");
 			tile.addToVisual("S");
 			space.setByCoord(startCoords, tile);
@@ -311,7 +327,7 @@ public class WorldTreeFactory implements Serializable {
 				if(startX != endX && startY != endY)
 					endCoords = new Coordinates(true, endX, endY);
 			}
-			tile = initTile(endCoords);
+			tile = initTile(endCoords, null);	//FIXME
 			tile.addProperty("end", "1");
 			tile.addToVisual("E");
 			space.setByCoord(endCoords, tile);
@@ -328,10 +344,19 @@ public class WorldTreeFactory implements Serializable {
 		 * This method can be used to instantly initialize this Region and all its children tiles.
 		 */
 		private void initRegion() {
+			IWorldTree root = this.root();
+			
+			Collection<Constraint> constraints = new ArrayList<Constraint>();
+			
+			for(Constraint c : root.constraints()) {
+				if(c.level().equalsIgnoreCase("Tile"))
+					constraints.add(c);
+			}
+			
 			for(int i = 0; i < space.getYDimension(); i++) {
 				for(int j = 0; j < space.getXDimension(); j++) {
 					Coordinates coords = new Coordinates(true, j, i);
-					ITile tile = initTile(coords);
+					ITile tile = initTile(coords, constraints);
 					space.setByCoord(coords, tile);
 				}
 			}
@@ -340,9 +365,10 @@ public class WorldTreeFactory implements Serializable {
 		/**
 		 * Create a new {@code ITile} that satisfies the constraints specified
 		 * @param coordinates {@code Coordinates} with reference to which the {@code ITile} is to be created
+		 * @param constraints {@code Collection<Constraint>} containing constraints pertaining to the new {@code ITile}
 		 * @return {@code ITile}
 		 */
-		private ITile initTile(Coordinates coordinates) {
+		private ITile initTile(Coordinates coordinates, Collection<Constraint> constraints) {
 			Coordinates coords = coordinates;
 			if(!coordinates.cartesian()) {
 				coords = space.arrayToCoord(coordinates);
@@ -350,8 +376,7 @@ public class WorldTreeFactory implements Serializable {
 			
 			java.util.Map<String, String> interfaceMap = space.getValidInterfaces(coords);
 			String coordString = "(" + coords.x + "," + coords.y + ")";
-			ITile tile = newTile("tile" + coordString, coords, this, null, PieceFactory.randomPiece(interfaceMap));
-//			Collection<IWorldTree> children = null;		//TODO: Add a way to initialize Objects into Tiles
+			ITile tile = newTile("tile" + coordString, coords, this, constraints, PieceFactory.randomPiece(interfaceMap));
 			return tile;
 		}
 		
@@ -411,7 +436,7 @@ public class WorldTreeFactory implements Serializable {
 				
 //				Convert to Cartesian coordinates for validate
 				if(space.validate(coords) && space.getByCoord(coords) == null) {	
-					ITile tile = initTile(coords);
+					ITile tile = initTile(coords, null);
 					space.setByCoord(coords, tile);
 				}
 				directions.remove(direction);
