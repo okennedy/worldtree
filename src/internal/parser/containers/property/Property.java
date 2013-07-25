@@ -29,4 +29,20 @@ public class Property implements IContainer {
 	public String debugString() {
 		return "PROPERTY(" + reference.debugString() + "." + name + ")"; 
 	}
+	
+	/**
+	 * Obtain the reference of this property
+	 * @return {@code Reference}
+	 */
+	public Reference reference() {
+		return reference;
+	}
+	
+	/**
+	 * Obtain the name of this property
+	 * @return {@code String}
+	 */
+	public String name() {
+		return name;
+	}
 }
