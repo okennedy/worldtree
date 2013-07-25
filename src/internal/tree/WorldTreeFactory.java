@@ -150,42 +150,33 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void initialize() {
-			IWorldTree root = null;
-			List<IWorldTree> possibleRoots = new ArrayList<IWorldTree>();
-			possibleRoots.add(this);
-			while(true) {
-				List<IWorldTree> oldRootList = new ArrayList<IWorldTree>(possibleRoots);
-				root = possibleRoots.get(0);
-				while(root.children() != null) {
-					for(IWorldTree child : root.children())
-						possibleRoots.add(child);
-					possibleRoots.remove(root);
-					break;
-				}
-				
-				if(oldRootList.containsAll(possibleRoots) && possibleRoots.containsAll(oldRootList))
-					break;
+			children = new ArrayList<IWorldTree>();
+			String countString 	= properties.getProperty("Map.children.size");
+			if(countString == null)
+				throw new IllegalStateException("Properties file has no size for " + this.getClass());
+			int childrenCount 	= Integer.parseInt(countString);
+			for(int i = 0; i < childrenCount; i++) {
+				String name 	= properties.getProperty("Map.child" + i + ".name");
+				if(name == null)
+					name = "Room" + i;
+				children.add(new Room(name, this, null));
 			}
-			
-			if(root == this) {
-				children = new ArrayList<IWorldTree>();
-				String countString 	= properties.getProperty("Map.children.size");
-				if(countString == null)
-					throw new IllegalStateException("Properties file has no size for " + this.getClass());
-				int childrenCount 	= Integer.parseInt(countString);
-				for(int i = 0; i < childrenCount; i++) {
-					String name 	= properties.getProperty("Map.child" + i + ".name");
-					if(name == null)
-						name = "Room" + i;
-					children.add(new Room(name, this, null));
-				}
+		}
+		
+		@Override
+		public void initRooms() {
+			initialize();
+		}
+		
+		@Override
+		public void initRegions() {
+			for(IWorldTree child : children) {
+				child.initialize();
 			}
-			
-			else {
-				for(IWorldTree child : possibleRoots) {
-					child.initialize();
-				}
-			}
+		}
+		
+		@Override
+		public void initTiles() {
 		}
 
 		@Override

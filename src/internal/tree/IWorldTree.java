@@ -92,6 +92,21 @@ public interface IWorldTree {
 		 * Fully initialize this Map
 		 */
 		public void fullInit();
+		
+		/**
+		 * Initialize the Rooms
+		 */
+		public void initRooms();
+		
+		/**
+		 * Initialize the Regions
+		 */
+		public void initRegions();
+		
+		/**
+		 * public void initTiles();
+		 */
+		public void initTiles();
 	}
 	
 	public interface IRoom extends IWorldTree {
