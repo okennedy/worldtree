@@ -243,11 +243,12 @@ IQuery query() :
 
 Constraint constraint() :
 {
-    IQuery query = null;
+    String level		 = null;
+    IQuery query 		 = null;
     ICondition condition = null;
 }
 {
-    < FOR > < ALL > query = query() < ASSERT > condition = condition() { return new Constraint(query, condition); }
+    < FOR > < ALL > level = word() query = query() < ASSERT > condition = condition() { return new Constraint(level, query, condition); }
 }
 
 
