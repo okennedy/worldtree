@@ -48,6 +48,13 @@ public interface IWorldTree {
 	public Collection<Constraint> constraints();
 	
 	/**
+	 * Set constraints to provided object for this WorldTree instance
+	 * @param constraints {@code Collection<Constraint>} set of new constraints
+	 */
+//	FIXME: Added this to solve NPE on constraints()
+	public void setConstraints(Collection<Constraint> constriants);
+	
+	/**
 	 * Add a new property to this {@code IWorldTree}
 	 * @param name {@code String} containing the name of this property
 	 * @param value {@code String} containing the value of this property

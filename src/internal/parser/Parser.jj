@@ -78,13 +78,15 @@ BasePattern basePattern() :
 {    LOOKAHEAD(2) r1 = reference() relation = relation() r2 = reference() { return new BasePattern(r1, relation, r2); }
 |   r1 = reference() { return new BasePattern(r1, null, null); }}
 
-BaseQuery baseQuery() :
+BaseQuery baseQuery(String level) :
 {
-    String level = null;
     IPattern pattern = null;
     ICondition condition = null;
 }
-{    level = word() pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
+{    {        if(level == null)
+        	level = word();
+    }
+     pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
 {
     Relation relation = null;
     String name = null, regex = null;
@@ -232,13 +234,13 @@ RandomSpec randomspec() :
         < FROM > low = constant() < TO > high = constant() 		{ return new RandomSpec(dataType, low, high); }|   < IN > < LPARANS > constant() (":" constant())? (< COMMA > constant() (":" constant())?)* < RPARANS >
 }
 
-IQuery query() :
+IQuery query(String level) :
 {
     IQuery query = null, subQuery = null;
 }
 {
-    LOOKAHEAD(412421) query = baseQuery() < UNION > subQuery = query() { return new Query(query, subQuery); }
-|   query = baseQuery() { return query; }
+    LOOKAHEAD(412421) query = baseQuery(level) < UNION > subQuery = query(level) { return new Query(query, subQuery); }
+|   query = baseQuery(level) { return query; }
 }
 
 Constraint constraint() :
@@ -248,7 +250,8 @@ Constraint constraint() :
     ICondition condition = null;
 }
 {
-    < FOR > < ALL > level = word() query = query() < ASSERT > condition = condition() { return new Constraint(level, query, condition); }
+    < FOR > < ALL > level = word() query = query(level) < ASSERT > condition = condition()
+    	{ return new Constraint(level, query, condition); }
 }
 
 
@@ -267,10 +270,10 @@ PropertyDef propertyDef() :
         (            (
                 LOOKAHEAD(8) condition = condition()            |	expr = expr()
             )
-            < IN > query = query()
+            < IN > query = query(level)
             { return new PropertyDef(level, property, expr, condition, query); }
             
-        |   < AGGREGATE > aggExpr = aggExpr() < IN > query = query()
+        |   < AGGREGATE > aggExpr = aggExpr() < IN > query = query(level)
         	{ return new PropertyDef(level, property, aggExpr, query); }
         			|   < RANDOM > randomspec = randomspec() < WHERE > condition = condition()
 			{ return new PropertyDef(level, property, randomspec, condition); }
@@ -283,6 +286,6 @@ IStatement parse() :
 {
     IStatement s = null;
 }
-{    s = query()			{ return s; }|   s = constraint()	{ return s; }
+{    s = query(null)		{ return s; }|   s = constraint()	{ return s; }
 |   s = propertyDef()	{ return s; }
 }

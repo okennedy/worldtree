@@ -146,6 +146,9 @@ public class WorldTreeFactory implements Serializable {
 
 		public Map(String name, IWorldTree parent, Collection<Constraint> constraints) {
 			super(name, parent, constraints);
+//			FIXME: Added this to solve NPE on constraints()
+			if(constraints == null)
+				this.setConstraints(new ArrayList<Constraint>());
 		}
 
 		@Override

@@ -87,6 +87,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		return properties;
 	}
 	
+//	FIXME: Added this to solve NPE on constraints()
+	@Override
+	public void setConstraints(Collection<Constraint> constraints) {
+		this.constraints = constraints;
+	}
+	
 	/* -------------------------------------------  String methods  ------------------------------------------- */
 	public List<String> getStringRepresentation() {
 		stringRepresentation.removeAll(stringRepresentation);

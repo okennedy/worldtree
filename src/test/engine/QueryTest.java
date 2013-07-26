@@ -104,7 +104,7 @@ public class QueryTest {
 							if(line.trim().startsWith("#") || line.length() < 1)
 								continue;
 							parser.ReInit(new StringReader(line));
-							IQuery query = parser.query();
+							IQuery query = parser.query(null);
 							result = ResolutionEngine.evaluate(map, query);
 						}
 					}
@@ -205,7 +205,7 @@ public class QueryTest {
 			write(map);
 			
 			parser.ReInit(new StringReader(cmd.toString()));
-			IQuery query 	= parser.query();
+			IQuery query 	= parser.query(null);
 			Result result 	= ResolutionEngine.evaluate(map, query);
 			
 //			Now store this test

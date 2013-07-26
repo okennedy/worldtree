@@ -1,3 +1,19 @@
+07252013:gurupras
+	Query grammar changed
+	    - Now accepts level as parameter
+	    - Enables smart query handling in PropertyDef, Constraint
+	    - ParserTest's basicIOTest temporarily re-annotated
+	    - Updated references
+
+        TODO-LIST
+            - Parse Constraints into definitions and materialize them
+            - Filter query results based on conditions
+            - Implement WHEN-THEN-ELSE rule for Expr
+            - Implement property parsing and evaluation
+            - Implement logic for computed properties
+            - Write test cases for future validation
+
+
 07242013:gurupras
 	Query grammar does not require 'AT' keyword anymore
 	Condition grammar's boolean rule tweaked to match design
