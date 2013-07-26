@@ -24,6 +24,8 @@ import internal.parser.Parser;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.StatementType;
+import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
@@ -340,6 +342,15 @@ public class WorldTreeFactory implements Serializable {
 		@Override
 		public void initialize() {
 //			TODO: Ensure all pieces are traverse-able.
+			
+//			We first float the relevant constraints
+			for(Constraint constraint : this.constraints()) {
+				ICondition condition = constraint.condition();
+				while(condition != null) {
+					String propertyName = condition.property().name();
+//					TODO: Continue from here
+				}
+			}
 			initRegion();
 			initString();
 		}
