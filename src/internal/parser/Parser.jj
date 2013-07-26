@@ -248,7 +248,7 @@ Constraint constraint() :
     ICondition condition = null;
 }
 {
-    < FOR > < ALL > query = query() < ASSERT > condition = condition() { return new Constraint(query, condition); }
+    < FOR > < ALL > level = word() query = query() < ASSERT > condition = condition() { return new Constraint(level, query, condition); }
 }
 
 

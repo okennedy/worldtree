@@ -153,9 +153,7 @@ public class WorldTreeFactory implements Serializable {
 			Collection<Constraint> constraints = new ArrayList<Constraint>();
 			
 			for(Constraint c : this.constraints()) {
-				String className = c.query().level().getName();
-				String level = className.substring(className.indexOf("$") + 1);
-				if(level.equalsIgnoreCase("Room"))
+				if(c.level().equalsIgnoreCase("Room"))
 					constraints.add(c);
 			}
 			children = new ArrayList<IWorldTree>();
@@ -355,6 +353,7 @@ public class WorldTreeFactory implements Serializable {
 				String className = c.query().level().getName();
 				String level = className.substring(className.indexOf("$") + 1);
 				if(level.equalsIgnoreCase("Tile"))
+				if(c.level().equalsIgnoreCase("Tile"))
 					constraints.add(c);
 			}
 			
