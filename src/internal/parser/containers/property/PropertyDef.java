@@ -26,21 +26,21 @@ public class PropertyDef extends Statement {
 	private ICondition condition;
 	private IExpr expr;
 	private IQuery query;
-	private RandomSpec random;
+	private RandomSpec randomSpec;
 	private Type type;
 
 	public PropertyDef(Type type, String level, Property property, AggExpr aggExpr, RandomSpec random, 
 			String parent, IExpr expr, ICondition condition, IQuery query) {
 		super(StatementType.PROPERTYDEF);
-		this.type		= type;
-		this.level		= level;
-		this.property	= property;
-		this.expr		= expr;
-		this.condition	= condition;
-		this.aggExpr	= aggExpr;
-		this.random		= random;
-		this.parent		= parent;
-		this.query		= query;
+		this.type			= type;
+		this.level			= level;
+		this.property		= property;
+		this.expr			= expr;
+		this.condition		= condition;
+		this.aggExpr		= aggExpr;
+		this.randomSpec		= random;
+		this.parent			= parent;
+		this.query			= query;
 	}
 	
 	public PropertyDef(String level, Property property, IExpr expr, ICondition condition, IQuery query) {
@@ -56,6 +56,42 @@ public class PropertyDef extends Statement {
 	
 	public PropertyDef(String level, Property property, String parent) {
 		this(Type.INHERIT, level, property, null, null, parent, null, null, null);
+	}
+	
+	public String level() {
+		return level;
+	}
+	
+	public String parent() {
+		return parent;
+	}
+	
+	public AggExpr aggregateExpression() {
+		return aggExpr;
+	}
+	
+	public Property property() {
+		return property;
+	}
+	
+	public ICondition condition() {
+		return condition;
+	}
+	
+	public IExpr expression() {
+		return expr;
+	}
+	
+	public IQuery query() {
+		return query;
+	}
+	
+	public RandomSpec randomspec() {
+		return randomSpec;
+	}
+	
+	public Type type() {
+		return type;
 	}
 
 	@Override
@@ -81,7 +117,7 @@ public class PropertyDef extends Statement {
 			break;
 		case RANDOM:
 			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " ");
-			result.append(property.debugString() + " AS " + random.debugString() + " WHERE " + 
+			result.append(property.debugString() + " AS " + randomSpec.debugString() + " WHERE " + 
 				condition.debugString() + ")");
 		}
 		
@@ -100,7 +136,7 @@ public class PropertyDef extends Statement {
 		case INHERIT:
 			result.append("INHERIT " + level + " " + property + " FROM " + parent);
 		case RANDOM:
-			result.append("DEFINE " + level + property + " AS " + random + " WHERE " + condition);
+			result.append("DEFINE " + level + property + " AS " + randomSpec + " WHERE " + condition);
 		}
 		return result.toString();
 	}
