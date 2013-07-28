@@ -106,11 +106,12 @@ BaseQuery baseQuery(String level) :
 
 ICondition condition() :
 {
-    Property property = null;
-    UnionType unionType = null;
-    ICondition condition = null, subCondition = null;
-    TokenCmpOp op = null;
-    String value = null;
+    Property property 		= null;
+    UnionType unionType 	= null;
+    ICondition condition 	= null;
+    ICondition subCondition = null;
+    TokenCmpOp op 			= null;
+    Datum value 			= null;
 }
 {
     LOOKAHEAD(12) condition = baseCondition()
@@ -128,11 +129,11 @@ ICondition baseCondition() :
     ICondition condition 	= null;
     TokenCmpOp op			= null;
     ConditionType type		= null;
-    String value			= null;}
+    Datum value				= null;}
 {    LOOKAHEAD(6) property = property()
     (
         LOOKAHEAD(2) (< EQ > | < NOTEQ >) { op = TokenCmpOp.parse(token.image); }
-    		(< TRUE > | < FALSE >) 		{ value = token.image; type = ConditionType.BOOLEAN; }
+    		(< TRUE > | < FALSE >) 		{ value = new Datum.Bool(Boolean.parseBoolean(token.image)); type = ConditionType.BOOLEAN; }
     |   op = op() value = constant()	{ type = ConditionType.BASIC; }
     
     )
@@ -152,17 +153,17 @@ String word() :
     < WORD > { return token.image; }
 }
 
-String constant() :
+Datum constant() :
 {
     String value = null;
 }
 {
     LOOKAHEAD(2) < CONSTANT > { value = token.image; }
-    	< DOT > < CONSTANT > 							{ return value + "." + token.image; }
+    	< DOT > < CONSTANT > 							{ return new Datum.Flt(Float.parseFloat(value + "." + token.image)); }
     	
-|   < CONSTANT > 										{ return token.image; }
+|   < CONSTANT > 										{ return new Datum.Int(Integer.parseInt(token.image)); }
 
-|   ("'" | "\"" | "`" | "“")? value = word() ("'" | "\"" | "`" | "”")?	{ return value; }
+|   ("'" | "\"" | "`" | "“")? value = word() ("'" | "\"" | "`" | "”")?	{ return new Datum.Str(value); }
 }
 
 Reference reference() :
@@ -199,7 +200,7 @@ IExpr expr() :
     IExpr whenExpr 		= null;
     IExpr elseExpr 		= null;
     TokenArithOp op 	= null;
-    String value		= null;
+    Datum value			= null;
     Property property 	= null;
     String maxminType	= null;}
 {
@@ -207,7 +208,7 @@ IExpr expr() :
     { return new Expr(baseExpr, op, subExpr); }     
 |   (
         LOOKAHEAD(3)property = property() { return new Expr(property); }
-    |   value = constant() { return new Expr(Float.parseFloat(value)); }
+    |   value = constant() { return new Expr(value); }
     )
     |   (< MAX > | < MIN >) { maxminType = token.image; }
 		< LPARANS > baseExpr = expr() < COMMA > subExpr = expr() < RPARANS >
@@ -229,7 +230,8 @@ AggExpr aggExpr() :
 RandomSpec randomspec() :
 {
     String dataType = null;
-    String low = null, high = null;}
+    Datum low 		= null;
+    Datum high 		= null;}
 {    < UNIFORM > (< INT > | < FLOAT >) { dataType = token.image; }
         < FROM > low = constant() < TO > high = constant() 		{ return new RandomSpec(dataType, low, high); }|   < IN > < LPARANS > constant() (":" constant())? (< COMMA > constant() (":" constant())?)* < RPARANS >
 }

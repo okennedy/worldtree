@@ -345,10 +345,19 @@ public class WorldTreeFactory implements Serializable {
 			
 //			We first float the relevant constraints
 			for(Constraint constraint : this.constraints()) {
-				ICondition condition = constraint.condition();
-				while(condition != null) {
-					String propertyName = condition.property().name();
-//					TODO: Continue from here
+				ICondition constraintCondition = constraint.condition();
+				while(constraintCondition != null) {
+					String propertyName = constraintCondition.property().name();
+					for (PropertyDef definition : definitions()) {
+						String propDefPropName = definition.property().name();
+						if(propDefPropName.equals(propertyName)) {
+//							We cannot materialize definitions that have conditions
+							if(definition.condition() == null)
+								continue;
+							definition.earlyInit(space.getXDimension() * space.getYDimension(), constraintCondition);
+						}
+					}
+					constraintCondition = constraintCondition.subCondition();
 				}
 			}
 			initRegion();

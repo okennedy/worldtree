@@ -1,6 +1,7 @@
 package internal.parser.containers.expr;
 
 import internal.parser.TokenArithOp;
+import internal.parser.containers.Datum;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.property.Property;
 
@@ -8,16 +9,16 @@ import internal.parser.containers.property.Property;
  * Container class for expressions <br>
  * <pre>
  *   EXPR := 
- *     EXPR (‘+’ | ‘*’ | ‘-’ | ‘/’) EXPR
- *  | CONSTANT | REFERENCE ‘.’ PROPERTY
- *  | (‘MAX’ | ‘MIN’) ‘(’ EXPR (‘,’ EXPR)+ ‘)’
- *  | ‘CASE’ (‘WHEN’ CONDITION ‘THEN’ EXPR)* ‘ELSE’ EXPR
+ *     EXPR (ï¿½+ï¿½ | ï¿½*ï¿½ | ï¿½-ï¿½ | ï¿½/ï¿½) EXPR
+ *  | CONSTANT | REFERENCE ï¿½.ï¿½ PROPERTY
+ *  | (ï¿½MAXï¿½ | ï¿½MINï¿½) ï¿½(ï¿½ EXPR (ï¿½,ï¿½ EXPR)+ ï¿½)ï¿½
+ *  | ï¿½CASEï¿½ (ï¿½WHENï¿½ CONDITION ï¿½THENï¿½ EXPR)* ï¿½ELSEï¿½ EXPR
  * </pre>
  * @author guru
  *
  */
 public class Expr implements IExpr {
-	private Float value;
+	private Datum value;
 	private TokenArithOp operator;
 	private IExpr baseExpr, subExpr;
 	private String maxminType;
@@ -27,7 +28,7 @@ public class Expr implements IExpr {
 	private IExpr whenExpr, elseExpr;
 	
 
-	public Expr(ExprType exprType, Float value, IExpr baseExpr, TokenArithOp operator, IExpr subExpr, String maxminType, 
+	public Expr(ExprType exprType, Datum value, IExpr baseExpr, TokenArithOp operator, IExpr subExpr, String maxminType, 
 			Property property, ICondition condition, IExpr whenExpr, IExpr elseExpr) {
 		this.exprType	= exprType;
 		this.value		= value;
@@ -41,7 +42,7 @@ public class Expr implements IExpr {
 		this.elseExpr	= elseExpr;
 	}
 	
-	public Expr(float value) {
+	public Expr(Datum value) {
 		this(ExprType.BASIC, value, null, null, null, null, null, null, null, null);
 	}
 	
@@ -72,11 +73,11 @@ public class Expr implements IExpr {
 	}
 	
 	@Override
-	public String value() {
+	public Datum value() {
 		if(value != null)
-			return Float.toString(value);
-		else
-			return property.toString();
+			return value;
+		else	//FIXME: This might cause issues as we return a new object every time value() is requested
+			return new Datum.Str(property.toString());
 	}
 
 	@Override

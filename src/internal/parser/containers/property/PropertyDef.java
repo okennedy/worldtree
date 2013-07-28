@@ -1,5 +1,7 @@
 package internal.parser.containers.property;
 
+import java.util.Collection;
+import internal.parser.containers.Datum;
 import internal.parser.containers.Statement;
 import internal.parser.containers.IContainer;
 import internal.parser.containers.StatementType;
@@ -93,6 +95,26 @@ public class PropertyDef extends Statement {
 	public Type type() {
 		return type;
 	}
+	
+	public Collection<Datum> earlyInit(int availableNodes, ICondition constraintCondition) {
+		switch(type) {
+		case AGGREGATE:
+			break;
+		case BASIC:
+			break;
+		case INHERIT:
+			break;
+		case RANDOM:
+//			In early initialization, we don't have a skeleton..Thus, break for all condition-based RandomSpecs.
+			if(condition != null)
+				break;
+			assert randomSpec != null : "error: PropertyDef type is random, but randomSpec is null!\n";
+//			int nodesWithDefCount = Math.random()
+			break;
+		
+		}
+		return null;
+	}
 
 	@Override
 	public String debugString() {
@@ -151,12 +173,12 @@ public class PropertyDef extends Statement {
 	
 	public static class RandomSpec implements IContainer {
 		String dataType;
-		float low, high;
+		Datum low, high;
 		
-		public RandomSpec(String dataType, String low, String high) {
+		public RandomSpec(String dataType, Datum low, Datum high) {
 			this.dataType	= dataType;
-			this.low		= Float.parseFloat(low);
-			this.high		= Float.parseFloat(high);
+			this.low		= low;
+			this.high		= high;
 		}
 		
 		@Override

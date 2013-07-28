@@ -1,6 +1,7 @@
 package internal.parser.containers.condition;
 
 import internal.parser.TokenCmpOp;
+import internal.parser.containers.Datum;
 import internal.parser.containers.IContainer;
 import internal.parser.containers.condition.BaseCondition.ConditionType;
 import internal.parser.containers.property.Property;
@@ -28,9 +29,9 @@ public interface ICondition extends IContainer {
 	
 	/**
 	 * Obtain the comparison value
-	 * @return {@code String}
+	 * @return {@code Datum}
 	 */
-	public String value();
+	public Datum value();
 	
 	/**
 	 * Obtain the condition type of this {@code ICondition}

@@ -1,6 +1,7 @@
 package internal.parser.containers.condition;
 
 import internal.parser.TokenCmpOp;
+import internal.parser.containers.Datum;
 import internal.parser.containers.property.Property;
 
 /**
@@ -14,9 +15,9 @@ public class BaseCondition implements ICondition {
 	private ConditionType type;
 	private Property property;
 	private TokenCmpOp cmpOp;
-	private String value;
+	private Datum value;
 	
-	public BaseCondition(boolean not, ConditionType type, Property property, TokenCmpOp op, String value) {
+	public BaseCondition(boolean not, ConditionType type, Property property, TokenCmpOp op, Datum value) {
 		this.not		= not;
 		this.type		= type;
 		this.property	= property;
@@ -90,7 +91,7 @@ public class BaseCondition implements ICondition {
 	}
 
 	@Override
-	public String value() {
+	public Datum value() {
 		return value;
 	}
 	
