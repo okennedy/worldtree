@@ -1,6 +1,10 @@
 package internal.parser.containers;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
 
 /**
@@ -63,5 +67,25 @@ public class Constraint extends Statement {
 	 */
 	public ICondition condition() {
 		return condition;
+	}
+
+	public Collection<Datum> earlyInit(int size, PropertyDef definition) {
+		Collection<Datum> returnValues = new ArrayList<Datum>();
+//		This definition does not have a condition..
+		Collection<Datum> values = null;
+		switch(condition.type()) {
+		case BASIC:
+			values = definition.earlyInit(size, condition);
+			break;
+		case BOOLEAN:
+			break;
+		case COMPLEX:
+			break;
+		default:
+			break;
+		
+		}
+		returnValues.addAll(values);
+		return returnValues;
 	}
 }
