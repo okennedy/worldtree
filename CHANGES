@@ -1,4 +1,17 @@
 08042013:gurupras
+	Added private methods to Map class for easy collections
+	Added materializeConstraints method to IMap
+
+        TODO-LIST
+            - Parse Constraints into definitions and materialize them
+            - Filter query results based on conditions
+            - Implement WHEN-THEN-ELSE rule for Expr
+            - Implement property parsing and evaluation
+            - Implement logic for computed properties
+            - Write test cases for future validation
+
+
+08042013:gurupras
 	Removed constraint param from all constructors
 	Constraints are now derived only from WorldTreeFactory
 	Moved constraint push-down logic to WorldTree constructor

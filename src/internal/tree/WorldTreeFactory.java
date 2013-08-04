@@ -155,12 +155,6 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void initialize() {
-			Collection<Constraint> constraints = new ArrayList<Constraint>();
-			
-			for(Constraint c : this.constraints()) {
-				if(c.level().equalsIgnoreCase("Room"))
-					constraints.add(c);
-			}
 			children = new ArrayList<IWorldTree>();
 			String countString 	= properties.getProperty("Map.children.size");
 			if(countString == null)
@@ -188,6 +182,13 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void initTiles() {
+			Collection<IWorldTree> nodes = new ArrayList<IWorldTree>();
+			for(IWorldTree child : children) {
+				nodes.addAll(child.children());
+			}
+			for(IWorldTree node : nodes) {
+				node.initialize();
+			}
 		}
 
 		@Override
@@ -205,7 +206,7 @@ public class WorldTreeFactory implements Serializable {
 					nodes.remove(node);
 				}
 			} catch (Exception e) {
-				System.out.print("");
+				e.printStackTrace();
 			}
 		}
 		
@@ -219,6 +220,112 @@ public class WorldTreeFactory implements Serializable {
 		public IWorldTree neighbour(Direction direction) {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		private Collection<IWorldTree> getRooms() {
+			Collection<IWorldTree> result = new ArrayList<IWorldTree>();
+			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
+			nodes.add(this);
+			IWorldTree node = null;
+			try {
+				int index = 0;
+				while(index < nodes.size()) {
+					node = nodes.get(index);
+					nodes.addAll(node.children());
+					index++;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			for(IWorldTree n : nodes) {
+				if(n.getClass().equals(WorldTreeFactory.Room.class))
+					result.add(n);
+			}
+			return result;
+		}
+		
+		private Collection<IWorldTree> getRegions() {
+			Collection<IWorldTree> result = new ArrayList<IWorldTree>();
+			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
+			nodes.add(this);
+			IWorldTree node = null;
+			try {
+				int index = 0;
+				while(index < nodes.size()) {
+					node = nodes.get(index);
+					nodes.addAll(node.children());
+					index++;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			for(IWorldTree n : nodes) {
+				if(n.getClass().equals(WorldTreeFactory.Region.class))
+					result.add(n);
+			}
+			return result;
+		}
+		
+		private Collection<IWorldTree> getTiles() {
+			Collection<IWorldTree> result = new ArrayList<IWorldTree>();
+			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
+			nodes.add(this);
+			IWorldTree node = null;
+			try {
+				int index = 0;
+				while(index < nodes.size()) {
+					node = nodes.get(index);
+					nodes.addAll(node.children());
+					index++;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			for(IWorldTree n : nodes) {
+				if(n.getClass().equals(WorldTreeFactory.Tile.class))
+					result.add(n);
+			}
+			return result;
+		}
+		
+		@Override
+		public void materializeConstraints() {
+//			We first float the relevant constraints
+			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
+			nodes.add(this);
+			IWorldTree node = null;
+			try {
+				int index = 0;
+				while(index < nodes.size()) {
+					node = nodes.get(index);
+					nodes.addAll(node.children());
+					index++;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			for(IWorldTree n : nodes) {
+				for(Constraint constraint : n.constraints()) {
+					ICondition constraintCondition = constraint.condition();
+					while(constraintCondition != null) {
+						String propertyName = constraintCondition.property().name();
+						for (PropertyDef definition : definitions()) {
+							String propDefPropName = definition.property().name();
+							if(propDefPropName.equals(propertyName)) {
+//								We cannot materialize definitions that have conditions
+								if(definition.condition() != null)
+									continue;
+								constraint.earlyInit(n.children().size(), definition);
+							}
+						}
+						constraintCondition = constraintCondition.subCondition();
+					}
+				}
+			}
 		}
 	}
 	
@@ -242,8 +349,6 @@ public class WorldTreeFactory implements Serializable {
 //		The Room must decide the location of the tiles (I think..)
 		@Override
 		public void initialize() {
-			IWorldTree root = this.root();
-			
 			children = new ArrayList<IWorldTree>();
 			String[] regionNames = null;
 			
@@ -333,23 +438,6 @@ public class WorldTreeFactory implements Serializable {
 		public void initialize() {
 //			TODO: Ensure all pieces are traverse-able.
 			
-//			We first float the relevant constraints
-			for(Constraint constraint : this.constraints()) {
-				ICondition constraintCondition = constraint.condition();
-				while(constraintCondition != null) {
-					String propertyName = constraintCondition.property().name();
-					for (PropertyDef definition : definitions()) {
-						String propDefPropName = definition.property().name();
-						if(propDefPropName.equals(propertyName)) {
-//							We cannot materialize definitions that have conditions
-							if(definition.condition() != null)
-								continue;
-							constraint.earlyInit(space.getXDimension() * space.getYDimension(), definition);
-						}
-					}
-					constraintCondition = constraintCondition.subCondition();
-				}
-			}
 			initRegion();
 			initString();
 		}
@@ -358,18 +446,6 @@ public class WorldTreeFactory implements Serializable {
 		 * This method can be used to instantly initialize this Region and all its children tiles.
 		 */
 		private void initRegion() {
-			IWorldTree root = this.root();
-			
-			Collection<Constraint> constraints = new ArrayList<Constraint>();
-			
-			for(Constraint c : root.constraints()) {
-				String className = c.query().level().getName();
-				String level = className.substring(className.indexOf("$") + 1);
-				if(level.equalsIgnoreCase("Tile"))
-				if(c.level().equalsIgnoreCase("Tile"))
-					constraints.add(c);
-			}
-			
 			for(int i = 0; i < space.getYDimension(); i++) {
 				for(int j = 0; j < space.getXDimension(); j++) {
 					Coordinates coords = new Coordinates(true, j, i);

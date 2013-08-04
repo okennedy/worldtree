@@ -59,7 +59,9 @@ public class UIDebugEngine {
 			in = new BufferedReader(new InputStreamReader(System.in));
 			String command;
 			map.initialize();	//Map initialized
-			map.initialize();	//Rooms initialized
+			map.initRooms();	//Rooms initialized
+			map.initRegions();
+			
 			write(map);
 			
 			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0

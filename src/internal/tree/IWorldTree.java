@@ -110,10 +110,9 @@ public interface IWorldTree {
 		 */
 		public void initRegions();
 		
-		/**
-		 * public void initTiles();
-		 */
 		public void initTiles();
+		
+		public void materializeConstraints();
 	}
 	
 	public interface IRoom extends IWorldTree {
