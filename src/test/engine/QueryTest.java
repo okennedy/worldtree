@@ -86,7 +86,7 @@ public class QueryTest {
 			
 			if(!failed) {
 				factory = new WorldTreeFactory(testDir.getAbsolutePath() + "/init.properties");
-				map = factory.newMap("InbuiltPropertiesTestMap", null, null);
+				map = factory.newMap("InbuiltPropertiesTestMap", null);
 				map.fullInit();
 				write(map);
 				try {
@@ -200,7 +200,7 @@ public class QueryTest {
 			properties.store(new FileOutputStream(propertiesFile), null);
 			
 //			Get the results to test for
-			map = factory.newMap(testFile.getParentFile().getName(), null, null);
+			map = factory.newMap(testFile.getParentFile().getName(), null);
 			map.fullInit();
 			write(map);
 			

@@ -83,10 +83,9 @@ BaseQuery baseQuery(String level) :
     IPattern pattern = null;
     ICondition condition = null;
 }
-{    {        if(level == null)
-        	level = word();
-    }
-     pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
+{     LOOKAHEAD(3) level = word() pattern = pattern() (< WHERE > condition = condition())?
+     	{ return new BaseQuery(level, pattern, condition); }
+ |   LOOKAHEAD(3) pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
 {
     Relation relation = null;
     String name = null, regex = null;

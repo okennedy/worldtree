@@ -50,7 +50,7 @@ public class ParserTest {
 		try {
 			PieceFactory.initialize(pieceStrings);
 			factory = new WorldTreeFactory();
-			map = factory.newMap("TestMap", null, null);
+			map = factory.newMap("TestMap", null);
 			map.fullInit();
 			write(map);
 		} catch (Exception e) {

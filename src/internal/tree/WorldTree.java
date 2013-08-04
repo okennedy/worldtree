@@ -34,6 +34,21 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.constraints 	= constraints;
 		this.stringRepresentation 	= new ArrayList<String>();
 		this.properties				= new HashMap<String, String>();
+		
+		if(parent != null) {
+			IWorldTree root = this.root();
+			if(root.constraints() != null) {
+				for(Constraint c : root.constraints()) {
+					String constraintClass 	= c.query().level().getName();
+					String constraintClassLevel = constraintClass.substring(constraintClass.indexOf("$") + 1);
+					
+					String myClass			= this.getClass().getName();
+					String myClassLevel		= myClass.substring(myClass.indexOf("$") + 1);
+					if(myClassLevel.equalsIgnoreCase(constraintClassLevel))
+						constraints.add(c);
+				}
+			}
+		}
 	}
 
 	public String name() {

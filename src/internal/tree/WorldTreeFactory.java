@@ -170,7 +170,7 @@ public class WorldTreeFactory implements Serializable {
 				String name 	= properties.getProperty("Map.child" + i + ".name");
 				if(name == null)
 					name = "Room" + i;
-				children.add(new Room(name, this, constraints));
+				children.add(new Room(name, this));
 			}
 		}
 		
@@ -226,33 +226,23 @@ public class WorldTreeFactory implements Serializable {
 	 * Public interface for creating a new {@code IMap}
 	 * @param name {@code String} containing the name of the new {@code IMap}
 	 * @param parent {@code IWorldTree} representing the parent of the new {@code IMap}
-	 * @param constraints {@code Collection<Constraint>} containing a collection of constraints
 	 * @return {@code IMap} object corresponding to the specified parameters
 	 */
-	public IMap newMap(String name, IWorldTree parent, Collection<Constraint> constraints) {
+	public IMap newMap(String name, IWorldTree parent) {
 		return new Map(name, parent, constraints);
 	}
 	
 	private  class Room extends WorldTree implements IRoom {
 		private static final long serialVersionUID = 3733417833903485812L;
 
-		public Room(String name, IWorldTree parent, Collection<Constraint> constraints) {
-			super(name, parent, constraints);
+		public Room(String name, IWorldTree parent) {
+			super(name, parent, new ArrayList<Constraint>());
 		}
 
 //		The Room must decide the location of the tiles (I think..)
 		@Override
 		public void initialize() {
 			IWorldTree root = this.root();
-			
-			Collection<Constraint> constraints = new ArrayList<Constraint>();
-			
-			for(Constraint c : root.constraints()) {
-				String className = c.query().level().getName();
-				String level = className.substring(className.indexOf("$") + 1);
-				if(level.equalsIgnoreCase("Region"))
-					constraints.add(c);
-			}
 			
 			children = new ArrayList<IWorldTree>();
 			String[] regionNames = null;
@@ -278,7 +268,7 @@ public class WorldTreeFactory implements Serializable {
 					throw new IllegalStateException("Properties file has no size for child " + i + " of " + this.getClass());
 				String[] size 		= properties.getProperty("Room.child" + i + ".size").split("x");
 				int[] dimensions 	= new int[] {Integer.parseInt(size[0]), Integer.parseInt(size[1])}; 
-				children.add(newRegion(name, this, constraints, new Space(dimensions[0], dimensions[1])));
+				children.add(newRegion(name, this, new Space(dimensions[0], dimensions[1])));
 			}
 		}
 
@@ -302,16 +292,16 @@ public class WorldTreeFactory implements Serializable {
 	 * @param constraints {@code Collection<Constraint>} containing a collection of constraints
 	 * @return {@code IRoom} object corresponding to the specified parameters
 	 */
-	public IRoom newRoom(String name, IWorldTree parent, Collection<Constraint> constraints) {
-		return new Room(name, parent, constraints);
+	public IRoom newRoom(String name, IWorldTree parent) {
+		return new Room(name, parent);
 	}
 	
 	private  class Region extends WorldTree implements IRegion {
 		private static final long serialVersionUID = 1774553850572473379L;
 		
 		private Space space;
-		public Region(String name, IWorldTree parent, Collection<Constraint> constraints, Space space) {
-			super(name, parent, constraints);
+		public Region(String name, IWorldTree parent, Space space) {
+			super(name, parent, new ArrayList<Constraint>());
 			this.space = space;
 //			First tile
 			int startX = 0 + (int) (Math.random() * space.getXDimension());
@@ -403,7 +393,7 @@ public class WorldTreeFactory implements Serializable {
 			
 			java.util.Map<String, String> interfaceMap = space.getValidInterfaces(coords);
 			String coordString = "(" + coords.x + "," + coords.y + ")";
-			ITile tile = newTile("tile" + coordString, coords, this, constraints, PieceFactory.randomPiece(interfaceMap));
+			ITile tile = newTile("tile" + coordString, coords, this, PieceFactory.randomPiece(interfaceMap));
 			return tile;
 		}
 		
@@ -531,8 +521,8 @@ public class WorldTreeFactory implements Serializable {
 	 * @param constraints {@code Collection<Constraint>} containing a collection of constraints
 	 * @return {@code IRegion} object corresponding to the specified parameters
 	 */
-	public IRegion newRegion(String name, IWorldTree parent, Collection<Constraint> constraints, Space space) {
-		return new Region(name, parent, constraints, space);
+	public IRegion newRegion(String name, IWorldTree parent, Space space) {
+		return new Region(name, parent, space);
 	}
 	
 	/**
@@ -546,8 +536,8 @@ public class WorldTreeFactory implements Serializable {
 		public IPiece piece;
 		private Coordinates coordinates;
 		private String tileType;
-		public Tile(String name, Coordinates coord, IWorldTree parent, Collection<Constraint> constraints, IPiece tilePiece) {
-			super(name, parent, constraints);
+		public Tile(String name, Coordinates coord, IWorldTree parent, IPiece tilePiece) {
+			super(name, parent, new ArrayList<Constraint>());
 			this.coordinates	= coord;
 			this.piece 			= tilePiece;
 			this.tileType		= this.parent.name();
@@ -695,8 +685,7 @@ public class WorldTreeFactory implements Serializable {
 	 * @param constraints {@code Collection<Constraint>} containing a collection of constraints
 	 * @return {@code ITile} object corresponding to the specified parameters
 	 */
-	public ITile newTile(String name, Coordinates coordinates, IWorldTree parent,  
-			Collection<Constraint> constraints, IPiece tilePiece) {
-		return new Tile(name, coordinates, parent, constraints, tilePiece);
+	public ITile newTile(String name, Coordinates coordinates, IWorldTree parent, IPiece tilePiece) {
+		return new Tile(name, coordinates, parent, tilePiece);
 	}
 }
