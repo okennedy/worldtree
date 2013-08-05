@@ -214,7 +214,7 @@ public class PropertyDef extends Statement {
 			result.append("INHERIT " + level + " " + property + " FROM " + parent);
 			break;
 		case RANDOM:
-			result.append("DEFINE " + level + property + " AS " + randomSpec);
+			result.append("DEFINE " + level + " " + property + " AS " + randomSpec);
 			if(condition != null)
 				result.append(" WHERE " + condition);
 			break;

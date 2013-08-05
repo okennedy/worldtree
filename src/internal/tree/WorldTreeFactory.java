@@ -182,13 +182,6 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void initTiles() {
-			Collection<IWorldTree> nodes = new ArrayList<IWorldTree>();
-			for(IWorldTree child : children) {
-				nodes.addAll(child.children());
-			}
-			for(IWorldTree node : nodes) {
-				node.initialize();
-			}
 		}
 
 		@Override
@@ -308,6 +301,7 @@ public class WorldTreeFactory implements Serializable {
 				e.printStackTrace();
 			}
 			
+			nodes.remove(0);
 			for(IWorldTree n : nodes) {
 				for(Constraint constraint : n.constraints()) {
 					ICondition constraintCondition = constraint.condition();
