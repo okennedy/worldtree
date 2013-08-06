@@ -1,6 +1,7 @@
 package internal.tree;
 
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -157,4 +158,8 @@ public interface IWorldTree {
 		 */
 		public boolean hasInterface(TileInterfaceType it);
 	}
+
+	public Collection<IWorldTree> getAllChildren();
+	
+	public Collection<IWorldTree> getChildrenByClass(String className);
 }

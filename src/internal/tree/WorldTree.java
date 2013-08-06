@@ -80,6 +80,43 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		return children;
 	}
 	
+	@Override
+	public Collection<IWorldTree> getAllChildren() {
+		List<IWorldTree> result = new ArrayList<IWorldTree>();
+		
+		result.addAll(this.children());
+		
+		IWorldTree node = null;
+		int listIndex = 0;
+		while(listIndex < result.size()) {
+			node = result.get(listIndex);
+			result.addAll(node.children());
+			listIndex++;
+		}
+		return result;
+	}
+	
+	@Override
+	public Collection<IWorldTree> getChildrenByClass(String className) {
+		List<IWorldTree> result			= new ArrayList<IWorldTree>();
+		List<IWorldTree> allChildren 	= new ArrayList<IWorldTree>(getAllChildren());
+		Class<?> clazz = null;
+		
+		className = (WorldTreeFactory.class.getName() + "$" + className);
+		try {
+			clazz = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			System.err.println("No class found with name :" + className);
+		}
+		
+		for(IWorldTree child : allChildren) {
+			if(!child.getClass().equals(clazz))
+				result.add(child);
+		}
+		allChildren = null;
+		return result;
+	}
+	
 	public IWorldTree root() {
 		if(this.parent == null)
 			return this;
