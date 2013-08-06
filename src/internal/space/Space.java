@@ -250,14 +250,14 @@ public class Space extends Dimension {
 	}
 	
 	private void updateStringRepresentation(Coordinates coordinates) {
-//		TODO: First we find the 'line' that holds this tile (using coordinates.y)
-		if(coordinates.cartesian())
-			coordinates = coordToArray(coordinates);
-		
 		if(columnRepresentation.size() == 0) {
 			getStringRepresentation();
 			return;
 		}
+		
+//		TODO: First we find the 'line' that holds this tile (using coordinates.y)
+		if(coordinates.cartesian())
+			coordinates = coordToArray(coordinates);
 		
 		String visualToReplace = columnRepresentation.get(coordinates.x());
 		
