@@ -13,7 +13,7 @@ import internal.parser.containers.expr.AggExpr.AggType;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"
-|   ";"}
+}
 TOKEN [IGNORE_CASE] : /* KEYWORDS */
 {    < FOR		: "FOR" >
 |   < ALL		: "ALL" >
@@ -287,6 +287,6 @@ IStatement parse() :
 {
     IStatement s = null;
 }
-{    s = query(null)		{ return s; }|   s = constraint()	{ return s; }
-|   s = propertyDef()	{ return s; }
+{    s = query(null)	  ";"	{ return s; }|   s = constraint()  ";"	{ return s; }
+|   s = propertyDef() ";"	{ return s; }
 }
