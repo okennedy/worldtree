@@ -159,7 +159,7 @@ public class Space extends Dimension {
 	 * Obtain a collection of all {@code ITile} objects used in this Space
 	 * @return {@code List<IWorldTree} containing every {@code ITile} from this Space
 	 */
-	public List<IWorldTree> collection() {
+	public Collection<IWorldTree> collection() {
 		List<IWorldTree> returnList = new ArrayList<IWorldTree>();
 		for(int i = 0; i < getYDimension(); i++) {
 			for(int j = 0; j < getXDimension(); j++) {
