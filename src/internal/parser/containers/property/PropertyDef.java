@@ -137,7 +137,7 @@ public class PropertyDef extends Statement {
 		StringBuffer result = new StringBuffer();
 		switch(type) {
 		case AGGREGATE:
-			result.append("DEFINE " + level + " " + property + " AS " + aggExpr + " IN " + query);
+			result.append("DEFINE " + level + " " + property + " AS AGGREGATE " + aggExpr + " IN " + query);
 			break;
 		case BASIC:
 			result.append("DEFINE " + level + " " + property + " AS " + "(" + condition + ") IN " + query);
