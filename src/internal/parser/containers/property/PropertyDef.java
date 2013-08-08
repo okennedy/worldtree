@@ -11,6 +11,9 @@ import internal.parser.containers.StatementType;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.AggExpr;
 import internal.parser.containers.expr.IExpr;
+import internal.parser.containers.pattern.BasePattern;
+import internal.parser.containers.pattern.IPattern;
+import internal.parser.containers.query.BaseQuery;
 import internal.parser.containers.query.IQuery;
 
 /**
@@ -54,9 +57,11 @@ public class PropertyDef extends Statement {
 	public PropertyDef(String level, Property property, AggExpr aggExpr, IQuery query) {
 		this(Type.AGGREGATE, level, property, aggExpr, null, null, null, null, query);
 	}
+				
 	
 	public PropertyDef(String level, Property property, RandomSpec random, ICondition condition) {
 		this(Type.RANDOM, level, property, null, random, null, null, condition, null);
+		this.query = new BaseQuery(level, new BasePattern(property.reference(), null, null), null);
 	}
 	
 	public PropertyDef(String level, Property property, String parent) {
