@@ -4,6 +4,7 @@ import internal.parser.TokenArithOp;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IContainer;
 import internal.parser.containers.expr.Expr.ExprType;
+import internal.parser.containers.property.Property;
 
 public interface IExpr extends IContainer {
 	
@@ -18,6 +19,8 @@ public interface IExpr extends IContainer {
 	 * @return {@code IExpr} if there exists a sub-expression <br>
 	 * <b>null</b> otherwise
 	 */
+	
+	public Property property();
 	
 	public TokenArithOp operator();
 	

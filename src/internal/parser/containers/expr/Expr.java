@@ -68,6 +68,12 @@ public class Expr implements IExpr {
 	}
 	
 	@Override
+	public Property property() {
+		return property;
+		
+	}
+	
+	@Override
 	public TokenArithOp operator() {
 		return operator;
 	}
