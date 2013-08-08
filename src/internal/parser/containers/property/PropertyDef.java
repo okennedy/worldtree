@@ -241,6 +241,18 @@ public class PropertyDef extends Statement {
 			this.high		= high;
 		}
 		
+		public String dataType() {
+			return dataType;
+		}
+		
+		public Datum low() {
+			return low;
+		}
+		
+		public Datum high() {
+			return high;
+		}
+		
 		@Override
 		public String debugString() {
 			return "RANDOMSPEC(UNIFORM " + dataType + " FROM " + low + " TO " + high + ")";	
