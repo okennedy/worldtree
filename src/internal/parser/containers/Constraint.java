@@ -68,24 +68,4 @@ public class Constraint extends Statement {
 	public ICondition condition() {
 		return condition;
 	}
-
-	public Collection<Datum> earlyInit(int size, PropertyDef definition) {
-		Collection<Datum> returnValues = new ArrayList<Datum>();
-//		This definition does not have a condition..
-		Collection<Datum> values = null;
-		switch(condition.type()) {
-		case BASIC:
-			values = definition.earlyInit(size, condition);
-			break;
-		case BOOLEAN:
-			break;
-		case COMPLEX:
-			break;
-		default:
-			break;
-		
-		}
-		returnValues.addAll(values);
-		return returnValues;
-	}
 }
