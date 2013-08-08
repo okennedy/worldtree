@@ -11,6 +11,14 @@ public class AggExpr implements IContainer {
 		this.expr	= expr;
 	}
 	
+	public AggType type() {
+		return type;
+	}
+	
+	public IExpr expr() {
+		return expr;
+	}
+	
 	@Override
 	public String debugString() {
 		StringBuffer result = new StringBuffer("AGGTYPE(");
