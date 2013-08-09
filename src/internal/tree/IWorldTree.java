@@ -53,7 +53,7 @@ public interface IWorldTree {
 	 * @param constraints {@code Collection<Constraint>} set of new constraints
 	 */
 //	FIXME: Added this to solve NPE on constraints()
-	public void setConstraints(Collection<Constraint> constriants);
+	public void setConstraints(Collection<Constraint> constraints);
 	
 	/**
 	 * Add a new property to this {@code IWorldTree}
