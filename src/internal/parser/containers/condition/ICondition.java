@@ -9,6 +9,11 @@ import internal.parser.containers.property.Property;
 public interface ICondition extends IContainer {
 	
 	/**
+	 * Obtain the value contained by the <b>not</b> field of this {@code ICondition}
+	 */
+	public Boolean notFlag();
+	
+	/**
 	 * Obtain the {@code Property} on which this {@code ICondition} is based
 	 * @return {@code Property}
 	 */
@@ -32,6 +37,12 @@ public interface ICondition extends IContainer {
 	 * @return {@code Datum}
 	 */
 	public Datum value();
+	
+	/**
+	 * Set the {@code value} field of this {@code ICondition}
+	 * @param value {@code Datum} containing the value to set
+	 */
+	public void setValue(Datum value);
 	
 	/**
 	 * Obtain the condition type of this {@code ICondition}

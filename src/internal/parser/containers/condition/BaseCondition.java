@@ -26,6 +26,11 @@ public class BaseCondition implements ICondition {
 	}
 	
 	@Override
+	public Boolean notFlag() {
+		return not;
+	}
+	
+	@Override
 	public Property property() {
 		return property;
 	}
@@ -93,6 +98,11 @@ public class BaseCondition implements ICondition {
 	@Override
 	public Datum value() {
 		return value;
+	}
+	
+	@Override
+	public void setValue(Datum value) {
+		this.value = value;
 	}
 	
 	public enum ConditionType {

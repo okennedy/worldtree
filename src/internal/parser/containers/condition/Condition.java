@@ -26,6 +26,11 @@ public class Condition implements ICondition {
 		this.unionType		= unionType;
 		this.subCondition	= subCondition;
 	}
+	
+	@Override
+	public Boolean notFlag() {
+		return baseCondition.notFlag();
+	}
 
 	@Override
 	public Property property() {
@@ -45,6 +50,11 @@ public class Condition implements ICondition {
 	@Override
 	public Datum value() {
 		return baseCondition.value();
+	}
+	
+	@Override
+	public void setValue(Datum value) {
+		baseCondition.setValue(value);
 	}
 	
 	@Override
