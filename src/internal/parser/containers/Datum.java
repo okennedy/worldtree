@@ -1,6 +1,10 @@
 package internal.parser.containers;
 
-public class Datum {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+public abstract class Datum {
 	Object data;
 	Class<?> type;
 	
@@ -29,54 +33,54 @@ public class Datum {
 	}
 	
 	public Datum toInt() {
-		Datum datum = new Datum();
+		Datum datum = null;
 		
 		if(type.equals(Datum.Int.class)) {
-			datum.data	= new Integer((Integer) this.data);
+			datum	= new Datum.Int(new Integer((Integer) this.data));
 		}
 		
 		else if(type.equals(Datum.Flt.class)) {
-			datum.data	= new Integer((Integer.parseInt(Float.toString((Float) this.data))));
+			datum	= new Datum.Int(new Integer((Integer.parseInt(Float.toString((Float) this.data)))));
 		}
 		
 		else if(type.equals(Datum.Str.class)) {
-			datum.data	= new Integer(Integer.parseInt((String) this.data));
+			datum	= new Datum.Int(new Integer(Integer.parseInt((String) this.data)));
 		}
 		datum.type	= Datum.Int.class;
 		return datum;
 	}
 	
 	public Datum toFlt() {
-		Datum datum = new Datum();
+		Datum datum = null;
 		
 		if(type.equals(Datum.Int.class)) {
-			datum.data	= new Float((Integer) this.data);
+			datum	= new Datum.Flt(new Float((Integer) this.data));
 		}
 		
 		else if(type.equals(Datum.Flt.class)) {
-			datum.data	= new Float((Float) this.data);
+			datum	= new Datum.Flt(new Float((Float) this.data));
 		}
 		
 		else if(type.equals(Datum.Str.class)) {
-			datum.data	= new Float(Float.parseFloat((String) this.data));
+			datum	= new Datum.Flt(new Float(Float.parseFloat((String) this.data)));
 		}
 		datum.type	= Datum.Flt.class;
 		return datum;
 	}
 	
 	public Datum toStr() {
-		Datum datum = new Datum();
+		Datum datum = null;
 		
 		if(type.equals(Datum.Int.class)) {
-			datum.data	= Integer.toString((Integer)this.data);
+			datum	= new Datum.Str(Integer.toString((Integer)this.data));
 		}
 		
 		else if(type.equals(Datum.Flt.class)) {
-			datum.data	= Float.toString((Float) this.data);
+			datum	= new Datum.Str(Float.toString((Float) this.data));
 		}
 		
 		else if(type.equals(Datum.Str.class)) {
-			datum.data	= new String((String) this.data);
+			datum	= new Datum.Str(new String((String) this.data));
 		}
 		
 		datum.type	= Datum.Str.class;
@@ -97,6 +101,12 @@ public class Datum {
 		public String toString() {
 			return Integer.toString((Integer) data);
 		}
+
+		@Override
+		public Collection<Datum> allocate(int size) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 	
 	
@@ -109,6 +119,12 @@ public class Datum {
 		@Override
 		public String toString() {
 			return Float.toString((Float)data);
+		}
+
+		@Override
+		public Collection<Datum> allocate(int size) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 	
@@ -123,6 +139,12 @@ public class Datum {
 		public String toString() {
 			return (String) data;
 		}
+
+		@Override
+		public Collection<Datum> allocate(int size) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 	
 	
@@ -136,5 +158,15 @@ public class Datum {
 		public String toString() {
 			return Boolean.toString((Boolean) data);
 		}
+
+		@Override
+		public Collection<Datum> allocate(int size) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
+
+
+
+	public abstract Collection<Datum> allocate(int size);
 }
