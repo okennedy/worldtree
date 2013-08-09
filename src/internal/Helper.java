@@ -173,4 +173,11 @@ public class Helper {
 		}
 		return sb.toString();
 	}
+	
+	public static String titleCase(String string) {
+		StringBuffer sb = new StringBuffer();
+		sb.append((string.substring(0, 1).toUpperCase()));
+		sb.append(string.substring(1).toLowerCase());
+		return sb.toString();
+	}
 }
