@@ -25,9 +25,6 @@ public class Constraint extends Statement {
 		this.condition	= condition;
 	}
 
-	public void earlyInit() {
-		
-	}
 	@Override
 	public String toString() {
 		return "FOR ALL " + level + " " + query.toString() + " ASSERT " + condition.toString();
