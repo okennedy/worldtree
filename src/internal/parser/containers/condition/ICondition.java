@@ -39,14 +39,49 @@ public interface ICondition extends IContainer {
 	public Datum value();
 	
 	/**
+	 * Obtain the condition type of this {@code ICondition}
+	 * @return {@code ConditionType}
+	 */
+	public ConditionType type();
+	
+	
+//	Setters
+	/**
+	 * Set the value of the <b>not</b> field of this {@code ICondition}
+	 * @param flag {@code Boolean} to be set
+	 */
+	public void setNotFlag(Boolean flag);
+	
+	/**
+	 * Set the {@code Property} on which this {@code ICondition} is based
+	 * @param property {@code Property} to be set
+	 */
+	public void setProperty(Property property);
+	
+	/**
+	 * Set the sub-condition(if any)
+	 * @param subCondition {@code ICondition} to be set
+	 */
+	public void setSubCondition(ICondition subCondition);
+	
+	/**
+	 * Set the comparison operator used for this {@code ICondition} <br>
+	 * For simplicity, this method accepts a string and internally converts it into type {@code TokenCmpOp}
+	 * @param op {@code String} containing the operator to be set
+	 * @see TokenCmpOp
+	 */
+	public void setOperator(String op);
+	
+	/**
 	 * Set the {@code value} field of this {@code ICondition}
 	 * @param value {@code Datum} containing the value to set
 	 */
 	public void setValue(Datum value);
 	
 	/**
-	 * Obtain the condition type of this {@code ICondition}
-	 * @return {@code ConditionType}
+	 * Set the condition type of this {@code ICondition}
+	 * @param type {@code ConditionType} to be set
+	 * @see ConditionType
 	 */
-	public ConditionType type();
+	public void setType(ConditionType type);
 }

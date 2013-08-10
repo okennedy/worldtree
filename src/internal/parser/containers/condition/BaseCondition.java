@@ -45,6 +45,49 @@ public class BaseCondition implements ICondition {
 		return type;
 	}
 	
+
+	@Override
+	public TokenCmpOp operator() {
+		return cmpOp;
+	}
+
+	@Override
+	public Datum value() {
+		return value;
+	}
+	
+
+	@Override
+	public void setNotFlag(Boolean flag) {
+		this.not = flag;
+	}
+
+	@Override
+	public void setProperty(Property property) {
+		this.property = property;
+	}
+
+	@Override
+	public void setSubCondition(ICondition subCondition) {
+		System.err.println("Calling method setSubCondition on type " + this.getClass().getName() + " is not supported");
+	}
+
+	@Override
+	public void setOperator(String op) {
+		this.cmpOp = TokenCmpOp.parse(op);
+	}
+	
+	@Override
+	public void setValue(Datum value) {
+		this.value = value;
+	}
+
+	@Override
+	public void setType(ConditionType type) {
+		this.type = type;
+	}
+	
+	
 	@Override
 	public String toString() {
 		StringBuffer result = new StringBuffer();
@@ -89,21 +132,7 @@ public class BaseCondition implements ICondition {
 		
 		return result.toString();
 	}
-
-	@Override
-	public TokenCmpOp operator() {
-		return cmpOp;
-	}
-
-	@Override
-	public Datum value() {
-		return value;
-	}
 	
-	@Override
-	public void setValue(Datum value) {
-		this.value = value;
-	}
 	
 	public enum ConditionType {
 		BASIC,

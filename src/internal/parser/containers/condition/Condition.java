@@ -62,6 +62,33 @@ public class Condition implements ICondition {
 		return ConditionType.COMPLEX;
 	}
 	
+
+	@Override
+	public void setNotFlag(Boolean flag) {
+		baseCondition.setNotFlag(flag);
+	}
+
+	@Override
+	public void setProperty(Property property) {
+		baseCondition.setProperty(property);
+	}
+
+	@Override
+	public void setSubCondition(ICondition subCondition) {
+		this.subCondition = subCondition;
+	}
+
+	@Override
+	public void setOperator(String op) {
+		baseCondition.setOperator(op);
+	}
+
+	@Override
+	public void setType(ConditionType type) {
+		baseCondition.setType(type);
+	}
+	
+	
 	@Override
 	public String toString() {
 		StringBuffer result = new StringBuffer(baseCondition + " ");
