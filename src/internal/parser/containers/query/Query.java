@@ -15,7 +15,7 @@ public class Query extends Statement implements IQuery {
 	private IQuery baseQuery;
 	private IQuery subQuery;
 	
-	public Query(String level, IPattern pattern, ICondition condition, Query subQuery) {
+	public Query(String level, IPattern pattern, ICondition condition, IQuery subQuery) {
 		super(StatementType.QUERY);
 		this.baseQuery	= new BaseQuery(level, pattern, condition);
 		this.subQuery	= subQuery;
