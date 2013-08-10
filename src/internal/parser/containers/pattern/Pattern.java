@@ -26,29 +26,6 @@ public class Pattern implements IPattern {
 	}
 
 	@Override
-	public String toString() {
-		StringBuffer result = new StringBuffer(basePattern.toString());
-		
-		if(subPattern != null)
-			result.append(" , " + subPattern.toString());
-		
-		return result.toString();
-	}
-	
-	@Override
-	public String debugString() {
-		StringBuffer result = new StringBuffer("PATTERN(");
-		
-		result.append(basePattern.debugString());
-		
-		if(subPattern != null)
-			result.append(" , " + subPattern.debugString());
-		
-		result.append(")");
-		return result.toString();
-	}
-
-	@Override
 	public Reference lhs() {
 		return basePattern.lhs();
 	}
@@ -71,5 +48,50 @@ public class Pattern implements IPattern {
 	@Override
 	public Collection<Reference> references() {
 		return basePattern.references();
+	}
+
+	
+	@Override
+	public void setLhs(Reference reference) {
+		basePattern.setLhs(reference);
+	}
+
+	@Override
+	public void setRhs(Reference reference) {
+		basePattern.setRhs(reference);
+	}
+
+	@Override
+	public void setRelation(Relation relation) {
+		basePattern.setRelation(relation);
+	}
+
+	@Override
+	public void setSubPattern(IPattern subPattern) {
+		basePattern.setSubPattern(subPattern);
+	}
+	
+	
+	@Override
+	public String toString() {
+		StringBuffer result = new StringBuffer(basePattern.toString());
+		
+		if(subPattern != null)
+			result.append(" , " + subPattern.toString());
+		
+		return result.toString();
+	}
+	
+	@Override
+	public String debugString() {
+		StringBuffer result = new StringBuffer("PATTERN(");
+		
+		result.append(basePattern.debugString());
+		
+		if(subPattern != null)
+			result.append(" , " + subPattern.debugString());
+		
+		result.append(")");
+		return result.toString();
 	}
 }

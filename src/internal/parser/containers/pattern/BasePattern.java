@@ -24,26 +24,6 @@ public class BasePattern implements IPattern {
 	}
 	
 	@Override
-	public String toString() {
-		StringBuffer result = new StringBuffer(r1.toString() + " ");
-		if(relation != null) {
-			result.append(relation.toString() + " " + r2.toString());
-		}
-		
-		return result.toString();
-	}
-	
-	@Override
-	public String debugString() {
-		StringBuffer result = new StringBuffer("PATTERN(" + r1.debugString() + ")"); 
-		
-		if(relation != null) {
-			result.append(" " + relation.debugString() + " " + r2.debugString() + ")");
-		}
-		return result.toString();
-	}
-
-	@Override
 	public Reference lhs() {
 		return r1;
 	}
@@ -66,6 +46,48 @@ public class BasePattern implements IPattern {
 	@Override
 	public Collection<Reference> references() {
 		return new ArrayList<Reference>(Arrays.asList(new Reference[]{r1, r2}));
+	}
+
+	
+	@Override
+	public void setLhs(Reference reference) {
+		this.r1 = reference;
+	}
+
+	@Override
+	public void setRhs(Reference reference) {
+		this.r2 = reference;
+	}
+
+	@Override
+	public void setRelation(Relation relation) {
+		this.relation = relation;
+	}
+
+	@Override
+	public void setSubPattern(IPattern subPattern) {
+		System.err.println("Calling method setSubCondition on type " + this.getClass().getName() + " is not supported");
+	}
+	
+	
+	@Override
+	public String toString() {
+		StringBuffer result = new StringBuffer(r1.toString() + " ");
+		if(relation != null) {
+			result.append(relation.toString() + " " + r2.toString());
+		}
+		
+		return result.toString();
+	}
+	
+	@Override
+	public String debugString() {
+		StringBuffer result = new StringBuffer("PATTERN(" + r1.debugString() + ")"); 
+		
+		if(relation != null) {
+			result.append(" " + relation.debugString() + " " + r2.debugString() + ")");
+		}
+		return result.toString();
 	}
 
 }

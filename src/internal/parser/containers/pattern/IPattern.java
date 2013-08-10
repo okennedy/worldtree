@@ -38,4 +38,31 @@ public interface IPattern extends IContainer {
 	 * @return {@code Collection<Reference>} containing all the references referred to by this {@code IPattern}
 	 */
 	public Collection<Reference> references();
+	
+	
+//	Setters
+	
+	/**
+	 * Set the {@code Reference} for the LHS
+	 * @param reference {@code Reference} to be set
+	 */
+	public void setLhs(Reference reference);
+	
+	/**
+	 * Set the {@code Reference} for the RHS
+	 * @param reference {@code Reference} to be set
+	 */
+	public void setRhs(Reference reference);
+	
+	/**
+	 * Set the {@code Relation} between the two references
+	 * @param relation {@code Relation} to be set
+	 */
+	public void setRelation(Relation relation);
+	
+	/**
+	 * Set the sub-pattern(if any)
+	 * @param subPattern {@code IPattern} to be set as sub-pattern
+	 */
+	public void	setSubPattern(IPattern subPattern);
 }
