@@ -108,9 +108,15 @@ public abstract class Datum {
 			
 			int availableQty = (Integer) data;
 			while(result.size() < size) {
-				int qty = 0 + ((int) (Math.random() * (availableQty + 1)));
-				result.add(new Datum.Int(qty));
-				availableQty -= qty;
+				if(result.size() == size - 1) {
+//					Last element..add the remaining
+					result.add(new Datum.Int(availableQty));
+				}
+				else {
+					int qty = 0 + ((int) (Math.random() * (availableQty + 1)));
+					result.add(new Datum.Int(qty));
+					availableQty -= qty;
+				}
 			}
 			
 //			TODO: Remove this
@@ -197,5 +203,9 @@ public abstract class Datum {
 		}
 	}
 
+//	public List<Datum> allocate(int size) {
+//		throw new IllegalStateException("Running abstract method\n");
+//	}
+	
 	public abstract List<Datum> allocate(int size);
 }
