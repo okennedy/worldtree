@@ -64,7 +64,12 @@ public class Condition implements ICondition {
 	
 	@Override
 	public String toString() {
-		return baseCondition + " " + unionType + " " + subCondition;
+		StringBuffer result = new StringBuffer(baseCondition + " ");
+		
+		if(subCondition != null)
+			result.append(unionType + " " + subCondition);
+
+		return result.toString();
 	}
 
 	@Override
