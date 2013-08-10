@@ -25,25 +25,6 @@ public class BaseQuery extends Statement implements IQuery {
 	}
 	
 	@Override
-	public String toString() {
-		StringBuffer result = new StringBuffer(level + " " + pattern.toString());
-		if(condition != null)
-			result.append(" WHERE " + condition.toString());
-		
-		return result.toString();
-	}
-
-	@Override
-	public String debugString() {
-		StringBuffer result = new StringBuffer("QUERY(" + level + " " + pattern.debugString());
-		
-		if(condition != null)
-			result.append(" WHERE " + condition.debugString() + ")");
-		
-		return result.toString();
-	}
-
-	@Override
 	public IPattern pattern() {
 		return pattern;
 	}
@@ -68,4 +49,41 @@ public class BaseQuery extends Statement implements IQuery {
 		}
 		return null;
 	}
+
+	
+	@Override
+	public void setPattern(IPattern pattern) {
+		this.pattern = pattern;
+	}
+
+	@Override
+	public void setCondition(ICondition condition) {
+		this.condition = condition;
+	}
+
+	@Override
+	public void setSubQuery(IQuery subQuery) {
+		System.err.println("Calling method setSubQuery on type " + this.getClass().getName() + " is not supported");
+	}
+	
+	
+	@Override
+	public String toString() {
+		StringBuffer result = new StringBuffer(level + " " + pattern.toString());
+		if(condition != null)
+			result.append(" WHERE " + condition.toString());
+		
+		return result.toString();
+	}
+
+	@Override
+	public String debugString() {
+		StringBuffer result = new StringBuffer("QUERY(" + level + " " + pattern.debugString());
+		
+		if(condition != null)
+			result.append(" WHERE " + condition.debugString() + ")");
+		
+		return result.toString();
+	}
+
 }

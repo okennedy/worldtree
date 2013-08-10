@@ -30,4 +30,25 @@ public interface IQuery extends IStatement {
 	 * @return {@code Class<?>} specifying the hierarchical level in the WorldTree 
 	 */
 	public Class<?> level();
+	
+	
+//	Setters
+	
+	/**
+	 * Set the pattern of this {@code IQuery}
+	 * @param pattern {@code IPattern} to be set
+	 */
+	public void setPattern(IPattern pattern);
+	
+	/**
+	 * Set the condition defined in this {@code IQuery}
+	 * @param condition {@code ICondition} to be set
+	 */
+	public void setCondition(ICondition condition);
+	
+	/**
+	 * Set the sub-query(if any)
+	 * @param subQuery {@code IQuery} to be set as sub-query
+	 */
+	public void setSubQuery(IQuery subQuery);
 }

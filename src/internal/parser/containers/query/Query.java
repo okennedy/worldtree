@@ -27,6 +27,44 @@ public class Query extends Statement implements IQuery {
 		this.subQuery	= subQuery;
 	}
 	
+	@Override
+	public IPattern pattern() {
+		return baseQuery.pattern();
+	}
+
+
+	@Override
+	public ICondition condition() {
+		return baseQuery.condition();
+	}
+
+
+	@Override
+	public IQuery subQuery() {
+		return subQuery;
+	}
+
+	@Override
+	public Class<?> level() {
+		return baseQuery.level();
+	}
+
+	
+	@Override
+	public void setPattern(IPattern pattern) {
+		baseQuery.setPattern(pattern);
+	}
+
+	@Override
+	public void setCondition(ICondition condition) {
+		baseQuery.setCondition(condition);
+	}
+
+	@Override
+	public void setSubQuery(IQuery subQuery) {
+		baseQuery.setSubQuery(subQuery);
+	}
+	
 	
 	@Override
 	public String toString() {
@@ -48,28 +86,5 @@ public class Query extends Statement implements IQuery {
 		
 		result.append(")");
 		return result.toString();
-	}
-
-
-	@Override
-	public IPattern pattern() {
-		return baseQuery.pattern();
-	}
-
-
-	@Override
-	public ICondition condition() {
-		return baseQuery.condition();
-	}
-
-
-	@Override
-	public IQuery subQuery() {
-		return subQuery;
-	}
-
-	@Override
-	public Class<?> level() {
-		return baseQuery.level();
 	}
 }
