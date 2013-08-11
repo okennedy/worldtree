@@ -6,7 +6,7 @@ import java.util.List;
 
 public abstract class Datum {
 	Object data;
-	Class<?> type;
+	DatumType type;
 	
 	protected Datum() {
 //		Stops empty constructor initialization
@@ -14,22 +14,22 @@ public abstract class Datum {
 	
 	private Datum(Integer data) {
 		this.data 	= data;
-		this.type 	= Datum.Int.class;
+		this.type 	= DatumType.INT;
 	}
 	
 	private Datum(Float data) {
 		this.data	= data;
-		this.type	= Datum.Int.class;
+		this.type	= DatumType.FLOAT;
 	}
 	
 	private Datum(String data) {
 		this.data	= data;
-		this.type	= Datum.Str.class;
+		this.type	= DatumType.STRING;
 	}
 	
 	private Datum(Boolean data) {
 		this.data	= data;
-		this.type	= Datum.Bool.class;
+		this.type	= DatumType.BOOL;
 	}
 	
 	public Datum toInt() {
@@ -46,7 +46,7 @@ public abstract class Datum {
 		else if(type.equals(Datum.Str.class)) {
 			datum	= new Datum.Int(new Integer(Integer.parseInt((String) this.data)));
 		}
-		datum.type	= Datum.Int.class;
+		datum.type	= DatumType.INT;
 		return datum;
 	}
 	
@@ -64,7 +64,7 @@ public abstract class Datum {
 		else if(type.equals(Datum.Str.class)) {
 			datum	= new Datum.Flt(new Float(Float.parseFloat((String) this.data)));
 		}
-		datum.type	= Datum.Flt.class;
+		datum.type	= DatumType.FLOAT;
 		return datum;
 	}
 	
@@ -83,7 +83,7 @@ public abstract class Datum {
 			datum	= new Datum.Str(new String((String) this.data));
 		}
 		
-		datum.type	= Datum.Str.class;
+		datum.type	= DatumType.STRING;
 		
 		return datum;
 	}
@@ -208,4 +208,100 @@ public abstract class Datum {
 //	}
 	
 	public abstract List<Datum> allocate(int size);
+	
+	public Datum add(Datum datum) {
+		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+		
+		int data 			= (Integer) this.data;
+		switch(datum.type) {
+		case BOOL:
+			break;
+		case FLOAT:
+			return new Datum.Flt(data + (Float) datum.data);
+		case INT:
+			return new Datum.Int(data + (Integer) datum.data);
+		case STRING:
+			break;
+		default:
+			break;
+		}
+		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
+	}
+	public Datum subtract(Datum datum) {
+		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+		
+		int data 			= (Integer) this.data;
+		switch(datum.type) {
+		case BOOL:
+			break;
+		case FLOAT:
+			return new Datum.Flt(data - (Float) datum.data);
+		case INT:
+			return new Datum.Int(data - (Integer) datum.data);
+		case STRING:
+			break;
+		default:
+			break;
+		}
+		throw new IllegalArgumentException("Cannot subtract Datum types " + this.type + " , " + datum.type);
+	}
+	public Datum multiply(Datum datum) {
+		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+		
+		int data 			= (Integer) this.data;
+		switch(datum.type) {
+		case BOOL:
+			break;
+		case FLOAT:
+			return new Datum.Flt(data * (Float) datum.data);
+		case INT:
+			return new Datum.Int(data * (Integer) datum.data);
+		case STRING:
+			break;
+		default:
+			break;
+		}
+		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
+	}
+	public Datum divide(Datum datum) {
+		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+		
+		int data 			= (Integer) this.data;
+		switch(datum.type) {
+		case BOOL:
+			break;
+		case FLOAT:
+			return new Datum.Flt(data / (Float) datum.data);
+		case INT:
+			return new Datum.Int(data / (Integer) datum.data);
+		case STRING:
+			break;
+		default:
+			break;
+		}
+		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
+	}
+	
+	
+	public enum DatumType {
+		INT(Datum.Int.class),
+		FLOAT(Datum.Flt.class),
+		STRING(Datum.Str.class),
+		BOOL(Datum.Bool.class),
+		;
+		
+		private Class<?> clazz;
+		
+		private DatumType(Class<?> clazz) {
+			this.clazz = clazz;
+		}
+		
+		protected static DatumType parse(Class<?> clazz) {
+			for(DatumType dt : values()) {
+				if(dt.clazz.equals(clazz))
+					return dt;
+			}
+			throw new IllegalArgumentException(clazz.getName() + " is not a valid DatumType!");
+		}
+	}
 }
