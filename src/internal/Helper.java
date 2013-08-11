@@ -180,4 +180,68 @@ public class Helper {
 		sb.append(string.substring(1).toLowerCase());
 		return sb.toString();
 	}
+	
+	public enum Hierarchy {
+		Map("Map"),
+		Room("Room"),
+		Region("Region"),
+		Tile("Tile"),
+		;
+		
+		private String level;
+		
+		private Hierarchy(String level) {
+			this.level	= level;
+		}
+		
+		public static Hierarchy childLevel(String level) {
+			Hierarchy h = parse(level);
+			
+			switch(h) {
+			case Map:
+				return Room;
+			case Region:
+				return Tile;
+			case Room:
+				return Region;
+			case Tile:
+				return null;
+			default:
+				break;
+			}
+			return null;
+		}
+		
+		public static Hierarchy parentLevel(String level) {
+			Hierarchy h = parse(level);
+			
+			switch(h) {
+			case Map:
+				return null;
+			case Region:
+				return Room;
+			case Room:
+				return Map;
+			case Tile:
+				return Region;
+			default:
+				break;
+			}
+			return null;
+		}
+		
+		public static Hierarchy parse(String level) {
+			for(Hierarchy h : values()) {
+				if(h.level.equalsIgnoreCase(level))
+					return h;
+			}
+			throw new IllegalArgumentException(level + " is not a valid Hierarchy level!\n" +
+					"Valid levels are :" + values());
+		}
+		
+		@Override
+		public String toString() {
+			return level;
+		}
+	}
 }
