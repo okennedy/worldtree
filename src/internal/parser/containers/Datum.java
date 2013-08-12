@@ -32,6 +32,14 @@ public abstract class Datum {
 		this.type	= DatumType.BOOL;
 	}
 	
+	public Object data() {
+		return data;
+	}
+	
+	public DatumType type() {
+		return type;
+	}
+	
 	public Datum toInt() {
 		Datum datum = null;
 		
