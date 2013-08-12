@@ -43,15 +43,15 @@ public abstract class Datum {
 	public Datum toInt() {
 		Datum datum = null;
 		
-		if(type.equals(Datum.Int.class)) {
+		if(type.equals(DatumType.INT)) {
 			datum	= new Datum.Int(new Integer((Integer) this.data));
 		}
 		
-		else if(type.equals(Datum.Flt.class)) {
+		else if(type.equals(DatumType.FLOAT)) {
 			datum	= new Datum.Int(new Integer((Integer.parseInt(Float.toString((Float) this.data)))));
 		}
 		
-		else if(type.equals(Datum.Str.class)) {
+		else if(type.equals(DatumType.STRING)) {
 			datum	= new Datum.Int(new Integer(Integer.parseInt((String) this.data)));
 		}
 		datum.type	= DatumType.INT;
@@ -61,15 +61,15 @@ public abstract class Datum {
 	public Datum toFlt() {
 		Datum datum = null;
 		
-		if(type.equals(Datum.Int.class)) {
+		if(type.equals(DatumType.INT)) {
 			datum	= new Datum.Flt(new Float((Integer) this.data));
 		}
 		
-		else if(type.equals(Datum.Flt.class)) {
+		else if(type.equals(DatumType.FLOAT)) {
 			datum	= new Datum.Flt(new Float((Float) this.data));
 		}
 		
-		else if(type.equals(Datum.Str.class)) {
+		else if(type.equals(DatumType.STRING)) {
 			datum	= new Datum.Flt(new Float(Float.parseFloat((String) this.data)));
 		}
 		datum.type	= DatumType.FLOAT;
@@ -79,15 +79,15 @@ public abstract class Datum {
 	public Datum toStr() {
 		Datum datum = null;
 		
-		if(type.equals(Datum.Int.class)) {
+		if(type.equals(DatumType.INT)) {
 			datum	= new Datum.Str(Integer.toString((Integer)this.data));
 		}
 		
-		else if(type.equals(Datum.Flt.class)) {
+		else if(type.equals(DatumType.FLOAT)) {
 			datum	= new Datum.Str(Float.toString((Float) this.data));
 		}
 		
-		else if(type.equals(Datum.Str.class)) {
+		else if(type.equals(DatumType.STRING)) {
 			datum	= new Datum.Str(new String((String) this.data));
 		}
 		
