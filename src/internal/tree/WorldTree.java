@@ -167,7 +167,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				Class<?> constraintClass = Class.forName(WorldTreeFactory.class.getName() + "$" + titleCase(c.level()));
 				if(constraintClass.equals(this.getClass())) {
 					Datum d = c.condition().value();
-					List<Datum> values = d.allocate(children.size());
+					List<Datum> values = d.split(children.size());
 					for(IWorldTree child : children) {
 						Datum value = values.get((new Random().nextInt(values.size())));
 						String className = child.getClass().getName();

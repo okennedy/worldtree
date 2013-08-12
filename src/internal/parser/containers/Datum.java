@@ -103,7 +103,7 @@ public abstract class Datum {
 		}
 
 		@Override
-		public List<Datum> allocate(int size) {
+		public List<Datum> split(int size) {
 			List<Datum> result = new ArrayList<Datum>();
 			
 			int availableQty = (Integer) data;
@@ -144,7 +144,7 @@ public abstract class Datum {
 		}
 
 		@Override
-		public List<Datum> allocate(int size) {
+		public List<Datum> split(int size) {
 			List<Datum> result = new ArrayList<Datum>();
 			
 			float availableQty = (Float) data;
@@ -179,7 +179,7 @@ public abstract class Datum {
 		}
 
 		@Override
-		public List<Datum> allocate(int size) {
+		public List<Datum> split(int size) {
 			throw new IllegalStateException("Cannot allocate value of type " + this.getClass().getName());
 		}
 	}
@@ -197,17 +197,13 @@ public abstract class Datum {
 		}
 
 		@Override
-		public List<Datum> allocate(int size) {
+		public List<Datum> split(int size) {
 			// TODO Auto-generated method stub
 			return null;
 		}
 	}
 
-//	public List<Datum> allocate(int size) {
-//		throw new IllegalStateException("Running abstract method\n");
-//	}
-	
-	public abstract List<Datum> allocate(int size);
+	public abstract List<Datum> split(int size);
 	
 	public Datum add(Datum datum) {
 		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
