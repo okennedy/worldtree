@@ -169,17 +169,17 @@ public class PropertyDef extends Statement {
 	}
 	
 	public static class RandomSpec implements IContainer {
-		String dataType;
+		RandomSpecType type;
 		Datum low, high;
 		
-		public RandomSpec(String dataType, Datum low, Datum high) {
-			this.dataType	= dataType;
-			this.low		= low;
-			this.high		= high;
+		public RandomSpec(RandomSpecType type, Datum low, Datum high) {
+			this.type	= type;
+			this.low	= low;
+			this.high	= high;
 		}
 		
-		public String dataType() {
-			return dataType;
+		public RandomSpecType type() {
+			return type;
 		}
 		
 		public Datum low() {
@@ -192,12 +192,33 @@ public class PropertyDef extends Statement {
 		
 		@Override
 		public String debugString() {
-			return "RANDOMSPEC(UNIFORM " + dataType + " FROM " + low + " TO " + high + ")";	
+			return "RANDOMSPEC(UNIFORM " + type + " FROM " + low + " TO " + high + ")";	
 		}
 		
 		@Override
 		public String toString() {
-			return "UNIFORM " + dataType + " FROM " + low + " TO " + high;
+			return "UNIFORM " + type + " FROM " + low + " TO " + high;
+		}
+		
+		public static enum RandomSpecType {
+			INT("INT"),
+			FLOAT("FLOAT"),
+			;
+			
+			private String type;
+			
+			private RandomSpecType(String type) {
+				this.type	= type;
+			}
+			
+			public static RandomSpecType parse(String type) {
+				for(RandomSpecType r : values()) {
+					if(r.type.equalsIgnoreCase(type))
+						return r;
+				}
+				throw new IllegalArgumentException(type + " is not a valid data type for specifying Random!\n"
+						+ "Valid types are :" + values());
+			}
 		}
 	}
 }

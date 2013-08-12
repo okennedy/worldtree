@@ -11,6 +11,7 @@ import internal.parser.containers.property.*;
 import internal.parser.containers.expr.*;
 import internal.parser.containers.expr.AggExpr.AggType;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
+import internal.parser.containers.property.PropertyDef.RandomSpec.RandomSpecType;
 
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"
 }
@@ -228,11 +229,11 @@ AggExpr aggExpr() :
 		{ return new AggExpr(AggType.COUNT, null); }}
 RandomSpec randomspec() :
 {
-    String dataType = null;
-    Datum low 		= null;
-    Datum high 		= null;}
-{    < UNIFORM > (< INT > | < FLOAT >) { dataType = token.image; }
-        < FROM > low = constant() < TO > high = constant() 		{ return new RandomSpec(dataType, low, high); }|   < IN > < LPARANS > constant() (":" constant())? (< COMMA > constant() (":" constant())?)* < RPARANS >
+    RandomSpecType type = null;
+    Datum low 			= null;
+    Datum high 			= null;}
+{    < UNIFORM > (< INT > | < FLOAT >) {type = RandomSpecType.parse(token.image); }
+        < FROM > low = constant() < TO > high = constant() 		{ return new RandomSpec(type, low, high); }|   < IN > < LPARANS > constant() (":" constant())? (< COMMA > constant() (":" constant())?)* < RPARANS >
 }
 
 IQuery query(String level) :
