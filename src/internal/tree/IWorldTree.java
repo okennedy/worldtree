@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import internal.parser.containers.Constraint;
+import internal.parser.containers.Datum;
 import internal.piece.IPiece;
 import internal.piece.TileInterfaceType;
 import internal.space.Space;
@@ -60,15 +61,15 @@ public interface IWorldTree {
 	/**
 	 * Add a new property to this {@code IWorldTree}
 	 * @param name {@code String} containing the name of this property
-	 * @param value {@code String} containing the value of this property
+	 * @param value {@code Datum} containing the value of this property
 	 */
-	public void addProperty(String name, String value);
+	public void addProperty(String name, Datum value);
 	
 	/**
 	 * Obtain the properties of this {@code IWorldTree} instance
-	 * @return {@code Map<String, String>} containing the properties and their values of this {@code IWorldTree} instance
+	 * @return {@code Map<String, Datum>} containing the properties and their values of this {@code IWorldTree} instance
 	 */
-	public Map<String, String> properties();
+	public Map<String, Datum> properties();
 	
 	/**
 	 * Obtain root of this WorldTree

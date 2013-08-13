@@ -34,7 +34,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	protected Collection<IWorldTree> children;
 	private String name;
 	private Collection<Constraint> constraints;
-	private Map<String, String> properties;
+	private Map<String, Datum> properties;
 	protected List<String> stringRepresentation;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
@@ -43,7 +43,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.name 			= name;
 		this.constraints 	= constraints;
 		this.stringRepresentation 	= new ArrayList<String>();
-		this.properties				= new HashMap<String, String>();
+		this.properties				= new HashMap<String, Datum>();
 		
 		if(parent != null) {
 			IWorldTree root = this.root();
@@ -144,12 +144,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	}
 	
 	@Override
-	public void addProperty(String name, String value) {
+	public void addProperty(String name, Datum value) {
 		properties.put(name, value);
 	}
 	
 	@Override
-	public Map<String, String> properties() {
+	public Map<String, Datum> properties() {
 		return properties;
 	}
 	
