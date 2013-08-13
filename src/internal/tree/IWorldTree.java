@@ -127,6 +127,10 @@ public interface IWorldTree {
 	
 	public interface IRegion extends IWorldTree {
 		
+		/**
+		 * Set the start and end tiles for this {@code IRegion}
+		 */
+		public void setStartEndTiles();
 	}
 	
 	public interface ITile extends IWorldTree {

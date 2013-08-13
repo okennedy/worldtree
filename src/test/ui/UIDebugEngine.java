@@ -61,10 +61,13 @@ public class UIDebugEngine {
 			map.initialize();	//Map initialized
 			map.initRooms();	//Rooms initialized
 			map.initRegions();
+			map.initTiles();
+			
+			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0
+			child.setStartEndTiles();
 			
 			write(map);
 			
-			IRegion child = (IRegion)((IWorldTree) map.children().toArray()[0]).children().toArray()[0];	//Region0
 			while(true) {
 				command = in.readLine();
 				UIDebugParser testParser = new UIDebugParser(new StringReader(command));

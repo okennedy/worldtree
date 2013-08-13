@@ -294,7 +294,9 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void fill() {
-			
+			for(IWorldTree r : getRegions()) {
+				((Region) r).initRegion();
+			}
 		}
 	}
 	
@@ -331,7 +333,7 @@ public class WorldTreeFactory implements Serializable {
 						Datum value 	= result.get(randomIndex);
 						IWorldTree obj 	= row.get(columnIndex);
 //						FIXME: Hack to add this to the visual
-						if(obj.getClass().equals(Tile.class))
+						if((Integer) value.data() > 0 && obj.getClass().equals(Tile.class))
 							( (Tile) obj).addToVisual(def.property().name().substring(0, 1));
 						obj.addProperty(def.property().name(), value);
 						result.remove(randomIndex);
@@ -661,7 +663,8 @@ public class WorldTreeFactory implements Serializable {
 			this.space = space;
 		}
 
-		private void setStartEndTiles() {
+		@Override
+		public void setStartEndTiles() {
 //			First tile
 			int startX = 0 + (int) (Math.random() * space.getXDimension());
 			int startY = 0 + (int) (Math.random() * space.getYDimension());
@@ -687,6 +690,7 @@ public class WorldTreeFactory implements Serializable {
 			tile.addToVisual("E");
 			space.setByCoord(endCoords, tile);
 		}
+		
 		@Override
 		public void initialize() {
 //			FIXME :Perhaps this should be done better
@@ -713,12 +717,14 @@ public class WorldTreeFactory implements Serializable {
 					ITile tile = initTile(coords, constraints);
 					ITile existingTile = space.getByCoord(coords);
 					tile.setConstraints(existingTile.constraints());
-					for(java.util.Map.Entry<String, Datum> entry : existingTile.properties().entrySet()) {
+					for(java.util.Map.Entry<String, Datum> entry : existingTile.properties().entrySet())
 						tile.addProperty(entry.getKey(), entry.getValue());
-					}
+					for(String string : existingTile.artifacts())
+						tile.addToVisual(string);
 					space.setByCoord(coords, tile);
 				}
 			}
+			initString();
 		}
 		
 		/**
@@ -1023,6 +1029,7 @@ public class WorldTreeFactory implements Serializable {
 			}
 		}
 		
+		@Override
 		public Collection<String> artifacts() {
 			return artifacts;
 		}
