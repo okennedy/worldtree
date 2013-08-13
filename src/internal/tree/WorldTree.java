@@ -191,6 +191,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 						
 						Constraint subConstraint = new Constraint(level, subConstraintQuery, subConstraintCondition);
 						child.addConstraint(subConstraint);
+						
+						values.remove(value);
 					}
 				}
 			} catch (ClassNotFoundException e) {
