@@ -72,33 +72,14 @@ public class ResolutionEngine {
 //			Filter objectList based on condition - if any
 			if(query.condition() != null) {
 				String property = query.condition().property().name();
-				for(IWorldTree object : objectList) {
+				for(IWorldTree object : getObjects(node, level)) {
 					if(!object.properties().containsKey(property))
 						objectList.remove(object);
 					else {
 						Datum conditionValue = query.condition().value();
 						Datum objPropValue = object.properties().get(property);
-						switch(query.condition().operator()) {
-						case EQ:
-							
-							break;
-						case GE:
-							break;
-						case GT:
-							break;
-						case LE:
-							break;
-						case LT:
-							break;
-						case NOTEQ:
-							break;
-						default:
-							break;
-						
-						}
-						if(!((Boolean)objPropValue.data() == conditionValue.data())) {
+						if(objPropValue.compareTo(conditionValue, query.condition().operator()) != 0)
 							objectList.remove(object);
-						}
 					}
 				}
 			}
