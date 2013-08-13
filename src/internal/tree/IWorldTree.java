@@ -117,6 +117,8 @@ public interface IWorldTree {
 		public void initTiles();
 		
 		public void materializeConstraints();
+
+		public void fill();
 	}
 	
 	public interface IRoom extends IWorldTree {
@@ -146,6 +148,12 @@ public interface IWorldTree {
 		 * @param string {@code String} containing the artifact to remove
 		 */
 		public void removeFromVisual(String string);
+		
+		/**
+		 * Obtain a collection of all artifacts that are part of this {@code ITile}'s visual
+		 * @return {@code Collection<String>} containing all artifacts
+		 */
+		public Collection<String> artifacts();
 		
 		/**
 		 * Obtain reference to the piece located in this Tile

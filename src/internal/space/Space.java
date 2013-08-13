@@ -444,7 +444,7 @@ public class Space extends Dimension {
 	public void updateCurrentVisual(Coordinates coordinates) {
 		StringBuffer sb = new StringBuffer();
 		
-		//		First remove it from the old tile
+//		First remove it from the old tile
 		ITile currentTile = getByCoord(current);
 		
 //		This is required as this.current is pointing to C(0,0) upon initialization 

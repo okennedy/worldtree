@@ -291,6 +291,11 @@ public class WorldTreeFactory implements Serializable {
 				}
 			}
 		}
+
+		@Override
+		public void fill() {
+			
+		}
 	}
 	
 	public Collection<Datum> materializeDefinition(IWorldTree node, Constraint constraint, 
@@ -325,6 +330,9 @@ public class WorldTreeFactory implements Serializable {
 						int randomIndex	= new Random().nextInt(result.size());
 						Datum value 	= result.get(randomIndex);
 						IWorldTree obj 	= row.get(columnIndex);
+//						FIXME: Hack to add this to the visual
+						if(obj.getClass().equals(Tile.class))
+							( (Tile) obj).addToVisual(def.property().name().substring(0, 1));
 						obj.addProperty(def.property().name(), value);
 						result.remove(randomIndex);
 					}
@@ -698,11 +706,16 @@ public class WorldTreeFactory implements Serializable {
 		/**
 		 * This method can be used to fully initialize this Region with all its children tiles.
 		 */
-		private void initRegion() {
+		protected void initRegion() {
 			for(int i = 0; i < space.getYDimension(); i++) {
 				for(int j = 0; j < space.getXDimension(); j++) {
 					Coordinates coords = new Coordinates(true, j, i);
 					ITile tile = initTile(coords, constraints);
+					ITile existingTile = space.getByCoord(coords);
+					tile.setConstraints(existingTile.constraints());
+					for(java.util.Map.Entry<String, Datum> entry : existingTile.properties().entrySet()) {
+						tile.addProperty(entry.getKey(), entry.getValue());
+					}
 					space.setByCoord(coords, tile);
 				}
 			}
@@ -864,12 +877,13 @@ public class WorldTreeFactory implements Serializable {
 		
 		public IPiece piece;
 		private Coordinates coordinates;
-		private String tileType;
+		private List<String> artifacts;
 		public Tile(String name, Coordinates coord, IWorldTree parent, IPiece tilePiece) {
 			super(name, parent, new ArrayList<Constraint>());
 			this.coordinates	= coord;
 			this.piece 			= tilePiece;
-			this.tileType		= this.parent.name();
+			this.parent.name();	//TODO: What does this do?
+			this.artifacts		= new ArrayList<String>();
 			initialize();
 		}
 		
@@ -983,6 +997,7 @@ public class WorldTreeFactory implements Serializable {
 			assert index >= 0 : "Unable to update current tile visual! No more space for artifacts";
 			if(index != -1) {
 				sb.replace(index + 1, index + 3, string);
+				artifacts.add(string);
 				updateVisual(sb.toString());
 			}
 		}
@@ -1003,8 +1018,13 @@ public class WorldTreeFactory implements Serializable {
 			assert index >= 0 : "Unable to update current tile visual! No more space for artifacts";
 			if(index != -1) {
 				sb.replace(index + 1, index + 3, "  ");
+				artifacts.remove(string);
 				updateVisual(sb.toString());
 			}
+		}
+		
+		public Collection<String> artifacts() {
+			return artifacts;
 		}
 	}
 	
