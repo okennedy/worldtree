@@ -334,7 +334,7 @@ public class WorldTreeFactory implements Serializable {
 						IWorldTree obj 	= row.get(columnIndex);
 //						FIXME: Hack to add this to the visual
 						if((Integer) value.data() > 0 && obj.getClass().equals(Tile.class))
-							( (Tile) obj).addToVisual(def.property().name().substring(0, 1));
+							( (Tile) obj).addToVisual(def.property().name().substring(0, 1).toUpperCase());
 						obj.addProperty(def.property().name(), value);
 						result.remove(randomIndex);
 					}
@@ -704,6 +704,7 @@ public class WorldTreeFactory implements Serializable {
 			}
 //			initRegion();
 			initString();
+			this.children = space.collection();
 			this.pushDownConstraints();
 		}
 		
@@ -725,6 +726,7 @@ public class WorldTreeFactory implements Serializable {
 				}
 			}
 			initString();
+			this.children = space.collection();
 		}
 		
 		/**
