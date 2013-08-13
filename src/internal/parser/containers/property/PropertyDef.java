@@ -192,12 +192,12 @@ public class PropertyDef extends Statement {
 		
 		@Override
 		public String debugString() {
-			return "RANDOMSPEC(UNIFORM " + type + " FROM " + low + " TO " + high + ")";	
+			return "RANDOMSPEC(RANDOM UNIFORM " + type + " FROM " + low + " TO " + high + ")";	
 		}
 		
 		@Override
 		public String toString() {
-			return "UNIFORM " + type + " FROM " + low + " TO " + high;
+			return "RANDOM UNIFORM " + type + " FROM " + low + " TO " + high;
 		}
 		
 		public static enum RandomSpecType {
