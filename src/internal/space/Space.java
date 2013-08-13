@@ -190,6 +190,7 @@ public class Space extends Dimension {
 		if(yIndex + 1 == yDimension)
 			invalidInterfaces.append("D");
 		else if(matrix[yIndex + 1][xIndex] == null);
+		else if(matrix[yIndex + 1][xIndex].piece().getText().equals(""));
 		else if(matrix[yIndex + 1][xIndex].piece().hasInterface(TileInterfaceType.U))
 			mandatoryInterfaces.append("D");
 		else
@@ -198,6 +199,7 @@ public class Space extends Dimension {
 		if(xIndex - 1 < 0)
 			invalidInterfaces.append("L");
 		else if(matrix[yIndex][xIndex - 1] == null);
+		else if(matrix[yIndex][xIndex - 1].piece().getText().equals(""));
 		else if(matrix[yIndex][xIndex - 1].piece().hasInterface(TileInterfaceType.R))
 			mandatoryInterfaces.append("L");
 		else
@@ -207,6 +209,7 @@ public class Space extends Dimension {
 		if(xIndex + 1 == xDimension)
 			invalidInterfaces.append("R");
 		else if(matrix[yIndex][xIndex + 1] == null);
+		else if(matrix[yIndex][xIndex + 1].piece().getText().equals(""));
 		else if(matrix[yIndex][xIndex + 1].piece().hasInterface(TileInterfaceType.L))
 			mandatoryInterfaces.append("R");
 		else
@@ -216,6 +219,7 @@ public class Space extends Dimension {
 		if(yIndex - 1 < 0)
 			invalidInterfaces.append("U");
 		else if(matrix[yIndex - 1][xIndex] == null);
+		else if(matrix[yIndex - 1][xIndex].piece().getText().equals(""));
 		else if(matrix[yIndex - 1][xIndex].piece().hasInterface(TileInterfaceType.D))
 			mandatoryInterfaces.append("U");
 		else
