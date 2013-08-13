@@ -1,5 +1,7 @@
 package internal.parser.containers;
 
+import internal.parser.TokenCmpOp;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -39,6 +41,85 @@ public abstract class Datum {
 	public DatumType type() {
 		return type;
 	}
+	
+	public abstract List<Datum> split(int size);
+	
+	public Datum add(Datum datum) {
+		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+		
+		int data 			= (Integer) this.data;
+		switch(datum.type) {
+		case BOOL:
+			break;
+		case FLOAT:
+			return new Datum.Flt(data + (Float) datum.data);
+		case INT:
+			return new Datum.Int(data + (Integer) datum.data);
+		case STRING:
+			break;
+		default:
+			break;
+		}
+		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
+	}
+	
+	public Datum subtract(Datum datum) {
+		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+		
+		int data 			= (Integer) this.data;
+		switch(datum.type) {
+		case BOOL:
+			break;
+		case FLOAT:
+			return new Datum.Flt(data - (Float) datum.data);
+		case INT:
+			return new Datum.Int(data - (Integer) datum.data);
+		case STRING:
+			break;
+		default:
+			break;
+		}
+		throw new IllegalArgumentException("Cannot subtract Datum types " + this.type + " , " + datum.type);
+	}
+	
+	public Datum multiply(Datum datum) {
+		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+		
+		int data 			= (Integer) this.data;
+		switch(datum.type) {
+		case BOOL:
+			break;
+		case FLOAT:
+			return new Datum.Flt(data * (Float) datum.data);
+		case INT:
+			return new Datum.Int(data * (Integer) datum.data);
+		case STRING:
+			break;
+		default:
+			break;
+		}
+		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
+	}
+	
+	public Datum divide(Datum datum) {
+		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+		
+		int data 			= (Integer) this.data;
+		switch(datum.type) {
+		case BOOL:
+			break;
+		case FLOAT:
+			return new Datum.Flt(data / (Float) datum.data);
+		case INT:
+			return new Datum.Int(data / (Integer) datum.data);
+		case STRING:
+			break;
+		default:
+			break;
+		}
+		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
+	}
+	
 	
 	public Datum toInt() {
 		Datum datum = null;
@@ -97,6 +178,81 @@ public abstract class Datum {
 	}
 	
 	
+	public int compareTo(Datum datum, TokenCmpOp operator) {
+		switch(type) {
+		case BOOL: {
+			assert datum.type == DatumType.BOOL : "Cannot compare " + type + " and " + datum.type;
+			
+			boolean val1 = (Boolean) data;
+			boolean val2 = (Boolean) datum.data;
+			switch(operator) {
+			case EQ:
+				if(val1 == val2)
+					return 0;
+				break;
+			case NOTEQ:
+				if(val1 != val2)
+					return 0;
+				break;
+			default:
+				throw new IllegalArgumentException("Cannot compare " + type + " and " + datum.type + " using " + operator);
+			}
+		}
+		case INT:
+		case FLOAT: {
+			float val1 = (Float) toFlt().data;
+			float val2 = (Float) datum.toFlt().data;
+			switch(operator) {
+			case EQ:
+				if(val1 == val2)
+					return 0;
+				break;
+			case GE:
+				if(val1 >= val2)
+					return 0;
+				break;
+			case GT:
+				if(val1 > val2)
+					return 0;
+				break;
+			case LE:
+				if(val1 <= val2)
+					return 0;
+				break;
+			case LT:
+				if(val1 < val2)
+					return 0;
+				break;
+			case NOTEQ:
+				if(val1 != val2)
+					return 0;
+				break;
+			}
+			break;
+		}
+		case STRING: {
+			String val1 = (String) data;
+			String val2 = (String) datum.data;
+			switch(operator) {
+			case EQ:
+				if(val1.equals(val2))
+					return 0;
+				break;
+			case GE:
+			case GT:
+			case LE:
+			case LT:
+				return val1.compareTo(val2);
+			case NOTEQ:
+				if(!val1.equals(val2))
+					return 0;
+				break;
+			}
+			break;
+		}
+		}
+		return -1;
+	}
 	
 	
 	
@@ -211,81 +367,6 @@ public abstract class Datum {
 		}
 	}
 
-	public abstract List<Datum> split(int size);
-	
-	public Datum add(Datum datum) {
-		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
-		
-		int data 			= (Integer) this.data;
-		switch(datum.type) {
-		case BOOL:
-			break;
-		case FLOAT:
-			return new Datum.Flt(data + (Float) datum.data);
-		case INT:
-			return new Datum.Int(data + (Integer) datum.data);
-		case STRING:
-			break;
-		default:
-			break;
-		}
-		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
-	}
-	public Datum subtract(Datum datum) {
-		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
-		
-		int data 			= (Integer) this.data;
-		switch(datum.type) {
-		case BOOL:
-			break;
-		case FLOAT:
-			return new Datum.Flt(data - (Float) datum.data);
-		case INT:
-			return new Datum.Int(data - (Integer) datum.data);
-		case STRING:
-			break;
-		default:
-			break;
-		}
-		throw new IllegalArgumentException("Cannot subtract Datum types " + this.type + " , " + datum.type);
-	}
-	public Datum multiply(Datum datum) {
-		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
-		
-		int data 			= (Integer) this.data;
-		switch(datum.type) {
-		case BOOL:
-			break;
-		case FLOAT:
-			return new Datum.Flt(data * (Float) datum.data);
-		case INT:
-			return new Datum.Int(data * (Integer) datum.data);
-		case STRING:
-			break;
-		default:
-			break;
-		}
-		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
-	}
-	public Datum divide(Datum datum) {
-		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
-		
-		int data 			= (Integer) this.data;
-		switch(datum.type) {
-		case BOOL:
-			break;
-		case FLOAT:
-			return new Datum.Flt(data / (Float) datum.data);
-		case INT:
-			return new Datum.Int(data / (Integer) datum.data);
-		case STRING:
-			break;
-		default:
-			break;
-		}
-		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
-	}
-	
 	
 	public enum DatumType {
 		INT(Datum.Int.class),
