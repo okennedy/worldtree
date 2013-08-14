@@ -972,20 +972,19 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void addToVisual(String string) {
-			assert string.length() <= 2 : "Currently, artifacts are only allowed a max length of 2";
-//			Ensure that the length is 2..for compatibility
-			while(string.length() < 2)
-				string += " ";
-			
 			StringBuffer sb = new StringBuffer();
 			List<String> stringRepresentation = getStringRepresentation();
 			for(String s : stringRepresentation)
 				sb.append(s + "\n");
 			
-			int index = sb.indexOf("|  ");
-			assert index >= 0 : "Unable to update current tile visual! No more space for artifacts";
-			if(index != -1) {
-				sb.replace(index + 1, index + 3, string);
+			StringBuffer searchString = new StringBuffer();
+			while(searchString.length() < string.length())
+				searchString.append(" ");
+			int index = sb.indexOf(searchString.toString(), 12);
+			if(index < 0)
+				System.err.println("Unable to update current tile visual! No space for artifact :" + string);
+			else {
+				sb.replace(index + 1, index + string.length() + 1, string);
 				artifacts.add(string);
 				updateVisual(sb.toString());
 			}
@@ -993,20 +992,17 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void removeFromVisual(String string) {
-			assert string.length() <= 2 : "Currently, artifacts are only allowed a max length of 2";
-//			Ensure that the length is 2..for compatibility
-			while(string.length() < 2)
-				string += " ";
-			
 			StringBuffer sb = new StringBuffer();
 			List<String> stringRepresentation = getStringRepresentation();
 			for(String s : stringRepresentation)
 				sb.append(s + "\n");
 			
-			int index = sb.indexOf("|" + string);
-			assert index >= 0 : "Unable to update current tile visual! No more space for artifacts";
-			if(index != -1) {
-				sb.replace(index + 1, index + 3, "  ");
+			int index = sb.indexOf(string);
+			if(index < 0)
+				System.err.println("Artifact does not exist!\n");
+			else {
+				String replacement = string.replaceAll("\\w", " ");
+				sb.replace(index + 1, index + string.length() + 1, replacement);
 				artifacts.remove(string);
 				updateVisual(sb.toString());
 			}
