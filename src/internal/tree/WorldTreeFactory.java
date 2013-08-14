@@ -334,7 +334,7 @@ public class WorldTreeFactory implements Serializable {
 						IWorldTree obj 	= row.get(columnIndex);
 //						FIXME: Hack to add this to the visual
 						if((Integer) value.data() > 0 && obj.getClass().equals(Tile.class))
-							( (Tile) obj).addToVisual(def.property().name().substring(0, 1).toUpperCase());
+							( (Tile) obj).addToVisual(def.property().name().substring(0, 1).toUpperCase() + value.data());
 						obj.addProperty(def.property().name(), value);
 						result.remove(randomIndex);
 					}
@@ -363,7 +363,7 @@ public class WorldTreeFactory implements Serializable {
 			float diff = randomSpecHigh - randomSpecLow;
 			
 			int nodeCount = -1;
-			switch(definition.aggregateExpression().type()) {
+			switch(parentDefinition.aggregateExpression().type()) {
 			case COUNT:
 				switch(constraintCondition.operator()) {
 				case EQ:
@@ -391,14 +391,14 @@ public class WorldTreeFactory implements Serializable {
 				while(result.size() < nodeCount) {
 					switch(constraintCondition.value().type()) {
 					case FLOAT: {
-						float data = (float) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+						float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
 						if(data == 0)
 							continue;
 						result.add(new Datum.Flt(data));
 						break;
 					}
 					case INT: {
-						int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+						int data = (int) (randomSpecLow + (float) (random.nextDouble() * (diff)));
 						if(data == 0)
 							continue;
 						result.add(new Datum.Int(data));
@@ -420,60 +420,138 @@ public class WorldTreeFactory implements Serializable {
 
 				boolean satisfiesConstraint = false;
 				while(result.size() < availableNodes) {
-					switch(constraintCondition.value().type()) {
-					case FLOAT: {
-						float data = (float) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
-						switch(constraintCondition.operator()) {
-						case EQ:
-							if(data > requiredValue)
-								continue;
-							if(data == requiredValue)
-								satisfiesConstraint = true;
-							if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-								data = requiredValue;
-								satisfiesConstraint = true;
-							}
-							break;
-						case GE:
-							if(data >= requiredValue)
-								satisfiesConstraint = true;
-							if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-								data = (float) (requiredValue + (float) (random.nextGaussian() * (randomSpecHigh - requiredValue)));
-								satisfiesConstraint = true;
-							}
-							break;
-						case GT:
-							if(data > requiredValue)
-								satisfiesConstraint = true;
-							if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-								data = (float) (requiredValue + (float) (random.nextGaussian() * (randomSpecHigh - requiredValue)));
-								if(data == requiredValue)
-									continue;
-								satisfiesConstraint = true;
-							}
-							break;
-						case LE:
-							break;
-						case LT:
-							break;
-						case NOTEQ:
-							break;
-						
+					float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
+					switch(constraintCondition.operator()) {
+					case EQ:
+						if(data > requiredValue)
+							continue;
+						if(data == requiredValue)
+							satisfiesConstraint = true;
+						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+							data = requiredValue;
+							satisfiesConstraint = true;
 						}
+						break;
+					case GE:
+						if(data >= requiredValue)
+							satisfiesConstraint = true;
+						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+							data = (float) (requiredValue + (float) (random.nextDouble() * (randomSpecHigh - requiredValue)));
+							satisfiesConstraint = true;
+						}
+						break;
+					case GT:
+						if(data > requiredValue)
+							satisfiesConstraint = true;
+						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+							data = (float) (requiredValue + (float) (random.nextDouble() * (randomSpecHigh - requiredValue)));
+							if(data == requiredValue)
+								continue;
+							satisfiesConstraint = true;
+						}
+						break;
+					case LE:
+						if(data > requiredValue)
+							continue;
+						break;
+					case LT:
+						if(data >= requiredValue)
+							continue;
+						break;
+					case NOTEQ:
+						if(data == requiredValue && !satisfiesConstraint)
+							continue;
+						break;
+					
+					}
+					switch(definition.randomspec().type()) {
+					case FLOAT:
 						result.add(new Datum.Flt(data));
 						break;
-					}
-					case INT: {
-						int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
-						result.add(new Datum.Int(data));
+					case INT:
+						int val = (int) (Math.ceil(data));
+						assert val >= (int) randomSpecLow && val < (int) randomSpecHigh : 
+							"Logic to convert float to int before adding value failed!\n";
+						result.add(new Datum.Int(val));
 						break;
 					}
-					default:
-						throw new IllegalStateException("Trying to aggregate over type " + constraintCondition.value().type() + "!\n");
-					}
 				}
+				assert satisfiesConstraint == true : "Finished allocating but did not satisfy constraint!\n";
 				break;
 			case MIN:
+                assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : 
+                	"Constraint demands impossible value!\n" + 
+                	"Constraint condition : " + constraintCondition.toString() + "\n" +
+                	"Definition           : " + definition.toString() + "\n";
+
+				satisfiesConstraint = false;
+				while(result.size() < availableNodes) {
+					float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
+					switch(constraintCondition.operator()) {
+					case EQ:
+						if(data < requiredValue)
+							continue;
+						if(data == requiredValue)
+							satisfiesConstraint = true;
+						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+							data = requiredValue;
+							satisfiesConstraint = true;
+						}
+						break;
+					case GE:
+						if(data < requiredValue)
+							continue;
+						if(data >= requiredValue)
+							satisfiesConstraint = true;
+						break;
+					case GT:
+						if(data <= requiredValue)
+							continue;
+						if(data > requiredValue)
+							satisfiesConstraint = true;
+						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+							data = (float) (requiredValue + (float) (random.nextDouble() * (randomSpecHigh - requiredValue)));
+							if(data == requiredValue)
+								continue;
+							satisfiesConstraint = true;
+						}
+						break;
+					case LE:
+						if(data <= requiredValue)
+							satisfiesConstraint = true;
+						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+							data = (float) (randomSpecLow + (float) (random.nextDouble() * (requiredValue - randomSpecLow)));
+							satisfiesConstraint = true;
+						}
+						break;
+					case LT:
+						if(data < requiredValue)
+							satisfiesConstraint = true;
+						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+							data = (float) (randomSpecLow + (float) (random.nextDouble() * (requiredValue - randomSpecLow)));
+							if(data == requiredValue)
+								continue;
+							satisfiesConstraint = true;
+						}
+						break;
+					case NOTEQ:
+						if(data == requiredValue && !satisfiesConstraint)
+							continue;
+						break;
+					
+					}
+					switch(definition.randomspec().type()) {
+					case FLOAT:
+						result.add(new Datum.Flt(data));
+						break;
+					case INT:
+						int val = (int) (Math.ceil(data));
+						assert val >= randomSpecLow && val < randomSpecHigh : "Logic to convert float to int before adding value failed!\n";
+						result.add(new Datum.Int(val));
+						break;
+					}
+				}
+				assert satisfiesConstraint == true : "Finished allocating but did not satisfy constraint!\n";
 				break;
 			case SUM:
 				break;
