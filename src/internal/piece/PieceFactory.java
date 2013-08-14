@@ -164,7 +164,7 @@ public class PieceFactory implements Serializable {
 		private Piece(String interfaces) {
 			super(interfaces);
 			if(interfaces.equals(""))
-				this.visual = "+------+\n|      |\n|      |\n|      |\n+------+\n";
+				this.visual = "+----------+\n|          |\n|          |\n|          |\n|          |\n|          |\n+----------+\n";
 			else
 				initializeVisual();
 		}

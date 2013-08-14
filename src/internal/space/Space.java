@@ -266,8 +266,8 @@ public class Space extends Dimension {
 		String visualToReplace = columnRepresentation.get(coordinates.x());
 		
 		List<String> subStrings = new ArrayList<String>(Arrays.asList(visualToReplace.split("\n")));
-//		FIXME: Should not be hard-coded as length 5
-		int replaceIndex = coordinates.y() * 5;
+//		FIXME: Should not be hard-coded as length 7
+		int replaceIndex = coordinates.y() * 7;
 		
 		ITile tile = getByArray(coordinates);
 		
