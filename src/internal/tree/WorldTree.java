@@ -242,6 +242,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			maxListSize = maxListSize > list.size() ? maxListSize : list.size();
 		}
 		
+//		Make sure all lists are of the same size
 		for(List<String> list : listStringList) {
 			if(list.size() < maxListSize) {
 //				Add new strings of largest length to this list
@@ -271,7 +272,6 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 //			if(!stringRepresentation.contains(fullLine.toString()))
 				stringRepresentation.add(fullLine.toString());
 		}
-		
 //		We have obtained every line as we should. We now need to own everything that is within is.
 		prepareToString();
 		
