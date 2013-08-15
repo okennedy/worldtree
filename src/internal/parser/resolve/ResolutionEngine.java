@@ -17,6 +17,7 @@ import internal.parser.containers.Reference;
 import internal.parser.containers.Relation;
 import internal.parser.containers.Relation.InbuiltRelationEnum;
 import internal.parser.containers.pattern.IPattern;
+import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
 import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
@@ -60,6 +61,7 @@ public class ResolutionEngine {
 			break;
 		}
 		case PROPERTYDEF: {
+			result = resolveDefinition(node, (PropertyDef) statement);
 			break;
 		}
 		case QUERY: {
@@ -131,6 +133,66 @@ public class ResolutionEngine {
 			break;
 		}
 //		return makeString(statement, result);
+		return result;
+	}
+
+	private Result resolveDefinition(IWorldTree node, PropertyDef definition) {
+		Result result = resolve(node, definition.query());
+		
+		Reference childReference 	= definition.query().pattern().lhs();
+		Column childNodes			= result.get(childReference.toString());
+		String propertyName			= definition.property().name();
+		
+		switch(definition.type()) {
+		case AGGREGATE:
+			switch(definition.aggregateExpression().type()) {
+			case COUNT:
+				node.addProperty(propertyName, new Datum.Int(childNodes.size()));
+				break;
+			case MAX:
+				float maxValue = 0;
+				for(IWorldTree childNode : childNodes) {
+					Datum datum = childNode.properties().get(propertyName);
+					if(datum != null) {
+						float value = (Float) datum.toFlt().data();
+						maxValue = maxValue > value ? maxValue : value;
+					}
+				}
+				node.addProperty(propertyName, new Datum.Flt(maxValue));	//FIXME: Should probably be same type as child datum(s)
+				break;
+			case MIN:
+				float minValue = 0;
+				for(IWorldTree childNode : childNodes) {
+					Datum datum = childNode.properties().get(propertyName);
+					if(datum != null) {
+						float value = (Float) datum.toFlt().data();
+						minValue = minValue < value ? minValue : value;
+					}
+				}
+				node.addProperty(propertyName, new Datum.Flt(minValue));	//FIXME: Should probably be same type as child datum(s)
+				break;
+			case SUM:
+				float sum = 0;
+				for(IWorldTree childNode : childNodes) {
+					Datum datum = childNode.properties().get(propertyName);
+					if(datum != null) {
+						float value = (Float) datum.toFlt().data();
+						sum += value;
+					}
+				}
+				node.addProperty(propertyName, new Datum.Flt(sum));			//FIXME: Should probably be same type as child datum(s)
+				break;
+			default:
+				break;
+			}
+			break;
+		case INHERIT:
+			break;
+		case BASIC:
+		case RANDOM:
+		default:
+			throw new IllegalStateException("Cannot handle property-definitions of type " + definition.type() + " in ResolutionEngine");
+		}
 		return result;
 	}
 
