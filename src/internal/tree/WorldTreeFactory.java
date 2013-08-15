@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
@@ -16,18 +15,13 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 
-import javax.sound.midi.SysexMessage;
-import javax.swing.SpringLayout.Constraints;
-
 import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.StatementType;
-import internal.parser.containers.Datum.Bool;
 import internal.parser.containers.condition.ICondition;
-import internal.parser.containers.expr.AggExpr.AggType;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
@@ -288,16 +282,7 @@ public class WorldTreeFactory implements Serializable {
 							materializeDefinition(region, c, null, definition);
 						}
 					}
-					ResolutionEngine.evaluate(region, c);
 				}
-			}
-			for(IWorldTree room : getRooms()) {
-				for(Constraint c : room.constraints()) {
-					ResolutionEngine.evaluate(room, c);
-				}
-			}
-			for(Constraint c : this.constraints()) {
-				ResolutionEngine.evaluate(this, c);
 			}
 		}
 
@@ -347,6 +332,7 @@ public class WorldTreeFactory implements Serializable {
 						obj.addProperty(def.property().name(), value);
 						result.remove(randomIndex);
 					}
+					ResolutionEngine.evaluate(node, definition);
 				}
 			}
 			
@@ -563,6 +549,78 @@ public class WorldTreeFactory implements Serializable {
 				assert satisfiesConstraint == true : "Finished allocating but did not satisfy constraint!\n";
 				break;
 			case SUM:
+				assert (requiredValue < (randomSpecHigh * availableNodes) && requiredValue >= randomSpecLow) : 
+                	"Constraint demands impossible value!\n" + 
+                	"Constraint condition : " + constraintCondition.toString() + "\n" +
+                	"Definition           : " + definition.toString() + "\n";
+				
+				while(true) {
+					while(result.size() < availableNodes) {
+						float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
+						switch(definition.randomspec().type()) {
+						case FLOAT:
+							result.add(new Datum.Flt(data));
+							requiredValue -= data;
+							break;
+						case INT:
+							int val = (int) (Math.ceil(data));
+							assert val >= randomSpecLow && val < randomSpecHigh : 
+								"Logic to convert float to int before adding value failed!\n";
+							result.add(new Datum.Int(val));
+							requiredValue -= val;
+							break;
+						}
+					}
+					switch(constraintCondition.operator()) {
+					case EQ:
+						if(requiredValue != 0) {
+							result.clear();
+							requiredValue 		= constraintValue;
+							continue;
+						}
+						break;
+					case GE:
+						if(requiredValue > 0) {
+							result.clear();
+							requiredValue 		= constraintValue;
+							continue;
+						}
+						break;
+					case GT:
+						if(requiredValue >= 0) {
+							result.clear();
+							requiredValue 		= constraintValue;
+							continue;
+						}
+						break;
+					case LE:
+						if(requiredValue < 0) {
+							result.clear();
+							requiredValue 		= constraintValue;
+							continue;
+						}
+						break;
+					case LT:
+						if(requiredValue <= 0) {
+							result.clear();
+							requiredValue 		= constraintValue;
+							continue;
+						}
+						break;
+					case NOTEQ:
+						if(requiredValue == 0) {
+							result.clear();
+							requiredValue 		= constraintValue;
+							continue;
+						}
+						break;
+					default:
+						break;
+					
+					}
+//					Condition has been satisfied..break from the infinite loop
+					break;
+				}
 				break;
 			default:
 				break;
