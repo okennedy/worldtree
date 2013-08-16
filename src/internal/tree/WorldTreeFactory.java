@@ -25,6 +25,7 @@ import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.StatementType;
+import internal.parser.containers.Datum.Bool;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.AggExpr.AggType;
 import internal.parser.containers.property.Property;
@@ -294,7 +295,7 @@ public class WorldTreeFactory implements Serializable {
 	
 	public Collection<Datum> materializeDefinition(IWorldTree node, Constraint constraint, 
 			PropertyDef parentDefinition, PropertyDef definition) {
-		Collection<Datum> result = new ArrayList<Datum>();
+		List<Datum> result = new ArrayList<Datum>();
 		
 		RandomSpec randomSpec 			= definition.randomspec();
 		ICondition definitionCondition 	= definition.condition();
@@ -312,8 +313,22 @@ public class WorldTreeFactory implements Serializable {
 				Hierarchy defHierarchyLevel = Hierarchy.parse(def.level());
 				if(!lowerHierarchyLevel.equals(defHierarchyLevel))
 					continue;
-				if(definition.aggregateExpression().expr().property().name().equalsIgnoreCase(def.property().name()))
-					result = materializeDefinition(node, constraint, definition, def);
+				if(definition.aggregateExpression().expr().property().name().equalsIgnoreCase(def.property().name())) {
+					result.addAll(materializeDefinition(node, constraint, definition, def));
+					Result queryResult = ResolutionEngine.evaluate(node, definition.query());
+					
+					List<IWorldTree> row = null;
+					String reference 	= def.property().reference().toString();
+					int columnIndex 	= queryResult.indexOf(reference);
+					for(int rowIndex = 0; rowIndex < queryResult.get(0).size(); rowIndex++) {
+						row 			= queryResult.getRow(rowIndex);
+						int randomIndex	= new Random().nextInt(result.size());
+						Datum value 	= result.get(randomIndex);
+						IWorldTree obj 	= row.get(columnIndex);
+						obj.addProperty(def.property().name(), value);
+						result.remove(randomIndex);
+					}
+				}
 			}
 			
 			break;
@@ -402,16 +417,25 @@ public class WorldTreeFactory implements Serializable {
 						
 						diff 	= randomSpecHigh - randomSpecLow;
 						
-						while(result.size() < availableNodes) {
-							float data = randomSpecLow + (float) (random.nextGaussian() * (diff));
-							if(requiredValue == 0)
-								data = 0;
-							else if (requiredValue - data < 0) {
-								assert requiredValue >= randomSpecLow && requiredValue < randomSpecHigh : 
-									"Cannot substitute data with value!";
-								data = requiredValue;
+						while(true) {
+							while(result.size() < availableNodes) {
+								float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
+								if(requiredValue == 0)
+									data = 0;
+								else if (requiredValue - data < 0) {
+									assert requiredValue >= randomSpecLow && requiredValue < randomSpecHigh : 
+										"Cannot substitute data with value!";
+									data = (int) requiredValue;
+								}
+								requiredValue -= data;
+								result.add(new Datum.Flt(data));
 							}
-							result.add(new Datum.Flt(data));
+							if(requiredValue > 0) {
+								result.clear();
+								requiredValue = constraintValue;
+							}
+							else
+								break;
 						}
 						break;
 					default:
@@ -476,17 +500,27 @@ public class WorldTreeFactory implements Serializable {
 						
 						diff 	= randomSpecHigh - randomSpecLow;
 						
-						while(result.size() < availableNodes) {
-							int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
-							if(requiredValue == 0)
-								data = 0;
-							else if (requiredValue - data < 0) {
-								assert requiredValue >= randomSpecLow && requiredValue < randomSpecHigh : 
-									"Cannot substitute data with value!";
-								data = (int) requiredValue;
+						while(true) {
+							while(result.size() < availableNodes) {
+								int data = (int) (randomSpecLow + (float) (random.nextDouble() * (diff)));
+								if(requiredValue == 0)
+									data = 0;
+								else if (requiredValue - data < 0) {
+									assert requiredValue >= randomSpecLow && requiredValue < randomSpecHigh : 
+										"Cannot substitute data with value!";
+									data = (int) requiredValue;
+								}
+								requiredValue -= data;
+								result.add(new Datum.Int(data));
 							}
-							result.add(new Datum.Int(data));
+							if(requiredValue > 0) {
+								result.clear();
+								requiredValue = constraintValue;
+							}
+							else
+								break;
 						}
+						System.out.println();
 						break;
 					default:
 						break;
@@ -625,7 +659,7 @@ public class WorldTreeFactory implements Serializable {
 			int startY = 0 + (int) (Math.random() * space.getYDimension());
 			Coordinates startCoords = new Coordinates(true, startX, startY);
 			ITile tile = initTile(startCoords, null);	//FIXME
-			tile.addProperty("start", "1");
+			tile.addProperty("start", new Datum.Bool(true));
 			tile.addToVisual("S");
 			space.setByCoord(startCoords, tile);
 			space.setCurrentCoordinates(startCoords);
@@ -641,7 +675,7 @@ public class WorldTreeFactory implements Serializable {
 					endCoords = new Coordinates(true, endX, endY);
 			}
 			tile = initTile(endCoords, null);	//FIXME
-			tile.addProperty("end", "1");
+			tile.addProperty("end", new Datum.Bool(true));
 			tile.addToVisual("E");
 			space.setByCoord(endCoords, tile);
 		}
