@@ -359,223 +359,126 @@ public class WorldTreeFactory implements Serializable {
 
 			int availableNodes	= ResolutionEngine.evaluate(node, definition.query()).get(0).size();
 			
-			switch(constraintCondition.operator()) {
-			case EQ: {
-				float requiredValue = (Float) constraintValue; 
-				float diff = randomSpecHigh - randomSpecLow;
-				
-				boolean satisfiesConstraint = false;
-				
-				switch(randomSpec.type()) {
-				case FLOAT:
-					switch(definition.aggregateExpression().type()) {
-					case COUNT:
-						int nodeCount = (int) requiredValue;
-						
-						while(result.size() < nodeCount) {
-							float data = randomSpecLow + (float) (random.nextGaussian() * (diff));
-							if(data == 0)
-								continue;
-							result.add(new Datum.Flt(data));
-						}
-						while(result.size() < availableNodes) {
-							float data = randomSpecLow + (float) (random.nextGaussian() * (diff));
-							result.add(new Datum.Flt(data));
-						}
-						break;
-					case MAX:
-						assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : 
-								"Constraint demands impossible value!\n" + 
-								"Constraint condition : " + constraintCondition.toString() + "\n" +
-								"Definition           : " + definition.toString() + "\n";
-
-						diff = requiredValue - randomSpecLow;
-						
-						satisfiesConstraint = false;
-						while(result.size() < availableNodes) {
-							float data = randomSpecLow + (float) (random.nextGaussian() * (diff));
-							if(data == requiredValue)
-								satisfiesConstraint = true;
-							if(!satisfiesConstraint && result.size() == availableNodes - 1)
-								data = requiredValue;
-							result.add(new Datum.Flt(data));
-						}
-						break;
-					case MIN:
-						assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : 
-							"Constraint demands impossible value!\n" + 
-							"Constraint condition : " + constraintCondition.toString() + "\n" +
-							"Definition           : " + definition.toString() + "\n";
-
-						diff = randomSpecHigh - requiredValue;
-				
-						satisfiesConstraint = false;
-						while(result.size() < availableNodes) {
-							float data = requiredValue + (float) (random.nextGaussian() * (diff));
-							if(data == requiredValue)
-								satisfiesConstraint = true;
-							if(!satisfiesConstraint && result.size() == availableNodes - 1)
-								data = requiredValue;
-							result.add(new Datum.Flt(data));
-						}
-						break;
-					case SUM:
-						assert randomSpecHigh * availableNodes >= constraintValue : 
-								"Constraint demands impossible value!\n" +
-								"Constraint condition : " + constraintCondition.toString() + "\n" +
-								"Definition           : " + definition.toString() + "\n";
-						
-						diff 	= randomSpecHigh - randomSpecLow;
-						
-						while(true) {
-							while(result.size() < availableNodes) {
-								float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
-								if(requiredValue == 0)
-									data = 0;
-								else if (requiredValue - data < 0) {
-									assert requiredValue >= randomSpecLow && requiredValue < randomSpecHigh : 
-										"Cannot substitute data with value!";
-									data = (int) requiredValue;
-								}
-								requiredValue -= data;
-								result.add(new Datum.Flt(data));
-							}
-							if(requiredValue > 0) {
-								result.clear();
-								requiredValue = constraintValue;
-							}
-							else
-								break;
-						}
-						break;
-					default:
-						break;
-					}
-					break;
-				case INT:
-					switch(parentDefinition.aggregateExpression().type()) {
-					case COUNT:
-						int nodeCount = (int) requiredValue;
-						
-						while(result.size() < nodeCount) {
-							int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
-							if(data == 0)
-								continue;
-							result.add(new Datum.Int(data));
-						}
-						while(result.size() < availableNodes) {
-							int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
-							result.add(new Datum.Int(data));
-						}
-						break;
-					case MAX:
-						assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : "Constraint demands impossible value!\n" + 
-								"Constraint condition : " + constraintCondition.toString() + "\n" +
-								"Definition           : " + definition.toString() + "\n";
-
-						diff = requiredValue - randomSpecLow;
-						
-						satisfiesConstraint = false;
-						while(result.size() < availableNodes) {
-							int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
-							if(data == requiredValue)
-								satisfiesConstraint = true;
-							if(!satisfiesConstraint && result.size() == availableNodes - 1)
-								data = (int) requiredValue;
-							result.add(new Datum.Int(data));
-						}
-						break;
-					case MIN:
-						assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : "Constraint demands impossible value!\n" + 
-						"Constraint condition : " + constraintCondition.toString() + "\n" +
-						"Definition           : " + definition.toString() + "\n";
-
-						diff = randomSpecHigh - requiredValue;
-				
-						satisfiesConstraint = false;
-						while(result.size() < availableNodes) {
-							int data = (int) (requiredValue + (float) (random.nextGaussian() * (diff)));
-							if(data == requiredValue)
-								satisfiesConstraint = true;
-							if(!satisfiesConstraint && result.size() == availableNodes - 1)
-								data = (int) requiredValue;
-							result.add(new Datum.Int(data));
-						}
-						break;
-					case SUM:
-						assert randomSpecHigh * availableNodes >= constraintValue : 
-								"Constraint demands impossible value \n" +
-								"Constraint condition : " + constraintCondition.toString() + "\n" +
-								"Definition           : " + definition.toString() + "\n";
-						
-						diff 	= randomSpecHigh - randomSpecLow;
-						
-						while(true) {
-							while(result.size() < availableNodes) {
-								int data = (int) (randomSpecLow + (float) (random.nextDouble() * (diff)));
-								if(requiredValue == 0)
-									data = 0;
-								else if (requiredValue - data < 0) {
-									assert requiredValue >= randomSpecLow && requiredValue < randomSpecHigh : 
-										"Cannot substitute data with value!";
-									data = (int) requiredValue;
-								}
-								requiredValue -= data;
-								result.add(new Datum.Int(data));
-							}
-							if(requiredValue > 0) {
-								result.clear();
-								requiredValue = constraintValue;
-							}
-							else
-								break;
-						}
-						System.out.println();
-						break;
-					default:
-						break;
-					}
-					break;
-				}
-				break;
-			}
+			float requiredValue = constraintValue; 
+			float diff = randomSpecHigh - randomSpecLow;
 			
-			case GE: {
+			int nodeCount = -1;
+			switch(definition.aggregateExpression().type()) {
+			case COUNT:
+				switch(constraintCondition.operator()) {
+				case EQ:
+					nodeCount = (int) requiredValue;
+					break;
+				case GE:
+					nodeCount	= (int) (requiredValue + (Math.random() * (availableNodes - requiredValue)));
+					break;
+				case GT:
+					nodeCount	= (int) (requiredValue + 1 + (Math.random() * (availableNodes - requiredValue)));
+					break;
+				case LE:
+					nodeCount	= (int) (0 + (Math.random() * (requiredValue + 1)));
+					break;
+				case LT:
+					nodeCount	= (int) (0 + (Math.random() * (requiredValue)));
+					break;
+				case NOTEQ:
+					while(nodeCount != requiredValue)
+						nodeCount	= (int) (0 + (Math.random() * (availableNodes)));
+					break;
+				default:
+					break;
+				}
+				while(result.size() < nodeCount) {
+					switch(constraintCondition.value().type()) {
+					case FLOAT: {
+						float data = (float) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+						if(data == 0)
+							continue;
+						result.add(new Datum.Flt(data));
+						break;
+					}
+					case INT: {
+						int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+						if(data == 0)
+							continue;
+						result.add(new Datum.Int(data));
+						break;
+					}
+					default:
+						throw new IllegalStateException("Trying to aggregate over type " + constraintCondition.value().type() + "!\n");
+					}
+				}
 				while(result.size() < availableNodes) {
-					result.add(new Datum.Flt(constraintValue + 
-							((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+					result.add(new Datum.Flt(0f));
 				}
 				break;
-			}
-			case GT: {
-//				We Assume that constraintCondition.value() is lesser than this.randomSpec.high
+			case MAX:
+                assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : 
+                	"Constraint demands impossible value!\n" + 
+                	"Constraint condition : " + constraintCondition.toString() + "\n" +
+                	"Definition           : " + definition.toString() + "\n";
+
+				boolean satisfiesConstraint = false;
 				while(result.size() < availableNodes) {
-					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+					switch(constraintCondition.value().type()) {
+					case FLOAT: {
+						float data = (float) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+						switch(constraintCondition.operator()) {
+						case EQ:
+							if(data > requiredValue)
+								continue;
+							if(data == requiredValue)
+								satisfiesConstraint = true;
+							if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+								data = requiredValue;
+								satisfiesConstraint = true;
+							}
+							break;
+						case GE:
+							if(data >= requiredValue)
+								satisfiesConstraint = true;
+							if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+								data = (float) (requiredValue + (float) (random.nextGaussian() * (randomSpecHigh - requiredValue)));
+								satisfiesConstraint = true;
+							}
+							break;
+						case GT:
+							if(data > requiredValue)
+								satisfiesConstraint = true;
+							if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+								data = (float) (requiredValue + (float) (random.nextGaussian() * (randomSpecHigh - requiredValue)));
+								if(data == requiredValue)
+									continue;
+								satisfiesConstraint = true;
+							}
+							break;
+						case LE:
+							break;
+						case LT:
+							break;
+						case NOTEQ:
+							break;
+						
+						}
+						result.add(new Datum.Flt(data));
+						break;
+					}
+					case INT: {
+						int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+						result.add(new Datum.Int(data));
+						break;
+					}
+					default:
+						throw new IllegalStateException("Trying to aggregate over type " + constraintCondition.value().type() + "!\n");
+					}
 				}
-//				No need for an 'else' case here thanks to parser checks
 				break;
-			}
-			case LE: {
-				while(result.size() < availableNodes) {
-					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
-				}
+			case MIN:
 				break;
-			}
-			case LT: {
-				while(result.size() < availableNodes) {
-					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
-				}
+			case SUM:
 				break;
-			}
-			case NOTEQ: {
-				while(result.size() < availableNodes) {
-					Datum datum = new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue))));
-					float value = Float.parseFloat(datum.toString());
-					if(value != constraintValue)
-						result.add(datum);
-				}
+			default:
 				break;
-			}
 			}
 		}
 		return result;
