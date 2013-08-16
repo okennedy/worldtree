@@ -103,9 +103,25 @@ public abstract class Datum {
 		}
 
 		@Override
-		public Collection<Datum> allocate(int size) {
-			// TODO Auto-generated method stub
-			return null;
+		public List<Datum> allocate(int size) {
+			List<Datum> result = new ArrayList<Datum>();
+			
+			int availableQty = (Integer) data;
+			while(result.size() < size) {
+				int qty = 0 + ((int) (Math.random() * (availableQty + 1)));
+				result.add(new Datum.Int(qty));
+				availableQty -= qty;
+			}
+			
+//			TODO: Remove this
+			int sum = 0;
+			for(Datum d : result) {
+				sum += (Integer) d.data;
+			}
+			assert sum == (Integer) data : "Datum.Int.allocate failed to allocate accurately!\n"
+					+ "Total allocated :" + sum + "\n"
+					+ "Available       :" + data + "\n";
+			return result;
 		}
 	}
 	
@@ -122,9 +138,25 @@ public abstract class Datum {
 		}
 
 		@Override
-		public Collection<Datum> allocate(int size) {
-			// TODO Auto-generated method stub
-			return null;
+		public List<Datum> allocate(int size) {
+			List<Datum> result = new ArrayList<Datum>();
+			
+			float availableQty = (Float) data;
+			while(result.size() < size) {
+				float qty = 0 + ((float) (Math.random() * (availableQty + 1)));
+				result.add(new Datum.Flt(qty));
+				availableQty -= qty;
+			}
+			
+//			TODO: Remove this
+			float sum = 0;
+			for(Datum d : result) {
+				sum += (Float) d.data;
+			}
+			assert sum == (Integer) data : "Datum.Int.allocate failed to allocate accurately!\n"
+					+ "Total allocated :" + sum + "\n"
+					+ "Available       :" + data + "\n";
+			return result;
 		}
 	}
 	
@@ -141,9 +173,8 @@ public abstract class Datum {
 		}
 
 		@Override
-		public Collection<Datum> allocate(int size) {
-			// TODO Auto-generated method stub
-			return null;
+		public List<Datum> allocate(int size) {
+			throw new IllegalStateException("Cannot allocate value of type " + this.getClass().getName());
 		}
 	}
 	
@@ -160,13 +191,11 @@ public abstract class Datum {
 		}
 
 		@Override
-		public Collection<Datum> allocate(int size) {
+		public List<Datum> allocate(int size) {
 			// TODO Auto-generated method stub
 			return null;
 		}
 	}
 
-
-
-	public abstract Collection<Datum> allocate(int size);
+	public abstract List<Datum> allocate(int size);
 }
