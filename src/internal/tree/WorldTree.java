@@ -145,6 +145,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.constraints = constraints;
 	}
 	
+	public void pushDownConstraints() {
+		for(Constraint c : this.constraints) {
+			
+		}
+	}
+	
 	/* -------------------------------------------  String methods  ------------------------------------------- */
 	public List<String> getStringRepresentation() {
 		stringRepresentation.removeAll(stringRepresentation);
