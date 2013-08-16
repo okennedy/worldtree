@@ -277,7 +277,7 @@ PropertyDef propertyDef() :
             
         |   < AGGREGATE > aggExpr = aggExpr() < IN > query = query(level)
         	{ return new PropertyDef(level, property, aggExpr, query); }
-        			|   < RANDOM > randomspec = randomspec() < WHERE > condition = condition()
+        			|   < RANDOM > randomspec = randomspec() (< WHERE > condition = condition())?
 			{ return new PropertyDef(level, property, randomspec, condition); }
         )
         
