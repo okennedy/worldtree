@@ -22,11 +22,15 @@ import javax.swing.SpringLayout.Constraints;
 import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.containers.Constraint;
+import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.StatementType;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
+import internal.parser.containers.property.PropertyDef.RandomSpec;
+import internal.parser.resolve.ResolutionEngine;
+import internal.parser.resolve.Result;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
@@ -182,6 +186,9 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void initTiles() {
+			for(IWorldTree child : getRegions()) {
+				child.initialize();
+			}
 		}
 
 		@Override
@@ -215,21 +222,26 @@ public class WorldTreeFactory implements Serializable {
 			return null;
 		}
 
-		private Collection<IWorldTree> getRooms() {
-			Collection<IWorldTree> result = new ArrayList<IWorldTree>();
-			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
-			nodes.add(this);
+		private Collection<IWorldTree> allNodes() {
+			List<IWorldTree> result = new ArrayList<IWorldTree>();
+			result.add(this);
 			IWorldTree node = null;
 			try {
 				int index = 0;
-				while(index < nodes.size()) {
-					node = nodes.get(index);
-					nodes.addAll(node.children());
+				while(index < result.size()) {
+					node = result.get(index);
+					if(node.children() != null)
+						result.addAll(node.children());
 					index++;
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			return result;
+		}
+		private Collection<IWorldTree> getRooms() {
+			Collection<IWorldTree> result 	= new ArrayList<IWorldTree>();
+			Collection<IWorldTree> nodes 	= allNodes();
 			
 			for(IWorldTree n : nodes) {
 				if(n.getClass().equals(WorldTreeFactory.Room.class))
@@ -239,20 +251,8 @@ public class WorldTreeFactory implements Serializable {
 		}
 		
 		private Collection<IWorldTree> getRegions() {
-			Collection<IWorldTree> result = new ArrayList<IWorldTree>();
-			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
-			nodes.add(this);
-			IWorldTree node = null;
-			try {
-				int index = 0;
-				while(index < nodes.size()) {
-					node = nodes.get(index);
-					nodes.addAll(node.children());
-					index++;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			Collection<IWorldTree> result 	= new ArrayList<IWorldTree>();
+			Collection<IWorldTree> nodes 	= allNodes();
 			
 			for(IWorldTree n : nodes) {
 				if(n.getClass().equals(WorldTreeFactory.Region.class))
@@ -262,21 +262,8 @@ public class WorldTreeFactory implements Serializable {
 		}
 		
 		private Collection<IWorldTree> getTiles() {
-			Collection<IWorldTree> result = new ArrayList<IWorldTree>();
-			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
-			nodes.add(this);
-			IWorldTree node = null;
-			try {
-				int index = 0;
-				while(index < nodes.size()) {
-					node = nodes.get(index);
-					nodes.addAll(node.children());
-					index++;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
+			Collection<IWorldTree> result 	= new ArrayList<IWorldTree>();
+			Collection<IWorldTree> nodes 	= allNodes();
 			for(IWorldTree n : nodes) {
 				if(n.getClass().equals(WorldTreeFactory.Tile.class))
 					result.add(n);
@@ -287,40 +274,113 @@ public class WorldTreeFactory implements Serializable {
 		@Override
 		public void materializeConstraints() {
 //			We first float the relevant constraints
-			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
-			nodes.add(this);
-			IWorldTree node = null;
-			try {
-				int index = 0;
-				while(index < nodes.size()) {
-					node = nodes.get(index);
-					nodes.addAll(node.children());
-					index++;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			List<IWorldTree> nodes = (List<IWorldTree>) allNodes();
 			
 			nodes.remove(0);
-			for(IWorldTree n : nodes) {
-				for(Constraint constraint : n.constraints()) {
+			for(IWorldTree node : nodes) {
+				for(Constraint constraint : node.constraints()) {
 					ICondition constraintCondition = constraint.condition();
 					while(constraintCondition != null) {
-						String propertyName = constraintCondition.property().name();
+						String constraintPropName 	= constraintCondition.property().name();
 						for (PropertyDef definition : definitions()) {
-							String propDefPropName = definition.property().name();
-							if(propDefPropName.equals(propertyName)) {
+							String definitionPropName 	= definition.property().name();
+							if(definitionPropName.equalsIgnoreCase(constraintPropName) && 
+									definition.level().equalsIgnoreCase(constraint.level())) {
 //								We cannot materialize definitions that have conditions
-								if(definition.condition() != null)
-									continue;
-								constraint.earlyInit(n.children().size(), definition);
+								materializeDefinition(node, constraint, definition);
 							}
 						}
 						constraintCondition = constraintCondition.subCondition();
+						
 					}
 				}
 			}
 		}
+	}
+	
+	public Collection<Datum> materializeDefinition(IWorldTree node, Constraint constraint, PropertyDef definition) {
+		Collection<Datum> result = new ArrayList<Datum>();
+		
+		RandomSpec randomSpec 			= definition.randomspec();
+		ICondition definitionCondition 	= definition.condition();
+		ICondition constraintCondition	= constraint.condition();
+		
+		switch(definition.type()) {
+		case AGGREGATE:
+			for(PropertyDef def : definitions()) {
+				if(def.equals(definition))
+					continue;
+				if(definition.aggregateExpression().expr().property().name().equalsIgnoreCase(def.property().name()))
+					result = materializeDefinition(node, constraint, def);
+			}
+			
+			break;
+		case BASIC:
+			break;
+		case INHERIT:
+			break;
+		case RANDOM:
+//			In early initialization, we don't have a skeleton..Thus, break for all condition-based RandomSpecs.
+			assert definitionCondition == null : "error: Trying to early-init a definition that has a condition!\n";
+			assert randomSpec != null : "error: PropertyDef type is random, but randomSpec is null!\n";
+			
+			Random random = new Random();
+			
+			float constraintValue = Float.parseFloat(constraintCondition.value().toString());
+			float randomSpecHigh  = Float.parseFloat(randomSpec.high().toString());
+			float randomSpecLow   = Float.parseFloat(randomSpec.low().toString());
+			assert constraintValue <= randomSpecHigh : "Constraint demands value greater than what definition defines!\n" +
+					"Constraint condition : " + constraintCondition.toString() + "\n" +
+					"Definition           : " + this.toString() + "\n";
+
+			
+			int availableNodes	= ResolutionEngine.evaluate(node, definition.query()).get(0).size();
+			
+			int defNodeCount = 0 + random.nextInt(availableNodes + 1);
+			switch(constraintCondition.operator()) {
+			case EQ:
+				Datum requiredValue = constraintCondition.value();
+				result.add(requiredValue);
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(randomSpecLow + 
+							((float) (random.nextGaussian() * (randomSpecHigh - randomSpecLow)))));
+				}
+				break;
+			case GE:
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(constraintValue + 
+							((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+				}
+				break;
+			case GT:
+//				We Assume that constraintCondition.value() is lesser than this.randomSpec.high
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+				}
+//				No need for an 'else' case here thanks to parser checks
+				break;
+			case LE:
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+				}
+				break;
+			case LT:
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+				}
+				break;
+			case NOTEQ:
+				while(result.size() < defNodeCount) {
+					Datum datum = new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue))));
+					float value = Float.parseFloat(datum.toString());
+					if(value != constraintValue)
+						result.add(datum);
+				}
+				break;
+			}
+			break;
+		}
+		return result;
 	}
 	
 	/**
@@ -402,6 +462,9 @@ public class WorldTreeFactory implements Serializable {
 		public Region(String name, IWorldTree parent, Space space) {
 			super(name, parent, new ArrayList<Constraint>());
 			this.space = space;
+		}
+
+		private void setStartEndTiles() {
 //			First tile
 			int startX = 0 + (int) (Math.random() * space.getXDimension());
 			int startY = 0 + (int) (Math.random() * space.getYDimension());
@@ -427,17 +490,23 @@ public class WorldTreeFactory implements Serializable {
 			tile.addToVisual("E");
 			space.setByCoord(endCoords, tile);
 		}
-
 		@Override
 		public void initialize() {
-//			TODO: Ensure all pieces are traverse-able.
-			
-			initRegion();
+//			FIXME :Perhaps this should be done better
+			for(int i = 0; i < space.getYDimension(); i++) {
+				for(int j = 0; j < space.getXDimension(); j++) {
+					Coordinates coords = new Coordinates(true, j, i);
+					String coordString = "(" + coords.x + "," + coords.y + ")";
+					ITile tile = new Tile("tile" + coordString, coords, this, PieceFactory.newPiece(""));
+					space.setByCoord(coords, tile);
+				}
+			}
+//			initRegion();
 			initString();
 		}
 		
 		/**
-		 * This method can be used to instantly initialize this Region and all its children tiles.
+		 * This method can be used to fully initialize this Region with all its children tiles.
 		 */
 		private void initRegion() {
 			for(int i = 0; i < space.getYDimension(); i++) {
