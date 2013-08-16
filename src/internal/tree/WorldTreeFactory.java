@@ -273,28 +273,6 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void materializeConstraints() {
-//			We first float the relevant constraints
-			List<IWorldTree> nodes = (List<IWorldTree>) allNodes();
-			
-			nodes.remove(0);
-			for(IWorldTree node : nodes) {
-				for(Constraint constraint : node.constraints()) {
-					ICondition constraintCondition = constraint.condition();
-					while(constraintCondition != null) {
-						String constraintPropName 	= constraintCondition.property().name();
-						for (PropertyDef definition : definitions()) {
-							String definitionPropName 	= definition.property().name();
-							if(definitionPropName.equalsIgnoreCase(constraintPropName) && 
-									definition.level().equalsIgnoreCase(constraint.level())) {
-//								We cannot materialize definitions that have conditions
-								materializeDefinition(node, constraint, definition);
-							}
-						}
-						constraintCondition = constraintCondition.subCondition();
-						
-					}
-				}
-			}
 		}
 	}
 	
