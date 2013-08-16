@@ -4,6 +4,10 @@ import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.condition.Condition;
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.pattern.IPattern;
+import internal.parser.containers.pattern.Pattern;
+import internal.parser.containers.query.IQuery;
+import internal.parser.containers.query.Query;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -156,20 +160,36 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	}
 	
 	protected void pushDownConstraints() {
+		if(this.children == null)
+			return;
 		for(Constraint c : this.constraints) {
 			try {
 				Class<?> constraintClass = Class.forName(WorldTreeFactory.class.getName() + "$" + titleCase(c.level()));
 				if(constraintClass.equals(this.getClass())) {
-					List<Datum> values = c.condition().value().allocate(children.size());
+					Datum d = c.condition().value();
+					List<Datum> values = d.allocate(children.size());
 					for(IWorldTree child : children) {
 						Datum value = values.get((new Random().nextInt(values.size())));
 						String className = child.getClass().getName();
-						String level = className.substring(className.indexOf("$"));
+						String level = className.substring(className.indexOf("$") + 1);
 
 //						FIXME: This will only work for very simple conditions!
-						ICondition condition = new Condition(c.condition().notFlag(), c.condition());
-						condition.setValue(value);
-						Constraint subConstraint = new Constraint(level, c.query(), condition);
+						IQuery subConstraintQuery 			= null;
+						ICondition subConstraintCondition 	= null;
+						
+						{
+							subConstraintCondition = new Condition(c.condition().notFlag(), c.condition());
+							subConstraintCondition.setValue(value);
+							
+							IPattern constraintQueryPattern 	= c.query().pattern();
+							ICondition constraintQueryCondition = c.query().condition();
+							IQuery constraintSubQuery 			= c.query().subQuery();
+							
+//							FIXME: This will fail if constraintSubQuery is anything other than null due to different 'level'
+							subConstraintQuery	= new Query(level, constraintQueryPattern, constraintQueryCondition, constraintSubQuery);
+						}
+						
+						Constraint subConstraint = new Constraint(level, subConstraintQuery, subConstraintCondition);
 						child.addConstraint(subConstraint);
 					}
 				}
