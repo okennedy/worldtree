@@ -938,7 +938,6 @@ public class WorldTreeFactory implements Serializable {
 			super(name, parent, new ArrayList<Constraint>());
 			this.coordinates	= coord;
 			this.piece 			= tilePiece;
-			this.parent.name();	//TODO: What does this do?
 			this.artifacts		= new ArrayList<String>();
 			initialize();
 		}
