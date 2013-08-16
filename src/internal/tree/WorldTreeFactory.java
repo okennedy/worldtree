@@ -26,6 +26,7 @@ import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.StatementType;
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.expr.AggExpr.AggType;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
@@ -41,7 +42,6 @@ import internal.tree.IWorldTree.IRoom;
 import internal.tree.IWorldTree.IRegion;
 import internal.tree.IWorldTree.ITile;
 import internal.space.Space.Direction;
-
 import static internal.Helper.Hierarchy;
 
 /**
@@ -284,7 +284,7 @@ public class WorldTreeFactory implements Serializable {
 					for(PropertyDef definition : definitions()) {
 						if(definition.level().equalsIgnoreCase(constraintLevel) && 
 								definition.property().name().equalsIgnoreCase(constraintProperty.name())) {
-							materializeDefinition(region, c, definition);
+							materializeDefinition(region, c, null, definition);
 						}
 					}
 				}
@@ -292,7 +292,8 @@ public class WorldTreeFactory implements Serializable {
 		}
 	}
 	
-	public Collection<Datum> materializeDefinition(IWorldTree node, Constraint constraint, PropertyDef definition) {
+	public Collection<Datum> materializeDefinition(IWorldTree node, Constraint constraint, 
+			PropertyDef parentDefinition, PropertyDef definition) {
 		Collection<Datum> result = new ArrayList<Datum>();
 		
 		RandomSpec randomSpec 			= definition.randomspec();
@@ -312,7 +313,7 @@ public class WorldTreeFactory implements Serializable {
 				if(!lowerHierarchyLevel.equals(defHierarchyLevel))
 					continue;
 				if(definition.aggregateExpression().expr().property().name().equalsIgnoreCase(def.property().name()))
-					result = materializeDefinition(node, constraint, def);
+					result = materializeDefinition(node, constraint, definition, def);
 			}
 			
 			break;
@@ -333,43 +334,196 @@ public class WorldTreeFactory implements Serializable {
 
 			int availableNodes	= ResolutionEngine.evaluate(node, definition.query()).get(0).size();
 			
-			assert randomSpecHigh * availableNodes >= constraintValue : "Constraint demands value greater than what definition defines!\n" +
-					"Constraint condition : " + constraintCondition.toString() + "\n" +
-					"Definition           : " + definition.toString() + "\n";
-			
 			switch(constraintCondition.operator()) {
-			case EQ:
-				Datum requiredValue = constraintCondition.value();
-				result.add(requiredValue);
-				while(result.size() < availableNodes) {
-					result.add(new Datum.Flt(randomSpecLow + 
-							((float) (random.nextGaussian() * (randomSpecHigh - randomSpecLow)))));
+			case EQ: {
+				float requiredValue = (Float) constraintValue; 
+				float diff = randomSpecHigh - randomSpecLow;
+				
+				boolean satisfiesConstraint = false;
+				
+				switch(randomSpec.type()) {
+				case FLOAT:
+					switch(definition.aggregateExpression().type()) {
+					case COUNT:
+						int nodeCount = (int) requiredValue;
+						
+						while(result.size() < nodeCount) {
+							float data = randomSpecLow + (float) (random.nextGaussian() * (diff));
+							if(data == 0)
+								continue;
+							result.add(new Datum.Flt(data));
+						}
+						while(result.size() < availableNodes) {
+							float data = randomSpecLow + (float) (random.nextGaussian() * (diff));
+							result.add(new Datum.Flt(data));
+						}
+						break;
+					case MAX:
+						assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : 
+								"Constraint demands impossible value!\n" + 
+								"Constraint condition : " + constraintCondition.toString() + "\n" +
+								"Definition           : " + definition.toString() + "\n";
+
+						diff = requiredValue - randomSpecLow;
+						
+						satisfiesConstraint = false;
+						while(result.size() < availableNodes) {
+							float data = randomSpecLow + (float) (random.nextGaussian() * (diff));
+							if(data == requiredValue)
+								satisfiesConstraint = true;
+							if(!satisfiesConstraint && result.size() == availableNodes - 1)
+								data = requiredValue;
+							result.add(new Datum.Flt(data));
+						}
+						break;
+					case MIN:
+						assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : 
+							"Constraint demands impossible value!\n" + 
+							"Constraint condition : " + constraintCondition.toString() + "\n" +
+							"Definition           : " + definition.toString() + "\n";
+
+						diff = randomSpecHigh - requiredValue;
+				
+						satisfiesConstraint = false;
+						while(result.size() < availableNodes) {
+							float data = requiredValue + (float) (random.nextGaussian() * (diff));
+							if(data == requiredValue)
+								satisfiesConstraint = true;
+							if(!satisfiesConstraint && result.size() == availableNodes - 1)
+								data = requiredValue;
+							result.add(new Datum.Flt(data));
+						}
+						break;
+					case SUM:
+						assert randomSpecHigh * availableNodes >= constraintValue : 
+								"Constraint demands impossible value!\n" +
+								"Constraint condition : " + constraintCondition.toString() + "\n" +
+								"Definition           : " + definition.toString() + "\n";
+						
+						diff 	= randomSpecHigh - randomSpecLow;
+						
+						while(result.size() < availableNodes) {
+							float data = randomSpecLow + (float) (random.nextGaussian() * (diff));
+							if(requiredValue == 0)
+								data = 0;
+							else if (requiredValue - data < 0) {
+								assert requiredValue >= randomSpecLow && requiredValue < randomSpecHigh : 
+									"Cannot substitute data with value!";
+								data = requiredValue;
+							}
+							result.add(new Datum.Flt(data));
+						}
+						break;
+					default:
+						break;
+					}
+					break;
+				case INT:
+					switch(parentDefinition.aggregateExpression().type()) {
+					case COUNT:
+						int nodeCount = (int) requiredValue;
+						
+						while(result.size() < nodeCount) {
+							int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+							if(data == 0)
+								continue;
+							result.add(new Datum.Int(data));
+						}
+						while(result.size() < availableNodes) {
+							int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+							result.add(new Datum.Int(data));
+						}
+						break;
+					case MAX:
+						assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : "Constraint demands impossible value!\n" + 
+								"Constraint condition : " + constraintCondition.toString() + "\n" +
+								"Definition           : " + definition.toString() + "\n";
+
+						diff = requiredValue - randomSpecLow;
+						
+						satisfiesConstraint = false;
+						while(result.size() < availableNodes) {
+							int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+							if(data == requiredValue)
+								satisfiesConstraint = true;
+							if(!satisfiesConstraint && result.size() == availableNodes - 1)
+								data = (int) requiredValue;
+							result.add(new Datum.Int(data));
+						}
+						break;
+					case MIN:
+						assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : "Constraint demands impossible value!\n" + 
+						"Constraint condition : " + constraintCondition.toString() + "\n" +
+						"Definition           : " + definition.toString() + "\n";
+
+						diff = randomSpecHigh - requiredValue;
+				
+						satisfiesConstraint = false;
+						while(result.size() < availableNodes) {
+							int data = (int) (requiredValue + (float) (random.nextGaussian() * (diff)));
+							if(data == requiredValue)
+								satisfiesConstraint = true;
+							if(!satisfiesConstraint && result.size() == availableNodes - 1)
+								data = (int) requiredValue;
+							result.add(new Datum.Int(data));
+						}
+						break;
+					case SUM:
+						assert randomSpecHigh * availableNodes >= constraintValue : 
+								"Constraint demands impossible value \n" +
+								"Constraint condition : " + constraintCondition.toString() + "\n" +
+								"Definition           : " + definition.toString() + "\n";
+						
+						diff 	= randomSpecHigh - randomSpecLow;
+						
+						while(result.size() < availableNodes) {
+							int data = (int) (randomSpecLow + (float) (random.nextGaussian() * (diff)));
+							if(requiredValue == 0)
+								data = 0;
+							else if (requiredValue - data < 0) {
+								assert requiredValue >= randomSpecLow && requiredValue < randomSpecHigh : 
+									"Cannot substitute data with value!";
+								data = (int) requiredValue;
+							}
+							result.add(new Datum.Int(data));
+						}
+						break;
+					default:
+						break;
+					}
+					break;
 				}
 				break;
-			case GE:
+			}
+			
+			case GE: {
 				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(constraintValue + 
 							((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
 				}
 				break;
-			case GT:
+			}
+			case GT: {
 //				We Assume that constraintCondition.value() is lesser than this.randomSpec.high
 				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
 				}
 //				No need for an 'else' case here thanks to parser checks
 				break;
-			case LE:
+			}
+			case LE: {
 				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
 				}
 				break;
-			case LT:
+			}
+			case LT: {
 				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
 				}
 				break;
-			case NOTEQ:
+			}
+			case NOTEQ: {
 				while(result.size() < availableNodes) {
 					Datum datum = new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue))));
 					float value = Float.parseFloat(datum.toString());
@@ -378,7 +532,7 @@ public class WorldTreeFactory implements Serializable {
 				}
 				break;
 			}
-			break;
+			}
 		}
 		return result;
 	}
