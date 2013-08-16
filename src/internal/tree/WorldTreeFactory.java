@@ -352,9 +352,9 @@ public class WorldTreeFactory implements Serializable {
 						String propDefPropName = definition.property().name();
 						if(propDefPropName.equals(propertyName)) {
 //							We cannot materialize definitions that have conditions
-							if(definition.condition() == null)
+							if(definition.condition() != null)
 								continue;
-							definition.earlyInit(space.getXDimension() * space.getYDimension(), constraintCondition);
+							constraint.earlyInit(space.getXDimension() * space.getYDimension(), definition);
 						}
 					}
 					constraintCondition = constraintCondition.subCondition();
