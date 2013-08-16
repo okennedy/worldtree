@@ -170,6 +170,7 @@ public class WorldTreeFactory implements Serializable {
 					name = "Room" + i;
 				children.add(new Room(name, this));
 			}
+			this.pushDownConstraints();
 		}
 		
 		@Override
@@ -407,6 +408,7 @@ public class WorldTreeFactory implements Serializable {
 				int[] dimensions 	= new int[] {Integer.parseInt(size[0]), Integer.parseInt(size[1])}; 
 				children.add(newRegion(name, this, new Space(dimensions[0], dimensions[1])));
 			}
+			this.pushDownConstraints();
 		}
 
 		@Override
@@ -481,6 +483,7 @@ public class WorldTreeFactory implements Serializable {
 			}
 //			initRegion();
 			initString();
+			this.pushDownConstraints();
 		}
 		
 		/**
@@ -674,6 +677,7 @@ public class WorldTreeFactory implements Serializable {
 		@Override
 		public void initialize() {
 			children = new ArrayList<IWorldTree>();
+			this.pushDownConstraints();
 		}
 		
 		@Override

@@ -1,6 +1,9 @@
 package internal.tree;
 
 import internal.parser.containers.Constraint;
+import internal.parser.containers.Datum;
+import internal.parser.containers.condition.Condition;
+import internal.parser.containers.condition.ICondition;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,7 +11,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Stack;
+
+import static internal.Helper.titleCase;
 
 /**
  * WorldTree is the abstract class that every object in the hierarchy extends.
@@ -99,7 +105,6 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	@Override
 	public Collection<IWorldTree> getChildrenByClass(String className) {
 		List<IWorldTree> result			= new ArrayList<IWorldTree>();
-		List<IWorldTree> allChildren 	= new ArrayList<IWorldTree>(getAllChildren());
 		Class<?> clazz = null;
 		
 		className = (WorldTreeFactory.class.getName() + "$" + className);
@@ -109,11 +114,10 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			System.err.println("No class found with name :" + className);
 		}
 		
-		for(IWorldTree child : allChildren) {
+		for(IWorldTree child : getAllChildren()) {
 			if(!child.getClass().equals(clazz))
 				result.add(child);
 		}
-		allChildren = null;
 		return result;
 	}
 	
@@ -127,6 +131,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	@Override
 	public Collection<Constraint> constraints() {
 		return constraints;
+	}
+	
+	@Override
+	public void addConstraint(Constraint constraint) {
+		assert constraints != null : "Trying to add constraint to " + name + " when " + name + ".constraints = null\n";
+		constraints.add(constraint);
 	}
 	
 	@Override
@@ -145,9 +155,27 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.constraints = constraints;
 	}
 	
-	public void pushDownConstraints() {
+	protected void pushDownConstraints() {
 		for(Constraint c : this.constraints) {
-			
+			try {
+				Class<?> constraintClass = Class.forName(WorldTreeFactory.class.getName() + "$" + titleCase(c.level()));
+				if(constraintClass.equals(this.getClass())) {
+					List<Datum> values = c.condition().value().allocate(children.size());
+					for(IWorldTree child : children) {
+						Datum value = values.get((new Random().nextInt(values.size())));
+						String className = child.getClass().getName();
+						String level = className.substring(className.indexOf("$"));
+
+//						FIXME: This will only work for very simple conditions!
+						ICondition condition = new Condition(c.condition().notFlag(), c.condition());
+						condition.setValue(value);
+						Constraint subConstraint = new Constraint(level, c.query(), condition);
+						child.addConstraint(subConstraint);
+					}
+				}
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
