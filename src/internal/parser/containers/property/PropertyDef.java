@@ -1,6 +1,9 @@
 package internal.parser.containers.property;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Random;
+
 import internal.parser.containers.Datum;
 import internal.parser.containers.Statement;
 import internal.parser.containers.IContainer;
@@ -97,6 +100,7 @@ public class PropertyDef extends Statement {
 	}
 	
 	public Collection<Datum> earlyInit(int availableNodes, ICondition constraintCondition) {
+		Collection<Datum> result = new ArrayList<Datum>();
 		switch(type) {
 		case AGGREGATE:
 			break;
@@ -106,14 +110,61 @@ public class PropertyDef extends Statement {
 			break;
 		case RANDOM:
 //			In early initialization, we don't have a skeleton..Thus, break for all condition-based RandomSpecs.
-			if(condition != null)
-				break;
+			assert condition == null : "error: Trying to early-init a definition that has a condition!\n";
 			assert randomSpec != null : "error: PropertyDef type is random, but randomSpec is null!\n";
-//			int nodesWithDefCount = Math.random()
+			
+			Random random = new Random();
+			
+			float constraintValue = Float.parseFloat(constraintCondition.value().toString());
+			float randomSpecHigh  = Float.parseFloat(randomSpec.high.toString());
+			float randomSpecLow   = Float.parseFloat(randomSpec.low.toString());
+			assert constraintValue <= randomSpecHigh : "Constraint demands value greater than what definition defines!\n" +
+					"Constraint condition : " + constraintCondition.toString() + "\n" +
+					"Definition           : " + this.toString() + "\n";
+			
+			int defNodeCount = 0 + random.nextInt(availableNodes + 1);
+			switch(constraintCondition.operator()) {
+			case EQ:
+				Datum requiredValue = constraintCondition.value();
+				result.add(requiredValue);
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(randomSpecLow + ((float) (random.nextGaussian() * (randomSpecHigh - randomSpecLow)))));
+				}
+				break;
+			case GE:
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+				}
+				break;
+			case GT:
+//				We Assume that constraintCondition.value() is lesser than this.randomSpec.high
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+				}
+//				No need for an 'else' case here thanks to parser checks
+				break;
+			case LE:
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+				}
+				break;
+			case LT:
+				while(result.size() < defNodeCount) {
+					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
+				}
+				break;
+			case NOTEQ:
+				while(result.size() < defNodeCount) {
+					Datum datum = new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue))));
+					float value = Float.parseFloat(datum.toString());
+					if(value != constraintValue)
+						result.add(datum);
+				}
+				break;
+			}
 			break;
-		
 		}
-		return null;
+		return result;
 	}
 
 	@Override
@@ -139,8 +190,11 @@ public class PropertyDef extends Statement {
 			break;
 		case RANDOM:
 			result = new StringBuffer("PROPERTYDEF(DEFINE " + level + " ");
-			result.append(property.debugString() + " AS " + randomSpec.debugString() + " WHERE " + 
-				condition.debugString() + ")");
+			result.append(property.debugString() + " AS " + randomSpec.debugString());
+			if(condition != null)
+				result.append(" WHERE " + condition.debugString()); 
+			result.append(")");
+			break;
 		}
 		
 		return result.toString();
@@ -152,14 +206,20 @@ public class PropertyDef extends Statement {
 		switch(type) {
 		case AGGREGATE:
 			result.append("DEFINE " + level + " " + property + " AS " + aggExpr + " IN " + query);
+			break;
 		case BASIC:
-			result.append("DEFINE " + level + " " + property + " AS " + 
-				"(" + condition + ") IN " + query);
+			result.append("DEFINE " + level + " " + property + " AS " + "(" + condition + ") IN " + query);
+			break;
 		case INHERIT:
 			result.append("INHERIT " + level + " " + property + " FROM " + parent);
+			break;
 		case RANDOM:
-			result.append("DEFINE " + level + property + " AS " + randomSpec + " WHERE " + condition);
+			result.append("DEFINE " + level + property + " AS " + randomSpec);
+			if(condition != null)
+				result.append(" WHERE " + condition);
+			break;
 		}
+		result.append(")");
 		return result.toString();
 	}
 	
