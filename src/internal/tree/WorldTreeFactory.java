@@ -277,7 +277,7 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void materializeConstraints() {
-			for (IWorldTree region : getRegions()) {
+			for(IWorldTree region : getRegions()) {
 				for(Constraint c : region.constraints()) {
 					Property constraintProperty = c.condition().property();
 					String constraintLevel		= c.level();
@@ -288,7 +288,16 @@ public class WorldTreeFactory implements Serializable {
 							materializeDefinition(region, c, null, definition);
 						}
 					}
+					ResolutionEngine.evaluate(region, c);
 				}
+			}
+			for(IWorldTree room : getRooms()) {
+				for(Constraint c : room.constraints()) {
+					ResolutionEngine.evaluate(room, c);
+				}
+			}
+			for(Constraint c : this.constraints()) {
+				ResolutionEngine.evaluate(this, c);
 			}
 		}
 
