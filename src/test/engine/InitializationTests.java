@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import static internal.Helper.makeString;
 import static internal.Helper.write;
 
 import internal.parser.ParseException;
@@ -31,6 +32,7 @@ import internal.tree.WorldTreeFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static internal.Helper.multiLine;
+import static org.junit.Assert.fail;
 
 public class InitializationTests {
 	private IMap map;
@@ -66,7 +68,7 @@ public class InitializationTests {
 	
 
 	@Test
-	public void test() {
+	public void materializationTest() {
 		factory = new WorldTreeFactory("init.properties", "world.definitions");
 		map = factory.newMap("InitTestMap", null);
 		map.initRooms();
@@ -75,5 +77,46 @@ public class InitializationTests {
 		
 		map.materializeConstraints();
 		System.out.println();
+		
+	}
+	
+	@Test
+	public void test() {
+		factory = new WorldTreeFactory("init.properties", "world.definitions");
+		map = factory.newMap("InitTestMap", null);
+		map.initRooms();
+		map.initRegions();
+		map.initTiles();
+		
+		map.materializeConstraints();
+		
+		try {
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+			
+			StringBuffer command = new StringBuffer();
+			while(true) {
+				String cmd = in.readLine();
+				
+				if(cmd.equalsIgnoreCase("quit") || cmd.equalsIgnoreCase("exit"))
+					break;
+				
+				command.append(cmd);
+				if(command.toString().contains(";")) {
+					Parser parser = new Parser(new StringReader(command.toString()));
+					IQuery query = (IQuery) parser.parse();
+					System.out.println(query.debugString());
+					Result result = ResolutionEngine.evaluate(map, query);
+					System.out.println(result);
+					write("query", makeString(query, result));
+					command.delete(0, command.length());
+				}
+			}
+		} catch(IOException e) {
+			e.printStackTrace();
+			fail();
+		} catch (ParseException e) {
+			e.printStackTrace();
+			fail();
+		}
 	}
 }
