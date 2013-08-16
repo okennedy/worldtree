@@ -21,7 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static internal.Helper.write;
-import static internal.Helper.makeString;
+import static internal.Helper.makeStringFromResult;
 
 public class ParserTest {
 	private static IMap map;
@@ -78,7 +78,7 @@ public class ParserTest {
 					System.out.println(query.debugString());
 					Result result = ResolutionEngine.evaluate(map, query);
 					System.out.println(result);
-					write("query", makeString(query, result));
+					write("query", makeStringFromResult(query, result));
 					command.delete(0, command.length());
 				}
 			}

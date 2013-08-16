@@ -151,7 +151,7 @@ public class Helper {
 	 * @param result {@code Result} representing the collection that needs to be flattened
 	 * @return {@code String} representing the flattened version of the parameter <b>result</b>
 	 */
-	public static String makeString(IStatement statement, Result result) {
+	public static String makeStringFromResult(IStatement statement, Result result) {
 		StringBuffer sb = new StringBuffer(statement.toString() + "\n" + statement.debugString() + "\n\n");
 		
 		int rowIndex = 0;
@@ -181,6 +181,11 @@ public class Helper {
 		return sb.toString();
 	}
 	
+	/**
+	 * Hierarchy is an enum that is used to obtain parent and child levels relative to a given level in the Hierarchy
+	 * @author Guru
+	 *
+	 */
 	public enum Hierarchy {
 		Map("Map"),
 		Room("Room"),
@@ -194,6 +199,11 @@ public class Helper {
 			this.level	= level;
 		}
 		
+		/**
+		 * Obtain the child level of the specified <b>level</b>
+		 * @param level {@code String} representing the current level
+		 * @return {@code Hierarchy} representing the child level
+		 */
 		public static Hierarchy childLevel(String level) {
 			Hierarchy h = parse(level);
 			
@@ -212,6 +222,11 @@ public class Helper {
 			return null;
 		}
 		
+		/**
+		 * Obtain the parent level of the specified <b>level</b>
+		 * @param level {@code String} representing the current level
+		 * @return {@code Hierarchy} representing the parent level
+		 */
 		public static Hierarchy parentLevel(String level) {
 			Hierarchy h = parse(level);
 			
@@ -230,6 +245,12 @@ public class Helper {
 			return null;
 		}
 		
+		/**
+		 * Parse a {@code String} and obtain its corresponding {@code Hierarchy} enum
+		 * @param level {@code String} containing the hierarchy level
+		 * @return {@code Hierarchy} corresponding to the specified <b>level</b> <br>
+		 * <b>null</b> if the specified level does not exist
+		 */
 		public static Hierarchy parse(String level) {
 			for(Hierarchy h : values()) {
 				if(h.level.equalsIgnoreCase(level))

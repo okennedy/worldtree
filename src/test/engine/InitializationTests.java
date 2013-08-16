@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import static internal.Helper.makeString;
+import static internal.Helper.makeStringFromResult;
 import static internal.Helper.write;
 import internal.parser.ParseException;
 import internal.parser.Parser;
@@ -96,7 +96,7 @@ public class InitializationTests {
 					System.out.println(query.debugString());
 					Result result = ResolutionEngine.evaluate(map, query);
 					System.out.println(result);
-					write("query", makeString(query, result));
+					write("query", makeStringFromResult(query, result));
 					command.delete(0, command.length());
 				}
 			}

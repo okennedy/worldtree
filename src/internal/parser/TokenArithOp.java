@@ -1,5 +1,10 @@
 package internal.parser;
 
+/**
+ * This enum is used to store the various arithmetic operators
+ * @author Guru
+ *
+ */
 public enum TokenArithOp {
 	TK_PLUS("+"),
 	TK_MINUS("-"),
@@ -7,17 +12,28 @@ public enum TokenArithOp {
 	TK_DIV("/"),
 	;
 	
-	private String op;
+	private String operator;
 	
-	private TokenArithOp(String op) {
-		this.op	= op;
+	private TokenArithOp(String operator) {
+		this.operator	= operator;
 	}
 	
-	public static TokenArithOp parse(String op) {
+	/**
+	 * Parse a {@code String} and obtain its corresponding {@code TokenArithOp} enum
+	 * @param operator {@code String} containing the operator
+	 * @return {@code TokenArithOp} corresponding to the specified <b>operator</b> <br>
+	 * @throws IllegalArgumentException if the specified <b>operator</b> is invalid
+	 */
+	public static TokenArithOp parse(String operator) {
 		for(TokenArithOp tk : values()) {
-			if(tk.op.equals(op))
+			if(tk.operator.equals(operator))
 				return tk;
 		}
-		return null;
+		throw new IllegalArgumentException("'" + operator + "' is not a valid arithmetic operator!");
+	}
+	
+	@Override
+	public String toString() {
+		return operator;
 	}
 }
