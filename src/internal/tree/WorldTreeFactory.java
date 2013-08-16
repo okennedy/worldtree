@@ -42,6 +42,8 @@ import internal.tree.IWorldTree.IRegion;
 import internal.tree.IWorldTree.ITile;
 import internal.space.Space.Direction;
 
+import static internal.Helper.Hierarchy;
+
 /**
  * Factory class responsible for generating objects of {@code IWorldTree}
  * @author guru
@@ -274,6 +276,19 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void materializeConstraints() {
+			for (IWorldTree region : getRegions()) {
+				for(Constraint c : region.constraints()) {
+					Property constraintProperty = c.condition().property();
+					String constraintLevel		= c.level();
+					
+					for(PropertyDef definition : definitions()) {
+						if(definition.level().equalsIgnoreCase(constraintLevel) && 
+								definition.property().name().equalsIgnoreCase(constraintProperty.name())) {
+							materializeDefinition(region, c, definition);
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -283,11 +298,18 @@ public class WorldTreeFactory implements Serializable {
 		RandomSpec randomSpec 			= definition.randomspec();
 		ICondition definitionCondition 	= definition.condition();
 		ICondition constraintCondition	= constraint.condition();
+
+		String definitionLevel			= definition.level();
 		
 		switch(definition.type()) {
 		case AGGREGATE:
+			Hierarchy lowerHierarchyLevel = Hierarchy.childLevel(definitionLevel);
+			
 			for(PropertyDef def : definitions()) {
 				if(def.equals(definition))
+					continue;
+				Hierarchy defHierarchyLevel = Hierarchy.parse(def.level());
+				if(!lowerHierarchyLevel.equals(defHierarchyLevel))
 					continue;
 				if(definition.aggregateExpression().expr().property().name().equalsIgnoreCase(def.property().name()))
 					result = materializeDefinition(node, constraint, def);
@@ -308,48 +330,47 @@ public class WorldTreeFactory implements Serializable {
 			float constraintValue = Float.parseFloat(constraintCondition.value().toString());
 			float randomSpecHigh  = Float.parseFloat(randomSpec.high().toString());
 			float randomSpecLow   = Float.parseFloat(randomSpec.low().toString());
-			assert constraintValue <= randomSpecHigh : "Constraint demands value greater than what definition defines!\n" +
-					"Constraint condition : " + constraintCondition.toString() + "\n" +
-					"Definition           : " + this.toString() + "\n";
 
-			
 			int availableNodes	= ResolutionEngine.evaluate(node, definition.query()).get(0).size();
 			
-			int defNodeCount = 0 + random.nextInt(availableNodes + 1);
+			assert randomSpecHigh * availableNodes >= constraintValue : "Constraint demands value greater than what definition defines!\n" +
+					"Constraint condition : " + constraintCondition.toString() + "\n" +
+					"Definition           : " + definition.toString() + "\n";
+			
 			switch(constraintCondition.operator()) {
 			case EQ:
 				Datum requiredValue = constraintCondition.value();
 				result.add(requiredValue);
-				while(result.size() < defNodeCount) {
+				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(randomSpecLow + 
 							((float) (random.nextGaussian() * (randomSpecHigh - randomSpecLow)))));
 				}
 				break;
 			case GE:
-				while(result.size() < defNodeCount) {
+				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(constraintValue + 
 							((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
 				}
 				break;
 			case GT:
 //				We Assume that constraintCondition.value() is lesser than this.randomSpec.high
-				while(result.size() < defNodeCount) {
+				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
 				}
 //				No need for an 'else' case here thanks to parser checks
 				break;
 			case LE:
-				while(result.size() < defNodeCount) {
+				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
 				}
 				break;
 			case LT:
-				while(result.size() < defNodeCount) {
+				while(result.size() < availableNodes) {
 					result.add(new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue)))));
 				}
 				break;
 			case NOTEQ:
-				while(result.size() < defNodeCount) {
+				while(result.size() < availableNodes) {
 					Datum datum = new Datum.Flt(constraintValue + ((float) (random.nextGaussian() * (randomSpecHigh - constraintValue))));
 					float value = Float.parseFloat(datum.toString());
 					if(value != constraintValue)
