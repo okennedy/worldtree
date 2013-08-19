@@ -42,7 +42,10 @@ public class MemoryTest {
 		map.initRegions();
 		map.initTiles();
 		
-//		write(map);
+		map.fill();
+		write(map);
+		
+		getMemoryUsage();
 		
 		System.gc();
 		try {
@@ -51,12 +54,17 @@ public class MemoryTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		getMemoryUsage();
+	}
+	
+	private void getMemoryUsage() {
 		MemUnit total = new MemUnit(Runtime.getRuntime().totalMemory());
 		MemUnit free = new MemUnit(Runtime.getRuntime().freeMemory());
 		
 		System.out.println("Total Memory  :" + total);
 		System.out.println("Free Memory   :" + free);
 		System.out.println("Used Memory   :" + total.difference(free));
-		
+		System.out.println();
 	}
 }
