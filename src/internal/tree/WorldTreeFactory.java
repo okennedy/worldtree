@@ -848,9 +848,9 @@ public class WorldTreeFactory implements Serializable {
 				}
 				
 //				Convert to Cartesian coordinates for validate
-				if(space.validate(coords) && space.getByCoord(coords) == null) {	
-					ITile tile = initTile(coords, null);
-					space.setByCoord(coords, tile);
+				if(space.validate(coords) && space.getByCoord(coords).piece().getText().equals("")) {
+						ITile tile = initTile(coords, null);
+						space.setByCoord(coords, tile);
 				}
 				directions.remove(direction);
 			}
