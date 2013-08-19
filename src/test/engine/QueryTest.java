@@ -30,31 +30,14 @@ import internal.tree.WorldTreeFactory;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static internal.Helper.multiLine;
+
+import static internal.Helper.*;
 
 public class QueryTest {
 	private IMap map;
 	private WorldTreeFactory factory = null;
 	private Parser parser			 = new Parser(new StringReader(""));
 	private String queryTestsDir	 = "tests/query tests/";
-	private static String[] pieceStrings = {
-		"LR",
-		"UD",
-		"UL",
-		"L",
-		"U",
-		"D",
-		"R",
-		"UDLR",
-		"UDL",
-		"UDR",
-		"ULR",
-		"DLR",
-		"UR",
-		"DR",
-		"DL",
-		""
-	};
 	
 	@BeforeClass
 	public static void setUp() {

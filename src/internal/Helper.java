@@ -20,6 +20,26 @@ import java.util.List;
  */
 public class Helper {
 
+	public static String[] pieceStrings = {
+		"LR",
+		"UD",
+		"UL",
+		"L",
+		"U",
+		"D",
+		"R",
+		"UDLR",
+		"UDL",
+		"UDR",
+		"ULR",
+		"DLR",
+		"UR",
+		"DR",
+		"DL",
+		""
+	};
+	
+	
 	/**
 	 * Write an {@code IWorldTree} object to file {@code 'output/output.txt'}
 	 * @param object {@code IWorldTree} object to write

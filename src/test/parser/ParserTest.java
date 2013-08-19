@@ -20,30 +20,11 @@ import java.io.StringReader;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static internal.Helper.write;
-import static internal.Helper.makeStringFromResult;
+import static internal.Helper.*;
 
 public class ParserTest {
 	private static IMap map;
 	private static WorldTreeFactory factory;
-	private static String[] pieceStrings = {
-		"LR",
-		"UD",
-		"UL",
-		"L",
-		"U",
-		"D",
-		"R",
-		"UDLR",
-		"UDL",
-		"UDR",
-		"ULR",
-		"DLR",
-		"UR",
-		"DR",
-		"DL",
-		""
-	};
 	
 	@BeforeClass
 	public static void setUp() {

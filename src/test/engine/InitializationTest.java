@@ -4,8 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import static internal.Helper.makeStringFromResult;
-import static internal.Helper.write;
+
+import static internal.Helper.*;
+
 import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.containers.query.IQuery;
@@ -14,6 +15,7 @@ import internal.parser.resolve.Result;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -22,24 +24,6 @@ import static org.junit.Assert.fail;
 public class InitializationTest {
 	private IMap map;
 	private WorldTreeFactory factory = null;
-	private static String[] pieceStrings = {
-		"LR",
-		"UD",
-		"UL",
-		"L",
-		"U",
-		"D",
-		"R",
-		"UDLR",
-		"UDL",
-		"UDR",
-		"ULR",
-		"DLR",
-		"UR",
-		"DR",
-		"DL",
-		""
-	};
 	
 	@BeforeClass
 	public static void setUp() {
@@ -51,7 +35,7 @@ public class InitializationTest {
 	}
 	
 
-//	@Test
+	@Test
 	public void materializationTest() {
 		factory = new WorldTreeFactory("init.properties", "world.definitions");
 		map = factory.newMap("InitTestMap", null);

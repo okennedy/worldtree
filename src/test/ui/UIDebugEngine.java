@@ -20,24 +20,6 @@ import org.junit.Test;
 public class UIDebugEngine {
 	private static IMap map;
 	private static WorldTreeFactory factory;
-	private static String[] pieceStrings = {
-		"LR",
-		"UD",
-		"UL",
-		"L",
-		"U",
-		"D",
-		"R",
-		"UDLR",
-		"UDL",
-		"UDR",
-		"ULR",
-		"DLR",
-		"UR",
-		"DR",
-		"DL",
-		""
-	};
 	
 	@BeforeClass
 	public static void setUp() {
