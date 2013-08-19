@@ -136,22 +136,16 @@ public interface IWorldTree {
 	public interface ITile extends IWorldTree {
 		
 		/**
-		 * Update this {@code ITile}'s visual
-		 * @param visual {@code String} containing the new visual
-		 */
-		public void updateVisual(String visual);
-		
-		/**
 		 * Add an artifact to the visual of this {@code ITile}
-		 * @param string {@code String} containing the artifact to add
+		 * @param artifact {@code String} containing the artifact to add
 		 */
-		public void addToVisual(String string);
+		public void addArtifact(String artifact);
 		
 		/**
 		 * Remove an artifact from the visual of this {@code ITile}
-		 * @param string {@code String} containing the artifact to remove
+		 * @param artifact {@code String} containing the artifact to remove
 		 */
-		public void removeFromVisual(String string);
+		public void removeArtifact(String artifact);
 		
 		/**
 		 * Obtain a collection of all artifacts that are part of this {@code ITile}'s visual

@@ -14,76 +14,73 @@ import java.util.List;
 public abstract class TileInterface implements ITileInterface, Serializable {
 	private static final long serialVersionUID = 7435579309730202286L;
 	
-	private String interfaces;
-	private String binaryString;
-	private int integerFormat;
+	private int interfaces;
 	
 	public TileInterface(String interfaces) {
 		if(interfaces.equals("")) {
-			this.interfaces 	= "";
-			this.binaryString 	= "0000";
-			this.integerFormat 	= 0;
+			this.interfaces 	= 0;
 			return;
 		}
 		else if (interfaces.matches("[a-zA-Z]+")) {
-//			We're converting a string of UDLR to binary
+//			We're converting a string of UDLR to integer
 			char[] array 		= interfaces.toUpperCase().toCharArray();
 			Arrays.sort(array);
-			this.interfaces 	= new String(array);
-			this.binaryString 	= TileInterfaceType.toBinaryString(interfaces);
+			String binaryString	= TileInterfaceType.toBinaryString(String.valueOf(array));
+			this.interfaces 	= TileInterfaceType.toInteger(binaryString);
 		}
 		else {
-			this.binaryString 	= interfaces;
-			this.interfaces		= getText();
-			
+			try {
+				this.interfaces = Integer.parseInt(interfaces);
+			} catch(NumberFormatException e) {
+				throw new IllegalArgumentException("Invalid interfaces!");
+			}
 		}
-		this.integerFormat 	= TileInterfaceType.toInteger(this.binaryString);
 	}
 	
-	private String getText() {
-		String result = "";
-		if(validUp())
-			result += TileInterfaceType.U.toString();
-		if(validRight())
-			result += TileInterfaceType.R.toString();
+	protected String getText() {
+		StringBuffer result = new StringBuffer();
 		if(validDown())
-			result += TileInterfaceType.D.toString();
+			result.append(TileInterfaceType.D.toString());
 		if(validLeft())
-			result += TileInterfaceType.L.toString();
+			result.append(TileInterfaceType.L.toString());
+		if(validRight())
+			result.append(TileInterfaceType.R.toString());
+		if(validUp())
+			result.append(TileInterfaceType.U.toString());
 		
-		return result;
+		return result.toString();
 	}
 
 	public boolean validUp() {
-		if((integerFormat & (1 << 3)) > 0)
+		if((interfaces & (1 << 3)) > 0)
 			return true;
 		else
 			return false;
 	}
 	
 	public boolean validRight() {
-		if( (integerFormat & (1 << 2))  > 0)
+		if( (interfaces & (1 << 2))  > 0)
 			return true;
 		else
 			return false;
 	}
 	
 	public boolean validDown() {
-		if( (integerFormat & (1 << 1)) > 0)
+		if( (interfaces & (1 << 1)) > 0)
 			return true;
 		else
 			return false;
 	}
 	
 	public boolean validLeft() {
-		if( (integerFormat & 1) > 0)
+		if( (interfaces & 1) > 0)
 			return true;
 		else
 			return false;
 	}
 	
 	public boolean hasInterface(TileInterfaceType it) {
-		return (integerFormat & it.getType()) > 0;
+		return (interfaces & it.getType()) > 0;
 	}
 	
 	public List<TileInterfaceType> getValidInterfaces() {
@@ -102,10 +99,18 @@ public abstract class TileInterface implements ITileInterface, Serializable {
 	
 	@Override
 	public String toString() {
-		return interfaces;
+		return getText();
 	}
 	
 	public String getBinaryInterfaces() {
-		return binaryString;
+		StringBuffer result = new StringBuffer();
+		int value = this.interfaces;
+		
+		while(value > 0) {
+			int binary 	= value % 2;
+			value 		= value / 2;
+			result.append("" + binary);
+		}
+		return result.reverse().toString();
 	}
 }

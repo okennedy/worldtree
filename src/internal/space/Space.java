@@ -1,7 +1,6 @@
 package internal.space;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -28,8 +27,6 @@ public class Space extends Dimension {
 	
 	protected Coordinates current;
 	protected ITile[][] matrix;
-	private List<String> stringRepresentation;
-	private List<String> columnRepresentation;
 	
 	public Space() {
 		super(0, 0);
@@ -38,8 +35,6 @@ public class Space extends Dimension {
 		super(y, x);
 		matrix = new Tile[y][x];
 		current = new Coordinates(true, 0, 0);
-		stringRepresentation = new ArrayList<String>();
-		columnRepresentation = new ArrayList<String>();
 	}
 	
 	/**
@@ -152,7 +147,6 @@ public class Space extends Dimension {
 	public void setByArray(Coordinates coordinates, ITile tile) {
 		assert(coordinates.cartesian == false);
 		matrix[coordinates.y][coordinates.x] = tile;
-		updateStringRepresentation(coordinates);
 	}
 
 	/**
@@ -232,71 +226,32 @@ public class Space extends Dimension {
 	}
 	
 	public List<String> getStringRepresentation() {
+		List<String> stringRepresentation = new ArrayList<String>();
+		List<String> columnRepresentation = new ArrayList<String>();
 //		Initial settings
-		if(columnRepresentation.size() == 0) {
-			for(int i = 0; i < xDimension; i++) {
-				StringBuffer column = new StringBuffer();
-				for(int j = 0; j < yDimension; j++) {
-					Coordinates currentCoords = new Coordinates(false, i, j);
-					ITile tile = getByArray(currentCoords);
-					if(tile == null)
-						column.append(PieceFactory.newPiece("").toString());
-					else {
-						for(String s : tile.getStringRepresentation()) {
-							column.append(s + "\n");
-						}
+		for(int i = 0; i < xDimension; i++) {
+			StringBuffer column = new StringBuffer();
+			for(int j = 0; j < yDimension; j++) {
+				Coordinates currentCoords = new Coordinates(false, i, j);
+				ITile tile = getByArray(currentCoords);
+				if(tile == null)
+					column.append(PieceFactory.newPiece("").toString());
+				else {
+					for(String s : tile.getStringRepresentation()) {
+						column.append(s + "\n");
 					}
 				}
-				columnRepresentation.add(column.toString());
 			}
-		}
-		return stringRepresentation;
-	}
-	
-	private void updateStringRepresentation(Coordinates coordinates) {
-		if(columnRepresentation.size() == 0) {
-			getStringRepresentation();
-			return;
+			columnRepresentation.add(column.toString());
 		}
 		
-//		TODO: First we find the 'line' that holds this tile (using coordinates.y)
-		if(coordinates.cartesian())
-			coordinates = coordToArray(coordinates);
-		
-		String visualToReplace = columnRepresentation.get(coordinates.x());
-		
-		List<String> subStrings = new ArrayList<String>(Arrays.asList(visualToReplace.split("\n")));
-//		FIXME: Should not be hard-coded as length 7
-		int replaceIndex = coordinates.y() * 7;
-		
-		ITile tile = getByArray(coordinates);
-		
-		StringBuffer sb = new StringBuffer();
-		for(String s : tile.getStringRepresentation())
-			sb.append(s + "\n");
-		
-		String[] newVisual = sb.toString().split("\n");
-		for(int i = 0; i < 5; i++) {
-			subStrings.remove(replaceIndex + i);
-			subStrings.add(replaceIndex + i, newVisual[i]);
-		}
-		
-		sb.delete(0, sb.length());
-		
-		for(String s : subStrings)
-			sb.append(s + "\n");
-		
-		columnRepresentation.remove(coordinates.x());
-		columnRepresentation.add(coordinates.x(), sb.toString());
-		
-		stringRepresentation.removeAll(stringRepresentation);
-
 		for(String s : multiLine(columnRepresentation).split("\n")) {
 			stringRepresentation.add(s);
 		}
-
+		
+		return stringRepresentation;
 	}
-
+	
 	/**
 	 * Set current coordinates
 	 * @param {@code Coordinates} containing the new current coordinates
@@ -453,15 +408,12 @@ public class Space extends Dimension {
 		
 //		This is required as this.current is pointing to C(0,0) upon initialization 
 		if(currentTile != null) {
-			currentTile.removeFromVisual("CT");
-			updateStringRepresentation(current);
+			currentTile.removeArtifact("CT");
 		}
 		
 //		Now do the reverse in the new tile
 		sb.delete(0, sb.length());
 		ITile newCurrentTile = getByCoord(coordinates);
-		newCurrentTile.addToVisual("CT");
-		
-		updateStringRepresentation(coordinates);
+		newCurrentTile.addArtifact("CT");
 	}
 }

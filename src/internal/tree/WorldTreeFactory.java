@@ -151,7 +151,7 @@ public class WorldTreeFactory implements Serializable {
 			super(name, parent, constraints);
 //			FIXME: Added this to solve NPE on constraints()
 			if(constraints == null)
-				this.setConstraints(new ArrayList<Constraint>());
+				this.setConstraints(new ArrayList<Constraint>(3));
 		}
 
 		@Override
@@ -328,7 +328,7 @@ public class WorldTreeFactory implements Serializable {
 						IWorldTree obj 	= row.get(columnIndex);
 //						FIXME: Hack to add this to the visual
 						if((Integer) value.data() > 0 && obj.getClass().equals(Tile.class))
-							( (Tile) obj).addToVisual(def.property().name().substring(0, 1).toUpperCase() + value.data());
+							( (Tile) obj).addArtifact(def.property().name().substring(0, 1).toUpperCase() + value.data());
 						obj.addProperty(def.property().name(), value);
 						result.remove(randomIndex);
 					}
@@ -643,7 +643,7 @@ public class WorldTreeFactory implements Serializable {
 		private static final long serialVersionUID = 3733417833903485812L;
 
 		public Room(String name, IWorldTree parent) {
-			super(name, parent, new ArrayList<Constraint>());
+			super(name, parent, new ArrayList<Constraint>(3));
 		}
 
 //		The Room must decide the location of the tiles (I think..)
@@ -707,7 +707,7 @@ public class WorldTreeFactory implements Serializable {
 		
 		private Space space;
 		public Region(String name, IWorldTree parent, Space space) {
-			super(name, parent, new ArrayList<Constraint>());
+			super(name, parent, new ArrayList<Constraint>(3));
 			this.space = space;
 		}
 
@@ -719,7 +719,7 @@ public class WorldTreeFactory implements Serializable {
 			Coordinates startCoords = new Coordinates(true, startX, startY);
 			ITile tile = initTile(startCoords, null);	//FIXME
 			tile.addProperty("start", new Datum.Bool(true));
-			tile.addToVisual("S");
+			tile.addArtifact("S");
 			space.setByCoord(startCoords, tile);
 			space.setCurrentCoordinates(startCoords);
 			initNeighbours();
@@ -735,7 +735,7 @@ public class WorldTreeFactory implements Serializable {
 			}
 			tile = initTile(endCoords, null);	//FIXME
 			tile.addProperty("end", new Datum.Bool(true));
-			tile.addToVisual("E");
+			tile.addArtifact("E");
 			space.setByCoord(endCoords, tile);
 		}
 		
@@ -752,7 +752,6 @@ public class WorldTreeFactory implements Serializable {
 			}
 //			initRegion();
 			initString();
-			this.children = space.collection();
 			this.pushDownConstraints();
 		}
 		
@@ -769,12 +768,11 @@ public class WorldTreeFactory implements Serializable {
 					for(java.util.Map.Entry<String, Datum> entry : existingTile.properties().entrySet())
 						tile.addProperty(entry.getKey(), entry.getValue());
 					for(String string : existingTile.artifacts())
-						tile.addToVisual(string);
+						tile.addArtifact(string);
 					space.setByCoord(coords, tile);
 				}
 			}
 			initString();
-			this.children = space.collection();
 		}
 		
 		/**
@@ -864,11 +862,13 @@ public class WorldTreeFactory implements Serializable {
 		 * before moving on to the next line of every tile.
 		 * <br>
 		 * This is done to ensure that the visual of a room/region is as it should be!
+		 * @return List<String> containing the string representation
 		 */
 		@Override
-		public void initString() {
-			stringRepresentation = space.getStringRepresentation();
-			prepareToString();
+		public List<String> initString() {
+			List<String> stringRepresentation = space.getStringRepresentation();
+			prepareToString(stringRepresentation);
+			return stringRepresentation;
 		}
 		
 		@Override
@@ -932,13 +932,11 @@ public class WorldTreeFactory implements Serializable {
 		private static final long serialVersionUID = 7530444796681530305L;
 		
 		public IPiece piece;
-		private Coordinates coordinates;
 		private List<String> artifacts;
 		public Tile(String name, Coordinates coord, IWorldTree parent, IPiece tilePiece) {
-			super(name, parent, new ArrayList<Constraint>());
-			this.coordinates	= coord;
+			super(name, parent, new ArrayList<Constraint>(0));
 			this.piece 			= tilePiece;
-			this.artifacts		= new ArrayList<String>();
+			this.artifacts		= new ArrayList<String>(3);
 			initialize();
 		}
 		
@@ -954,7 +952,7 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void initialize() {
-			children = new ArrayList<IWorldTree>();
+			children = null;
 			this.pushDownConstraints();
 		}
 		
@@ -964,10 +962,8 @@ public class WorldTreeFactory implements Serializable {
 		}
 		
 		public List<String> getStringRepresentation() {
-			if(stringRepresentation == null)
-				stringRepresentation = new ArrayList<String>(Arrays.asList(piece().toString().split("\n")));
-			else if(stringRepresentation.size() == 0)
-				stringRepresentation.addAll(Arrays.asList(piece().toString().split("\n")));
+			List<String> stringRepresentation = new ArrayList<String>(Arrays.asList(piece().toString().split("\n")));
+			updateVisuals(stringRepresentation);
 			return stringRepresentation;
 		}
 		
@@ -985,9 +981,13 @@ public class WorldTreeFactory implements Serializable {
 		public IWorldTree neighbour(Direction direction) {
 			Region parent = (Region) this.parent;
 			
-			assert(this.coordinates.cartesian());
+			String name = this.name();
+			Coordinates coordinates = Coordinates.stringToArray(name.substring(name.indexOf("(")));
+			coordinates = ( (Region) this.parent).space.arrayToCoord(coordinates);
 			
-			Coordinates newCoords = new Coordinates(this.coordinates);
+			assert(coordinates.cartesian());
+			
+			Coordinates newCoords = new Coordinates(coordinates);
 			switch(direction) {
 			case E:
 				newCoords.x++;
@@ -1026,52 +1026,37 @@ public class WorldTreeFactory implements Serializable {
 			else
 				return null;
 		}
-
-		@Override
-		public void updateVisual(String visual) {
-			stringRepresentation.removeAll(stringRepresentation);
+		
+		private void updateVisuals(List<String> stringRepresentation) {
+			StringBuffer sb = new StringBuffer();
+			for(String s : stringRepresentation)
+				sb.append(s + "\n");
 			
-			for(String s : visual.split("\n")) {
+			for(String artifact : artifacts) {
+				StringBuffer searchString = new StringBuffer();
+				while(searchString.length() < artifact.length())
+					searchString.append(" ");
+				int index = sb.indexOf(searchString.toString(), 12);
+				if(index < 0)
+					System.err.println("Unable to update current tile visual! No space for artifact :" + artifact);
+				else {
+					sb.replace(index + 1, index + artifact.length() + 1, artifact);
+				}
+			}
+			
+			stringRepresentation.clear();
+			for(String s : sb.toString().split("\n"))
 				stringRepresentation.add(s);
-			}
 		}
 
 		@Override
-		public void addToVisual(String string) {
-			StringBuffer sb = new StringBuffer();
-			List<String> stringRepresentation = getStringRepresentation();
-			for(String s : stringRepresentation)
-				sb.append(s + "\n");
-			
-			StringBuffer searchString = new StringBuffer();
-			while(searchString.length() < string.length())
-				searchString.append(" ");
-			int index = sb.indexOf(searchString.toString(), 12);
-			if(index < 0)
-				System.err.println("Unable to update current tile visual! No space for artifact :" + string);
-			else {
-				sb.replace(index + 1, index + string.length() + 1, string);
-				artifacts.add(string);
-				updateVisual(sb.toString());
-			}
+		public void addArtifact(String artifact) {
+			artifacts.add(artifact);
 		}
 
 		@Override
-		public void removeFromVisual(String string) {
-			StringBuffer sb = new StringBuffer();
-			List<String> stringRepresentation = getStringRepresentation();
-			for(String s : stringRepresentation)
-				sb.append(s + "\n");
-			
-			int index = sb.indexOf(string);
-			if(index < 0)
-				System.err.println("Artifact does not exist!\n");
-			else {
-				String replacement = string.replaceAll("\\w", " ");
-				sb.replace(index + 1, index + string.length() + 1, replacement);
-				artifacts.remove(string);
-				updateVisual(sb.toString());
-			}
+		public void removeArtifact(String artifact) {
+				artifacts.remove(artifact);
 		}
 		
 		@Override

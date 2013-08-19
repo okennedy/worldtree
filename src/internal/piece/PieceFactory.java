@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -19,9 +20,8 @@ import java.util.Random;
 public class PieceFactory implements Serializable {
 	private static final long serialVersionUID = -5816554261706965026L;
 	
-	private static List<Piece> listOfPieces = new ArrayList<Piece>();
-	private static PieceFactory instance = null;
-	
+	private static PieceFactory instance	= null;
+	private static Map<Piece, String> pieceMap;
 	protected PieceFactory() {
 //		Prevent initialization of PieceFactory.
 	}
@@ -38,7 +38,7 @@ public class PieceFactory implements Serializable {
 	}
 
 	private PieceFactory(String[] list) {
-		listOfPieces = new ArrayList<Piece>();
+		pieceMap = new HashMap<Piece, String>(17);
 		initPieces(list);
 	}
 	
@@ -55,13 +55,55 @@ public class PieceFactory implements Serializable {
 	}
 	
 	private void initPieces(String[] list) {
-//		Sanity check
-		listOfPieces.clear();
+		List<Piece> pieces = new ArrayList<Piece>();
 		for(String s : list) {
 			Piece p = new Piece(s);
-			listOfPieces.add(p);
+			pieces.add(p);
 		}
+		initializeVisuals(pieces);
 	}
+	
+	/**
+	 * Read the file 'pieces.txt' to initialize a visual representation for this piece.
+	 */
+	private void initializeVisuals(List<Piece> pieces) {
+		StringBuffer visual = new StringBuffer();
+		for(Piece p : pieces) {
+			visual.delete(0, visual.length());
+			BufferedReader in = null;
+			try {
+				List<TileInterfaceType> interfaceList   = p.getValidInterfaces();
+				in = new BufferedReader(new FileReader(new File("pieces.txt")));
+				String line;
+				while( (line = in.readLine()) != null) {
+					if(line.matches("[A-Z]+")) {
+						ArrayList<TileInterfaceType> tokenList          = new ArrayList<TileInterfaceType>();
+						char[] tokens = line.toCharArray();
+						for(char c : tokens) {
+							tokenList.add(TileInterfaceType.convert("" + c));
+						}
+						if(interfaceList.containsAll(tokenList) && tokenList.containsAll(interfaceList)) {
+//							Valid visual
+							while( (line = in.readLine()) != null) {
+								if(line.matches("(-x)*"))
+									break;
+								else
+									visual.append(line + "\n");
+							}
+						}
+					}
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			pieceMap.put(p, visual.toString());
+		}
+//		FIXME: Automatically add empty Piece
+		pieceMap.put(new Piece(""), "+----------+\n|          |\n|          |\n|          |\n|          |\n|          |\n+----------+\n");
+	}
+
+	
+	
 
 /**
  * Get a piece object that is mapped to the specified set of interfaces
@@ -70,12 +112,12 @@ public class PieceFactory implements Serializable {
  * @throws IllegalArgumentException if there is no Piece corresponding to the given set of interfaces.
  */
 	private Piece getNewPiece(String interfaces) {
-		for(Piece p : listOfPieces) {
+		for(Piece p : pieceMap.keySet()) {
 			if(p.getBinaryInterfaces().equals(interfaces))
 				return p;
 			char [] array = interfaces.toUpperCase().toCharArray();
 			Arrays.sort(array);
-			interfaces = new String(array);
+			interfaces = String.valueOf(array);
 			if(interfaces.equals(p.getText()))
 				return p;
 		}
@@ -98,7 +140,8 @@ public class PieceFactory implements Serializable {
 	 * @return {@code IPiece} a random {@code Piece}
 	 */
 	public static IPiece randomPiece() {
-		return listOfPieces.get((new Random()).nextInt(listOfPieces.size()));
+		List<Piece> pieces = new ArrayList<Piece>(pieceMap.keySet());
+		return pieces.get((new Random()).nextInt(pieces.size()));
 	}
 
 	/**
@@ -115,7 +158,7 @@ public class PieceFactory implements Serializable {
 		
 //		Empty piece case
 		if(invalidInterfaces.equals("DLRU")) {
-			for(Piece p : listOfPieces) {
+			for(Piece p : pieceMap.keySet()) {
 				if(p.getText().equals(""))
 					return p;
 			}
@@ -123,7 +166,7 @@ public class PieceFactory implements Serializable {
 
 		List<IPiece> subList = new ArrayList<IPiece>();
 //		First, we create a sublist containing all pieces that satisfy mandatory interface list
-		for(Piece p : listOfPieces) {
+		for(Piece p : pieceMap.keySet()) {
 			if(p.getText().equals(""))
 				continue;
 			if(p.getText().contains(mandatoryInterfaces)) {
@@ -150,6 +193,7 @@ public class PieceFactory implements Serializable {
 			throw new IllegalStateException("subList of Piece(s) is empty!");
 		} 
 	}
+	
 	/**
 	 * The Piece class is used to define every type of Piece that is valid.
 	 * These pieces occupy Cells.
@@ -159,56 +203,8 @@ public class PieceFactory implements Serializable {
 	private class Piece extends TileInterface implements IPiece, Serializable {
 		private static final long serialVersionUID = 8109699128257127720L;
 		
-		private String visual;
-		
 		private Piece(String interfaces) {
 			super(interfaces);
-			if(interfaces.equals(""))
-				this.visual = "+----------+\n|          |\n|          |\n|          |\n|          |\n|          |\n+----------+\n";
-			else
-				initializeVisual();
-		}
-
-		/**
-		 * Read the file 'pieces.txt' to initialize a visual representation for this piece.
-		 */
-		private void initializeVisual() {
-			visual = "";
-			BufferedReader in = null;
-			try {
-				List<TileInterfaceType> interfaceList 	= getValidInterfaces();
-				in = new BufferedReader(new FileReader(new File("pieces.txt")));
-				String line;
-				while( (line = in.readLine()) != null) {
-					if(line.matches("[A-Z]+")) {
-						ArrayList<TileInterfaceType> tokenList		= new ArrayList<TileInterfaceType>();
-						char[] tokens = line.toCharArray();
-						for(char c : tokens) {
-							tokenList.add(TileInterfaceType.convert("" + c));
-						}
-						if(interfaceList.containsAll(tokenList) && tokenList.containsAll(interfaceList)) {
-//							Valid visual
-							while( (line = in.readLine()) != null) {
-								if(line.matches("(-x)*"))
-									break;
-								else
-									visual += line + "\n";
-							}
-						}
-					}
-					
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				if(in != null) {
-					try {
-						in.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
 		}
 
 		@Override
@@ -216,7 +212,7 @@ public class PieceFactory implements Serializable {
 			ArrayList<IPiece> returnList = new ArrayList<IPiece>();
 			TileInterfaceType complementaryInterface = it.getComplementaryInterface();
 			assert(this.hasInterface(it));
-			for(Piece p : listOfPieces) {
+			for(Piece p : pieceMap.keySet()) {
 				if(p.hasInterface(complementaryInterface))
 					returnList.add(p);
 			}
@@ -225,12 +221,13 @@ public class PieceFactory implements Serializable {
 		
 		@Override
 		public String toString() {
-			return visual;
+			String s = pieceMap.get(this);
+			return s;
 		}
 
 		@Override
 		public String getText() {
-			return super.toString();
+			return super.getText();
 		}
 	}
 }

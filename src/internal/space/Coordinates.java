@@ -60,4 +60,13 @@ public class Coordinates implements Serializable {
 		else
 			return "A(" + y + "," + x + ")";
 	}
+	
+	public static Coordinates stringToArray(String string) {
+		string = string.replace("(", "");
+		String[] strings = string.split(",");
+		int x = Integer.parseInt(strings[0]);
+		int y = Integer.parseInt(strings[1]);
+		Coordinates coords = new Coordinates(false, x, y);
+		return coords;
+	}
 }

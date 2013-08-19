@@ -5,7 +5,6 @@ import internal.parser.containers.Datum;
 import internal.parser.containers.condition.Condition;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.pattern.IPattern;
-import internal.parser.containers.pattern.Pattern;
 import internal.parser.containers.query.IQuery;
 import internal.parser.containers.query.Query;
 
@@ -35,15 +34,13 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	private String name;
 	private Collection<Constraint> constraints;
 	private Map<String, Datum> properties;
-	protected List<String> stringRepresentation;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		this.parent 		= parent;
 		this.children 		= null;
 		this.name 			= name;
 		this.constraints 	= constraints;
-		this.stringRepresentation 	= new ArrayList<String>();
-		this.properties				= new HashMap<String, Datum>();
+		this.properties				= new HashMap<String, Datum>(3);
 		
 		if(parent != null) {
 			IWorldTree root = this.root();
@@ -160,7 +157,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	}
 	
 	protected void pushDownConstraints() {
-		if(this.children == null)
+		Collection<IWorldTree> children = this.children();
+		if(children == null)
 			return;
 		for(Constraint c : this.constraints) {
 			try {
@@ -203,8 +201,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	
 	/* -------------------------------------------  String methods  ------------------------------------------- */
 	public List<String> getStringRepresentation() {
-		stringRepresentation.removeAll(stringRepresentation);
-		initString();
+		List<String> stringRepresentation = initString();
 		return stringRepresentation;
 	}
 	
@@ -227,12 +224,16 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	 * We need to concatenate each line of every child together and then CR+LF onto the next line.<br>
 	 * {@code listStringList} contains the list of stringLists (2-D {@code ArrayList}).<br>
 	 * We append every line of every {@code List<List<String>>} before moving onto the next index.<br>
+	 * @return List<String> containing the string representation
 	 */
-	protected void initString() {
-		if(children() == null)
-			return;
+	protected List<String> initString() {
+		Collection<IWorldTree> children = this.children();
+		List<String> stringRepresentation = new ArrayList<String>();
+		
+		if(children == null)
+			return stringRepresentation;
 		List<List<String>> listStringList = new ArrayList<List<String>>();
-		for(IWorldTree child : children()) {
+		for(IWorldTree child : children) {
 			listStringList.add(child.getStringRepresentation());
 		}
 		
@@ -273,14 +274,15 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				stringRepresentation.add(fullLine.toString());
 		}
 //		We have obtained every line as we should. We now need to own everything that is within is.
-		prepareToString();
+		prepareToString(stringRepresentation);
 		
+		return stringRepresentation;
 	}
 	
 	/**
 	 * Helper method that wraps around the initialized string representation to print ownership in the visual.
 	 */
-	protected void prepareToString() {
+	protected void prepareToString(List<String> stringRepresentation) {
 //		The string representation is in place. find the maximum length and wrap around it to own it.\
 //		Make the top part of the outer shell that wraps around all of this instance's children.
 		List<String> newStringRepresentation = new ArrayList<String>();
@@ -295,7 +297,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			header.append("-");
 		header.append("+");
 		newStringRepresentation.add(header.toString());
-		header = new StringBuffer();
+		header.delete(0, header.length());
 		header.append("|" + this.name);
 		for(int i = 0; i < maxLineLength - name.length(); i++)
 			header.append(" ");
@@ -336,7 +338,10 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		newStringRepresentation.add(footer.toString());
 		footer = null;
 		
-//		Update pointer.
-		stringRepresentation = newStringRepresentation;
+//		Update reference
+		stringRepresentation.clear();
+		for(String s : newStringRepresentation) {
+			stringRepresentation.add(s);
+		}
 	}
 }
