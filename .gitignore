@@ -5,6 +5,7 @@ bin
 *.*~
 output
 build
+worldtree
 
 !src
 !.gitignore
