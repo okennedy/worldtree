@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.fail;
 
-public class InitializationTests {
+public class InitializationTest {
 	private IMap map;
 	private WorldTreeFactory factory = null;
 	private static String[] pieceStrings = {
