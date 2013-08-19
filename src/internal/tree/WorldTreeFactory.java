@@ -464,7 +464,7 @@ public class WorldTreeFactory implements Serializable {
 						result.add(new Datum.Flt(data));
 						break;
 					case INT:
-						int val = (int) (Math.ceil(data));
+						int val = (int) (data);
 						assert val >= (int) randomSpecLow && val < (int) randomSpecHigh : 
 							"Logic to convert float to int before adding value failed!\n";
 						result.add(new Datum.Int(val));
@@ -540,7 +540,7 @@ public class WorldTreeFactory implements Serializable {
 						result.add(new Datum.Flt(data));
 						break;
 					case INT:
-						int val = (int) (Math.ceil(data));
+						int val = (int) (data);
 						assert val >= randomSpecLow && val < randomSpecHigh : "Logic to convert float to int before adding value failed!\n";
 						result.add(new Datum.Int(val));
 						break;
@@ -563,7 +563,7 @@ public class WorldTreeFactory implements Serializable {
 							requiredValue -= data;
 							break;
 						case INT:
-							int val = (int) (Math.ceil(data));
+							int val = (int) (data);
 							assert val >= randomSpecLow && val < randomSpecHigh : 
 								"Logic to convert float to int before adding value failed!\n";
 							result.add(new Datum.Int(val));
