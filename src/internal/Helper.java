@@ -267,6 +267,11 @@ public class Helper {
 					"Valid levels are :" + values());
 		}
 		
+		public static Hierarchy parse(Class<?> clazz) {
+			String level = clazz.getSimpleName();
+			return parse(level);
+		}
+		
 		@Override
 		public String toString() {
 			return level;
