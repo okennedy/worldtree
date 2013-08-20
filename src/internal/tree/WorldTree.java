@@ -40,7 +40,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.children 		= null;
 		this.name 			= name;
 		this.constraints 	= constraints;
-		this.properties				= new HashMap<String, Datum>(3);
+		this.properties		= new HashMap<String, Datum>(0);
 		
 		if(parent != null) {
 			IWorldTree root = this.root();
