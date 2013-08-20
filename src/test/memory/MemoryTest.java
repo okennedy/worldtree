@@ -1,24 +1,12 @@
 package test.memory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-
 import static internal.Helper.*;
-import internal.parser.ParseException;
-import internal.parser.Parser;
-import internal.parser.containers.query.IQuery;
-import internal.parser.resolve.ResolutionEngine;
-import internal.parser.resolve.Result;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import static org.junit.Assert.fail;
 
 public class MemoryTest {
 	private IMap map;
