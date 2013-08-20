@@ -24,14 +24,27 @@ public class MemoryTest {
 
 	@Test
 	public void sizeTest() {
+		long startTime 	= System.nanoTime();
 		factory = new WorldTreeFactory("init.properties", "world.definitions");
 		map = factory.newMap("InitTestMap", null);
 		map.initRooms();
 		map.initRegions();
 		map.initTiles();
 		
+		long endTime 	= System.nanoTime();
+		System.out.println("Time taken to create skeleton  :" + ((endTime - startTime)/1e9) + " seconds");
+		
+		startTime		= System.nanoTime();
 		map.fill();
+		endTime			= System.nanoTime();
+		System.out.println("Time taken to fill entire map  :" + ((endTime - startTime)/1e9) + " seconds");
+		
+		
+		
+		startTime		= System.nanoTime();
 		write(map);
+		endTime			= System.nanoTime();
+		System.out.println("Time taken to write map        :" + ((endTime - startTime)/1e9) + " seconds");
 		
 		getMemoryUsage();
 		
