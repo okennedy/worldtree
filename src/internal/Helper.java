@@ -25,19 +25,6 @@ public class Helper {
 	 * @param object {@code IWorldTree} object to write
 	 */
 	public static void write(IWorldTree object) {
-		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
-		nodes.add(object);
-		while(nodes.size() > 0) {
-			IWorldTree node = nodes.get(0);
-			if(node.children() != null) {
-				for(IWorldTree child : node.children()) {
-					nodes.add(child);
-				}
-				node.getStringRepresentation();
-			}
-			nodes.remove(node);
-		}
-		
 		BufferedWriter out = null;
 		try {
 			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));
