@@ -177,7 +177,7 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void initRegions() {
-			for(IWorldTree child : children) {
+			for(IWorldTree child : getRooms()) {
 				child.initialize();
 			}
 		}
