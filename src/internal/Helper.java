@@ -207,14 +207,11 @@ public class Helper {
 		}
 		
 		/**
-		 * Obtain the child level of the specified <b>level</b>
-		 * @param level {@code String} representing the current level
+		 * Obtain the child level of this Hierarchy (level)
 		 * @return {@code Hierarchy} representing the child level
 		 */
-		public static Hierarchy childLevel(String level) {
-			Hierarchy h = parse(level);
-			
-			switch(h) {
+		public Hierarchy childLevel() {
+			switch(this) {
 			case Map:
 				return Room;
 			case Region:
@@ -224,20 +221,16 @@ public class Helper {
 			case Tile:
 				return null;
 			default:
-				break;
+				return null;
 			}
-			return null;
 		}
 		
 		/**
-		 * Obtain the parent level of the specified <b>level</b>
-		 * @param level {@code String} representing the current level
+		 * Obtain the parent level of this Hierarchy (level)
 		 * @return {@code Hierarchy} representing the parent level
 		 */
-		public static Hierarchy parentLevel(String level) {
-			Hierarchy h = parse(level);
-			
-			switch(h) {
+		public Hierarchy parentLevel() {
+			switch(this) {
 			case Map:
 				return null;
 			case Region:
@@ -247,9 +240,8 @@ public class Helper {
 			case Tile:
 				return Region;
 			default:
-				break;
+				return null;
 			}
-			return null;
 		}
 		
 		/**

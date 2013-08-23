@@ -1,5 +1,6 @@
 package internal.parser.containers.query;
 
+import internal.Helper.Hierarchy;
 import internal.parser.containers.Statement;
 import internal.parser.containers.StatementType;
 import internal.parser.containers.condition.ICondition;
@@ -13,11 +14,11 @@ import internal.tree.IWorldTree;
  * 
  */
 public class BaseQuery extends Statement implements IQuery {
-	private String level;
+	private Hierarchy level;
 	private IPattern pattern;
 	private ICondition condition;
 	
-	public BaseQuery(String level, IPattern pattern, ICondition condition) {
+	public BaseQuery(Hierarchy level, IPattern pattern, ICondition condition) {
 		super(StatementType.QUERY);
 		this.level		= level;
 		this.pattern	= pattern;
@@ -40,14 +41,8 @@ public class BaseQuery extends Statement implements IQuery {
 	}
 
 	@Override
-	public Class<?> level() {
-		try {
-			String className = level.substring(0, 1).toUpperCase() + level.toLowerCase().substring(1);
-			return Class.forName("internal.tree.WorldTreeFactory$" + className);
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return null;
+	public Hierarchy level() {
+		return level;
 	}
 
 	

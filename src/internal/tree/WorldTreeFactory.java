@@ -276,10 +276,10 @@ public class WorldTreeFactory implements Serializable {
 			for(IWorldTree region : getRegions()) {
 				for(Constraint c : region.constraints()) {
 					Property constraintProperty = c.condition().property();
-					String constraintLevel		= c.level();
+					Hierarchy constraintLevel		= c.level();
 					
 					for(PropertyDef definition : definitions()) {
-						if(definition.level().equalsIgnoreCase(constraintLevel) && 
+						if(definition.level().equals(constraintLevel) && 
 								definition.property().name().equalsIgnoreCase(constraintProperty.name())) {
 							materializeDefinition(region, c, null, definition);
 						}
@@ -304,16 +304,16 @@ public class WorldTreeFactory implements Serializable {
 		ICondition definitionCondition 	= definition.condition();
 		ICondition constraintCondition	= constraint.condition();
 
-		String definitionLevel			= definition.level();
+		Hierarchy definitionLevel		= definition.level();
 		
 		switch(definition.type()) {
 		case AGGREGATE:
-			Hierarchy lowerHierarchyLevel = Hierarchy.childLevel(definitionLevel);
+			Hierarchy lowerHierarchyLevel = definitionLevel.childLevel();
 			
 			for(PropertyDef def : definitions()) {
 				if(def.equals(definition))
 					continue;
-				Hierarchy defHierarchyLevel = Hierarchy.parse(def.level());
+				Hierarchy defHierarchyLevel = def.level();
 				if(!lowerHierarchyLevel.equals(defHierarchyLevel))
 					continue;
 				if(definition.aggregateExpression().expr().property().name().equalsIgnoreCase(def.property().name())) {

@@ -66,7 +66,7 @@ public class ResolutionEngine {
 		}
 		case QUERY: {
 			IQuery query = (IQuery) statement;
-			Class<?> level		= query.level();
+			Class<?> level		= query.level().HierarchyClass();
 			IPattern pattern	= query.pattern();
 			
 			List<IWorldTree> objectList = getObjects(node, level);
@@ -86,7 +86,7 @@ public class ResolutionEngine {
 				}
 			}
 			while(query != null) {
-				level		= query.level();
+				level		= query.level().HierarchyClass();
 				pattern		= query.pattern();
 				result		= new Result();
 				while(pattern != null) {

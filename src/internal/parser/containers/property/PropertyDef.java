@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
+import internal.Helper.Hierarchy;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Statement;
 import internal.parser.containers.IContainer;
@@ -28,7 +29,8 @@ import internal.parser.containers.query.IQuery;
  *
  */
 public class PropertyDef extends Statement {
-	private String level, parent;
+	private Hierarchy level;
+	private String parent;
 	private AggExpr aggExpr;
 	private Property property;
 	private ICondition condition;
@@ -37,7 +39,7 @@ public class PropertyDef extends Statement {
 	private RandomSpec randomSpec;
 	private Type type;
 
-	public PropertyDef(Type type, String level, Property property, AggExpr aggExpr, RandomSpec random, 
+	public PropertyDef(Type type, Hierarchy level, Property property, AggExpr aggExpr, RandomSpec random, 
 			String parent, IExpr expr, ICondition condition, IQuery query) {
 		super(StatementType.PROPERTYDEF);
 		this.type			= type;
@@ -51,24 +53,24 @@ public class PropertyDef extends Statement {
 		this.query			= query;
 	}
 	
-	public PropertyDef(String level, Property property, IExpr expr, ICondition condition, IQuery query) {
+	public PropertyDef(Hierarchy level, Property property, IExpr expr, ICondition condition, IQuery query) {
 		this(Type.BASIC, level, property, null, null, null, expr, condition, query);
 	}
-	public PropertyDef(String level, Property property, AggExpr aggExpr, IQuery query) {
+	public PropertyDef(Hierarchy level, Property property, AggExpr aggExpr, IQuery query) {
 		this(Type.AGGREGATE, level, property, aggExpr, null, null, null, null, query);
 	}
 				
 	
-	public PropertyDef(String level, Property property, RandomSpec random, ICondition condition) {
+	public PropertyDef(Hierarchy level, Property property, RandomSpec random, ICondition condition) {
 		this(Type.RANDOM, level, property, null, random, null, null, condition, null);
 		this.query = new BaseQuery(level, new BasePattern(property.reference(), null, null), null);
 	}
 	
-	public PropertyDef(String level, Property property, String parent) {
+	public PropertyDef(Hierarchy level, Property property, String parent) {
 		this(Type.INHERIT, level, property, null, null, parent, null, null, null);
 	}
 	
-	public String level() {
+	public Hierarchy level() {
 		return level;
 	}
 	

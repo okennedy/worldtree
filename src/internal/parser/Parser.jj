@@ -13,6 +13,8 @@ import internal.parser.containers.expr.AggExpr.AggType;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.parser.containers.property.PropertyDef.RandomSpec.RandomSpecType;
 
+import internal.Helper.*;
+
 public class Parser{}PARSER_END(Parser)SKIP :{    " "|   "\r"|   "\t"|   "\n"
 }
 TOKEN [IGNORE_CASE] : /* KEYWORDS */
@@ -79,12 +81,14 @@ BasePattern basePattern() :
 {    LOOKAHEAD(2) r1 = reference() relation = relation() r2 = reference() { return new BasePattern(r1, relation, r2); }
 |   r1 = reference() { return new BasePattern(r1, null, null); }}
 
-BaseQuery baseQuery(String level) :
+BaseQuery baseQuery(Hierarchy level) :
 {
     IPattern pattern = null;
     ICondition condition = null;
+    String lvl;
 }
-{     LOOKAHEAD(3) level = word() pattern = pattern() (< WHERE > condition = condition())?
+{     LOOKAHEAD(3) lvl = word()	{ level = Hierarchy.parse(lvl); }
+     pattern = pattern() (< WHERE > condition = condition())?
      	{ return new BaseQuery(level, pattern, condition); }
  |   LOOKAHEAD(3) pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
 {
@@ -236,7 +240,7 @@ RandomSpec randomspec() :
         < FROM > low = constant() < TO > high = constant() 		{ return new RandomSpec(type, low, high); }|   < IN > < LPARANS > constant() (":" constant())? (< COMMA > constant() (":" constant())?)* < RPARANS >
 }
 
-IQuery query(String level) :
+IQuery query(Hierarchy level) :
 {
     IQuery query = null, subQuery = null;
 }
@@ -247,18 +251,21 @@ IQuery query(String level) :
 
 Constraint constraint() :
 {
-    String level		 = null;
+    Hierarchy level		 = null;
+    String lvl			 = null;
     IQuery query 		 = null;
     ICondition condition = null;
 }
 {
-    < FOR > < ALL > level = word() query = query(level) < ASSERT > condition = condition()
-    	{ return new Constraint(level, query, condition); }
+    < FOR > < ALL > lvl = word() { level = Hierarchy.parse(lvl); }
+    	query = query(level) < ASSERT > condition = condition()
+    		{ return new Constraint(level, query, condition); }
 }
 
 
 PropertyDef propertyDef() :
-{    String level 			= null;
+{    Hierarchy level 		= null;
+    String lvl				= null;
     Property property 		= null;
     String parent			= null;
     IExpr expr				= null;
@@ -268,7 +275,8 @@ PropertyDef propertyDef() :
     RandomSpec randomspec	= null;
 }
 {
-    LOOKAHEAD(7) < DEFINE > level = word() property = property() < AS >
+    LOOKAHEAD(7) < DEFINE > lvl = word() { level = Hierarchy.parse(lvl); }
+    	property = property() < AS >
         (            (
                 LOOKAHEAD(8) condition = condition()            |	expr = expr()
             )
@@ -281,7 +289,8 @@ PropertyDef propertyDef() :
 			{ return new PropertyDef(level, property, randomspec, condition); }
         )
         
-|   < INHERIT > level = word() property = property() < FROM > parent = word()
+|   < INHERIT > lvl = word()	{ level = Hierarchy.parse(lvl); }
+		property = property() < FROM > parent = word()
 			{ return new PropertyDef(level, property, parent); }}
 
 IStatement parse() :

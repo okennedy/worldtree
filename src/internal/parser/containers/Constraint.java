@@ -3,6 +3,7 @@ package internal.parser.containers;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import internal.Helper.Hierarchy;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
@@ -14,11 +15,11 @@ import internal.parser.containers.query.IQuery;
  *
  */
 public class Constraint extends Statement {
-	private String level;
+	private Hierarchy level;
 	private IQuery query;
 	private ICondition condition;
 	
-	public Constraint(String level, IQuery query, ICondition condition) {
+	public Constraint(Hierarchy level, IQuery query, ICondition condition) {
 		super(StatementType.CONSTRAINT);
 		this.level		= level;
 		this.query		= query;
@@ -44,9 +45,9 @@ public class Constraint extends Statement {
 
 	/**
 	 * Obtain the Level component
-	 * @return {@code String}
+	 * @return {@code Hierarchy}
 	 */
-	public String level() {
+	public Hierarchy level() {
 		return level;
 	}
 

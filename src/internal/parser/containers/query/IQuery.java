@@ -1,5 +1,6 @@
 package internal.parser.containers.query;
 
+import internal.Helper.Hierarchy;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.pattern.IPattern;
@@ -27,9 +28,9 @@ public interface IQuery extends IStatement {
 	
 	/**
 	 * Obtain the level on which this {@code IQuery} is to be resolved
-	 * @return {@code Class<?>} specifying the hierarchical level in the WorldTree 
+	 * @return {@code Hierarchy} specifying the hierarchical level in the WorldTree 
 	 */
-	public Class<?> level();
+	public Hierarchy level();
 	
 	
 //	Setters

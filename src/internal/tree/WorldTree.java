@@ -1,5 +1,6 @@
 package internal.tree;
 
+import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.condition.Condition;
@@ -46,12 +47,9 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			IWorldTree root = this.root();
 			if(root.constraints() != null) {
 				for(Constraint c : root.constraints()) {
-					String constraintClass 	= c.query().level().getName();
-					String constraintClassLevel = constraintClass.substring(constraintClass.indexOf("$") + 1);
-					
-					String myClass			= this.getClass().getName();
-					String myClassLevel		= myClass.substring(myClass.indexOf("$") + 1);
-					if(myClassLevel.equalsIgnoreCase(constraintClassLevel))
+					Hierarchy myLevel			= Hierarchy.parse(this.getClass());
+					Hierarchy constraintLevel	= c.level();
+					if(myLevel.equals(constraintLevel))
 						constraints.add(c);
 				}
 			}
@@ -161,40 +159,36 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		if(children == null)
 			return;
 		for(Constraint c : this.constraints) {
-			try {
-				Class<?> constraintClass = Class.forName(WorldTreeFactory.class.getName() + "$" + titleCase(c.level()));
-				if(constraintClass.equals(this.getClass())) {
-					Datum d = c.condition().value();
-					List<Datum> values = d.split(children.size());
-					for(IWorldTree child : children) {
-						Datum value = values.get((new Random().nextInt(values.size())));
-						String className = child.getClass().getName();
-						String level = className.substring(className.indexOf("$") + 1);
+			Class<?> constraintClass = c.level().HierarchyClass();
+			if(constraintClass.equals(this.getClass())) {
+				Datum d = c.condition().value();
+				List<Datum> values = d.split(children.size());
+				for(IWorldTree child : children) {
+					Datum value = values.get((new Random().nextInt(values.size())));
+					String childClassName 	= child.getClass().getName();
+					Hierarchy childLevel 	= Hierarchy.parse(child.getClass());
 
 //						FIXME: This will only work for very simple conditions!
-						IQuery subConstraintQuery 			= null;
-						ICondition subConstraintCondition 	= null;
+					IQuery subConstraintQuery 			= null;
+					ICondition subConstraintCondition 	= null;
+					
+					{
+						subConstraintCondition = new Condition(c.condition().notFlag(), c.condition());
+						subConstraintCondition.setValue(value);
 						
-						{
-							subConstraintCondition = new Condition(c.condition().notFlag(), c.condition());
-							subConstraintCondition.setValue(value);
-							
-							IPattern constraintQueryPattern 	= c.query().pattern();
-							ICondition constraintQueryCondition = c.query().condition();
-							IQuery constraintSubQuery 			= c.query().subQuery();
-							
+						IPattern constraintQueryPattern 	= c.query().pattern();
+						ICondition constraintQueryCondition = c.query().condition();
+						IQuery constraintSubQuery 			= c.query().subQuery();
+						
 //							FIXME: This will fail if constraintSubQuery is anything other than null due to different 'level'
-							subConstraintQuery	= new Query(level, constraintQueryPattern, constraintQueryCondition, constraintSubQuery);
-						}
-						
-						Constraint subConstraint = new Constraint(level, subConstraintQuery, subConstraintCondition);
-						child.addConstraint(subConstraint);
-						
-						values.remove(value);
+						subConstraintQuery	= new Query(childLevel, constraintQueryPattern, constraintQueryCondition, constraintSubQuery);
 					}
+					
+					Constraint subConstraint = new Constraint(childLevel, subConstraintQuery, subConstraintCondition);
+					child.addConstraint(subConstraint);
+					
+					values.remove(value);
 				}
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
 			}
 		}
 	}

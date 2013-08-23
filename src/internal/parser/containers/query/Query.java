@@ -1,5 +1,6 @@
 package internal.parser.containers.query;
 
+import internal.Helper.Hierarchy;
 import internal.parser.containers.Statement;
 import internal.parser.containers.StatementType;
 import internal.parser.containers.condition.ICondition;
@@ -15,7 +16,7 @@ public class Query extends Statement implements IQuery {
 	private IQuery baseQuery;
 	private IQuery subQuery;
 	
-	public Query(String level, IPattern pattern, ICondition condition, IQuery subQuery) {
+	public Query(Hierarchy level, IPattern pattern, ICondition condition, IQuery subQuery) {
 		super(StatementType.QUERY);
 		this.baseQuery	= new BaseQuery(level, pattern, condition);
 		this.subQuery	= subQuery;
@@ -45,7 +46,7 @@ public class Query extends Statement implements IQuery {
 	}
 
 	@Override
-	public Class<?> level() {
+	public Hierarchy level() {
 		return baseQuery.level();
 	}
 
