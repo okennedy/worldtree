@@ -276,5 +276,18 @@ public class Helper {
 		public String toString() {
 			return level;
 		}
+
+		/**
+		 * Obtain the class corresponding to this level
+		 * @return {@code Class<?>}
+		 */
+		public Class<?> HierarchyClass() {
+			try {
+				return Class.forName("internal.tree.WorldTreeFactory$" + level);
+			} catch (ClassNotFoundException e) {
+				System.err.println(e.getMessage());
+			}
+			return null;
+		}
 	}
 }
