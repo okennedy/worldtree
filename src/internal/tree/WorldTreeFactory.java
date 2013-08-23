@@ -147,11 +147,12 @@ public class WorldTreeFactory implements Serializable {
 	private  class Map extends WorldTree implements IMap {
 		private static final long serialVersionUID = 8573337917599165863L;
 
-		public Map(String name, IWorldTree parent, Collection<Constraint> constraints) {
+		public Map(String name, IWorldTree parent, Collection<Constraint> constraints, Collection<PropertyDef> definitions) {
 			super(name, parent, constraints);
 //			FIXME: Added this to solve NPE on constraints()
 			if(constraints == null)
 				this.setConstraints(new ArrayList<Constraint>(3));
+			this.setDefinitions(definitions);
 		}
 
 		@Override
@@ -167,7 +168,6 @@ public class WorldTreeFactory implements Serializable {
 					name = "Room" + i;
 				children.add(new Room(name, this));
 			}
-			this.pushDownConstraints();
 		}
 		
 		@Override
@@ -272,363 +272,17 @@ public class WorldTreeFactory implements Serializable {
 		}
 		
 		@Override
-		public void materializeConstraints() {
-			for(IWorldTree region : getRegions()) {
-				for(Constraint c : region.constraints()) {
-					Property constraintProperty = c.condition().property();
-					Hierarchy constraintLevel		= c.level();
-					
-					for(PropertyDef definition : definitions()) {
-						if(definition.level().equals(constraintLevel) && 
-								definition.property().name().equalsIgnoreCase(constraintProperty.name())) {
-							materializeDefinition(region, c, null, definition);
-						}
-					}
-				}
-			}
-		}
-
-		@Override
 		public void fill() {
 			for(IWorldTree r : getRegions()) {
 				((Region) r).initRegion();
 			}
 		}
-	}
-	
-	public Collection<Datum> materializeDefinition(IWorldTree node, Constraint constraint, 
-			PropertyDef parentDefinition, PropertyDef definition) {
-		List<Datum> result = new ArrayList<Datum>();
-		
-		RandomSpec randomSpec 			= definition.randomspec();
-		ICondition definitionCondition 	= definition.condition();
-		ICondition constraintCondition	= constraint.condition();
 
-		Hierarchy definitionLevel		= definition.level();
-		
-		switch(definition.type()) {
-		case AGGREGATE:
-			Hierarchy lowerHierarchyLevel = definitionLevel.childLevel();
-			
-			for(PropertyDef def : definitions()) {
-				if(def.equals(definition))
-					continue;
-				Hierarchy defHierarchyLevel = def.level();
-				if(!lowerHierarchyLevel.equals(defHierarchyLevel))
-					continue;
-				if(definition.aggregateExpression().expr().property().name().equalsIgnoreCase(def.property().name())) {
-					result.addAll(materializeDefinition(node, constraint, definition, def));
-					Result queryResult = ResolutionEngine.evaluate(node, definition.query());
-					
-					List<IWorldTree> row = null;
-					String reference 	= def.property().reference().toString();
-					int columnIndex 	= queryResult.indexOf(reference);
-					for(int rowIndex = 0; rowIndex < queryResult.get(0).size(); rowIndex++) {
-						row 			= queryResult.getRow(rowIndex);
-						int randomIndex	= new Random().nextInt(result.size());
-						Datum value 	= result.get(randomIndex);
-						IWorldTree obj 	= row.get(columnIndex);
-//						FIXME: Hack to add this to the visual
-						if((Integer) value.data() > 0 && obj.getClass().equals(Tile.class))
-							( (Tile) obj).addArtifact(def.property().name().substring(0, 1).toUpperCase() + value.data());
-						obj.addProperty(def.property().name(), value);
-						result.remove(randomIndex);
-					}
-					ResolutionEngine.evaluate(node, definition);
-				}
-			}
-			
-			break;
-		case BASIC:
-			break;
-		case INHERIT:
-			break;
-		case RANDOM:
-//			In early initialization, we don't have a skeleton..Thus, break for all condition-based RandomSpecs.
-			assert definitionCondition == null : "error: Trying to early-init a definition that has a condition!\n";
-			assert randomSpec != null : "error: PropertyDef type is random, but randomSpec is null!\n";
-			
-			Random random = new Random();
-			
-			float constraintValue = Float.parseFloat(constraintCondition.value().toString());
-			float randomSpecHigh  = Float.parseFloat(randomSpec.high().toString());
-			float randomSpecLow   = Float.parseFloat(randomSpec.low().toString());
-
-			int availableNodes	= ResolutionEngine.evaluate(node, definition.query()).get(0).size();
-			
-			float requiredValue = constraintValue; 
-			float diff = randomSpecHigh - randomSpecLow;
-			
-			int nodeCount = -1;
-			switch(parentDefinition.aggregateExpression().type()) {
-			case COUNT:
-				switch(constraintCondition.operator()) {
-				case EQ:
-					nodeCount = (int) requiredValue;
-					break;
-				case GE:
-					nodeCount	= (int) (requiredValue + (Math.random() * (availableNodes - requiredValue)));
-					break;
-				case GT:
-					nodeCount	= (int) (requiredValue + 1 + (Math.random() * (availableNodes - requiredValue)));
-					break;
-				case LE:
-					nodeCount	= (int) (0 + (Math.random() * (requiredValue + 1)));
-					break;
-				case LT:
-					nodeCount	= (int) (0 + (Math.random() * (requiredValue)));
-					break;
-				case NOTEQ:
-					while(nodeCount != requiredValue)
-						nodeCount	= (int) (0 + (Math.random() * (availableNodes)));
-					break;
-				default:
-					break;
-				}
-				while(result.size() < nodeCount) {
-					switch(constraintCondition.value().type()) {
-					case FLOAT: {
-						float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
-						if(data == 0)
-							continue;
-						result.add(new Datum.Flt(data));
-						break;
-					}
-					case INT: {
-						int data = (int) (randomSpecLow + (float) (random.nextDouble() * (diff)));
-						if(data == 0)
-							continue;
-						result.add(new Datum.Int(data));
-						break;
-					}
-					default:
-						throw new IllegalStateException("Trying to aggregate over type " + constraintCondition.value().type() + "!\n");
-					}
-				}
-				while(result.size() < availableNodes) {
-					result.add(new Datum.Flt(0f));
-				}
-				break;
-			case MAX:
-                assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : 
-                	"Constraint demands impossible value!\n" + 
-                	"Constraint condition : " + constraintCondition.toString() + "\n" +
-                	"Definition           : " + definition.toString() + "\n";
-
-				boolean satisfiesConstraint = false;
-				while(result.size() < availableNodes) {
-					float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
-					switch(constraintCondition.operator()) {
-					case EQ:
-						if(data > requiredValue)
-							continue;
-						if(data == requiredValue)
-							satisfiesConstraint = true;
-						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-							data = requiredValue;
-							satisfiesConstraint = true;
-						}
-						break;
-					case GE:
-						if(data >= requiredValue)
-							satisfiesConstraint = true;
-						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-							data = (float) (requiredValue + (float) (random.nextDouble() * (randomSpecHigh - requiredValue)));
-							satisfiesConstraint = true;
-						}
-						break;
-					case GT:
-						if(data > requiredValue)
-							satisfiesConstraint = true;
-						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-							data = (float) (requiredValue + (float) (random.nextDouble() * (randomSpecHigh - requiredValue)));
-							if(data == requiredValue)
-								continue;
-							satisfiesConstraint = true;
-						}
-						break;
-					case LE:
-						if(data > requiredValue)
-							continue;
-						break;
-					case LT:
-						if(data >= requiredValue)
-							continue;
-						break;
-					case NOTEQ:
-						if(data == requiredValue && !satisfiesConstraint)
-							continue;
-						break;
-					
-					}
-					switch(definition.randomspec().type()) {
-					case FLOAT:
-						result.add(new Datum.Flt(data));
-						break;
-					case INT:
-						int val = (int) (Math.ceil(data));
-						assert val >= (int) randomSpecLow && val < (int) randomSpecHigh : 
-							"Logic to convert float to int before adding value failed!\n";
-						result.add(new Datum.Int(val));
-						break;
-					}
-				}
-				assert satisfiesConstraint == true : "Finished allocating but did not satisfy constraint!\n";
-				break;
-			case MIN:
-                assert (requiredValue < randomSpecHigh && requiredValue >= randomSpecLow) : 
-                	"Constraint demands impossible value!\n" + 
-                	"Constraint condition : " + constraintCondition.toString() + "\n" +
-                	"Definition           : " + definition.toString() + "\n";
-
-				satisfiesConstraint = false;
-				while(result.size() < availableNodes) {
-					float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
-					switch(constraintCondition.operator()) {
-					case EQ:
-						if(data < requiredValue)
-							continue;
-						if(data == requiredValue)
-							satisfiesConstraint = true;
-						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-							data = requiredValue;
-							satisfiesConstraint = true;
-						}
-						break;
-					case GE:
-						if(data < requiredValue)
-							continue;
-						if(data >= requiredValue)
-							satisfiesConstraint = true;
-						break;
-					case GT:
-						if(data <= requiredValue)
-							continue;
-						if(data > requiredValue)
-							satisfiesConstraint = true;
-						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-							data = (float) (requiredValue + (float) (random.nextDouble() * (randomSpecHigh - requiredValue)));
-							if(data == requiredValue)
-								continue;
-							satisfiesConstraint = true;
-						}
-						break;
-					case LE:
-						if(data <= requiredValue)
-							satisfiesConstraint = true;
-						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-							data = (float) (randomSpecLow + (float) (random.nextDouble() * (requiredValue - randomSpecLow)));
-							satisfiesConstraint = true;
-						}
-						break;
-					case LT:
-						if(data < requiredValue)
-							satisfiesConstraint = true;
-						if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
-							data = (float) (randomSpecLow + (float) (random.nextDouble() * (requiredValue - randomSpecLow)));
-							if(data == requiredValue)
-								continue;
-							satisfiesConstraint = true;
-						}
-						break;
-					case NOTEQ:
-						if(data == requiredValue && !satisfiesConstraint)
-							continue;
-						break;
-					
-					}
-					switch(definition.randomspec().type()) {
-					case FLOAT:
-						result.add(new Datum.Flt(data));
-						break;
-					case INT:
-						int val = (int) (Math.ceil(data));
-						assert val >= randomSpecLow && val < randomSpecHigh : "Logic to convert float to int before adding value failed!\n";
-						result.add(new Datum.Int(val));
-						break;
-					}
-				}
-				assert satisfiesConstraint == true : "Finished allocating but did not satisfy constraint!\n";
-				break;
-			case SUM:
-				assert (requiredValue < (randomSpecHigh * availableNodes) && requiredValue >= randomSpecLow) : 
-                	"Constraint demands impossible value!\n" + 
-                	"Constraint condition : " + constraintCondition.toString() + "\n" +
-                	"Definition           : " + definition.toString() + "\n";
-				
-				while(true) {
-					while(result.size() < availableNodes) {
-						float data = (float) (randomSpecLow + (float) (random.nextDouble() * (diff)));
-						switch(definition.randomspec().type()) {
-						case FLOAT:
-							result.add(new Datum.Flt(data));
-							requiredValue -= data;
-							break;
-						case INT:
-							int val = (int) (Math.ceil(data));
-							assert val >= randomSpecLow && val < randomSpecHigh : 
-								"Logic to convert float to int before adding value failed!\n";
-							result.add(new Datum.Int(val));
-							requiredValue -= val;
-							break;
-						}
-					}
-					switch(constraintCondition.operator()) {
-					case EQ:
-						if(requiredValue != 0) {
-							result.clear();
-							requiredValue 		= constraintValue;
-							continue;
-						}
-						break;
-					case GE:
-						if(requiredValue > 0) {
-							result.clear();
-							requiredValue 		= constraintValue;
-							continue;
-						}
-						break;
-					case GT:
-						if(requiredValue >= 0) {
-							result.clear();
-							requiredValue 		= constraintValue;
-							continue;
-						}
-						break;
-					case LE:
-						if(requiredValue < 0) {
-							result.clear();
-							requiredValue 		= constraintValue;
-							continue;
-						}
-						break;
-					case LT:
-						if(requiredValue <= 0) {
-							result.clear();
-							requiredValue 		= constraintValue;
-							continue;
-						}
-						break;
-					case NOTEQ:
-						if(requiredValue == 0) {
-							result.clear();
-							requiredValue 		= constraintValue;
-							continue;
-						}
-						break;
-					default:
-						break;
-					
-					}
-//					Condition has been satisfied..break from the infinite loop
-					break;
-				}
-				break;
-			default:
-				break;
-			}
+		@Override
+		public void materializeConstraints() {
+			for(IWorldTree node : allNodes())
+				node.pushDownConstraints();
 		}
-		return result;
 	}
 	
 	/**
@@ -638,7 +292,7 @@ public class WorldTreeFactory implements Serializable {
 	 * @return {@code IMap} object corresponding to the specified parameters
 	 */
 	public IMap newMap(String name, IWorldTree parent) {
-		return new Map(name, parent, constraints);
+		return new Map(name, parent, constraints, new ArrayList<PropertyDef>(definitions));
 	}
 	
 	private  class Room extends WorldTree implements IRoom {
@@ -677,7 +331,6 @@ public class WorldTreeFactory implements Serializable {
 				int[] dimensions 	= new int[] {Integer.parseInt(size[0]), Integer.parseInt(size[1])}; 
 				children.add(newRegion(name, this, new Space(dimensions[0], dimensions[1])));
 			}
-			this.pushDownConstraints();
 		}
 
 		@Override
@@ -754,7 +407,6 @@ public class WorldTreeFactory implements Serializable {
 			}
 //			initRegion();
 			initString();
-			this.pushDownConstraints();
 		}
 		
 		/**
@@ -955,7 +607,6 @@ public class WorldTreeFactory implements Serializable {
 		@Override
 		public void initialize() {
 			children = null;
-			this.pushDownConstraints();
 		}
 		
 		@Override
@@ -1033,6 +684,13 @@ public class WorldTreeFactory implements Serializable {
 			StringBuffer sb = new StringBuffer();
 			for(String s : stringRepresentation)
 				sb.append(s + "\n");
+			
+			for(java.util.Map.Entry<String, Datum> entry : this.properties().entrySet()) {
+				String property = entry.getKey();
+				Datum value		= entry.getValue();
+				
+				artifacts.add(property.charAt(0) + "=" + value);
+			}
 			
 			for(String artifact : artifacts) {
 				StringBuffer searchString = new StringBuffer();

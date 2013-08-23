@@ -7,6 +7,8 @@ import java.util.Map;
 
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
+import internal.parser.containers.property.PropertyDef;
+import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.piece.IPiece;
 import internal.piece.TileInterfaceType;
 import internal.space.Space;
@@ -14,26 +16,26 @@ import internal.space.Space;
 public interface IWorldTree {
 	
 	/**
-	 * Get the name of this WorldTree instance
-	 * @return {@code String} representing the name of this WorldTree instance
+	 * Get the name of this {@code IWorldTree} instance
+	 * @return {@code String} representing the name of this {@code IWorldTree} instance
 	 */
 	public String name();
 	
 	/**
 	 * Get the absolute name of this object
-	 * @return {@code String} representing the absolute name of this WorldTree instance
+	 * @return {@code String} representing the absolute name of this {@code IWorldTree} instance
 	 */
 	public String absoluteName();
 	
 	/**
-	 * Get the parent of this WorldTree instance
-	 * @return {@code IWroldTree} interface to the parent of this WorldTree instance
+	 * Get the parent of this {@code IWorldTree} instance
+	 * @return {@code IWroldTree} interface to the parent of this {@code IWorldTree} instance
 	 */
 	public IWorldTree parent();
 	
 	/**
-	 * Get the set of children of this WorldTree instance
-	 * @return {@code List<IWorldTree>} containing the children of this WorldTree instance
+	 * Get the set of children of this {@code IWorldTree} instance
+	 * @return {@code List<IWorldTree>} containing the children of this {@code IWorldTree} instance
 	 */
 	public Collection<IWorldTree> children();
 	
@@ -44,13 +46,24 @@ public interface IWorldTree {
 	public void initialize();
 	
 	/**
-	 * Obtain constraints on this WorldTree instance
+	 * Obtain constraints on this {@code IWorldTree} instance
 	 * @return {@code Collection<Constriant>}  
 	 */
 	public Collection<Constraint> constraints();
 	
 	/**
-	 * Set constraints to provided object for this WorldTree instance
+	 * Push down the {@code Constraints} defined at this level to its children
+	 */
+	public void pushDownConstraints();
+	
+	/**
+	 * Obtain the definitions of this {@code IWorldTree} instance
+	 * @return {@code Collection<PropertyDef>}
+	 */
+	public Collection<PropertyDef> definitions();
+	
+	/**
+	 * Set constraints to provided object for this {@code IWorldTree} instance
 	 * @param constraints {@code Collection<Constraint>} set of new constraints
 	 */
 //	FIXME: Added this to solve NPE on constraints()
@@ -72,13 +85,13 @@ public interface IWorldTree {
 	public Map<String, Datum> properties();
 	
 	/**
-	 * Obtain root of this WorldTree
-	 * @return {@code IWorldTree} representing the root of this WorldTree
+	 * Obtain root of this {@code IWorldTree} instance
+	 * @return {@code IWorldTree}
 	 */
 	public IWorldTree root();
 	
 	/**
-	 * Obtain a neighbour of this WorldTree instance
+	 * Obtain a neighbour of this {@code IWorldTree} instance
 	 * @param direction The direction in which the neighbour is to be located
 	 * @return {@code IWorldTree} referring the neighbour in the specified direction
 	 */
@@ -89,6 +102,14 @@ public interface IWorldTree {
 	 * @param direction {@code test.ui.Direction} in which to move
 	 */
 	public void move(test.ui.Direction direction);
+	
+	/**
+	 * Return bounds of the specified {@code PropertyDef} on this {@code IWorldTree} instance
+	 * @param parentDefinition {@code PropertyDef} definition whose bounds are required
+	 * @return {@code Map<PropertyDef, RandomSpec>} containing the minimum and maximum values for each definition 
+	 * that matches the parent definition
+	 */
+	public RandomSpec getBounds(PropertyDef parentDefinition);
 	
 	/**
 	 * Get set of strings used to represent this {@code IWorldTree} instance.
