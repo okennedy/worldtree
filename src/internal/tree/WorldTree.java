@@ -3,11 +3,11 @@ package internal.tree;
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
-import internal.parser.containers.condition.Condition;
-import internal.parser.containers.condition.ICondition;
-import internal.parser.containers.pattern.IPattern;
-import internal.parser.containers.query.IQuery;
-import internal.parser.containers.query.Query;
+import internal.parser.containers.Datum.DatumType;
+import internal.parser.containers.Datum.Flt;
+import internal.parser.containers.property.PropertyDef;
+import internal.parser.containers.property.PropertyDef.RandomSpec;
+import internal.parser.containers.property.PropertyDef.RandomSpec.RandomSpecType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -15,10 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Stack;
-
-import static internal.Helper.titleCase;
 
 /**
  * WorldTree is the abstract class that every object in the hierarchy extends.
@@ -34,6 +31,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	protected Collection<IWorldTree> children;
 	private String name;
 	private Collection<Constraint> constraints;
+	private Collection<PropertyDef> definitions;
 	private Map<String, Datum> properties;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
@@ -45,12 +43,13 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		
 		if(parent != null) {
 			IWorldTree root = this.root();
-			if(root.constraints() != null) {
-				for(Constraint c : root.constraints()) {
+			Collection<Constraint> rootConstraints = root.constraints();
+			if(rootConstraints != null) {
+				for(Constraint constraint : rootConstraints) {
 					Hierarchy myLevel			= Hierarchy.parse(this.getClass());
-					Hierarchy constraintLevel	= c.level();
+					Hierarchy constraintLevel	= constraint.level();
 					if(myLevel.equals(constraintLevel))
-						constraints.add(c);
+						constraints.add(constraint);
 				}
 			}
 		}
@@ -133,6 +132,14 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	}
 	
 	@Override
+	public Collection<PropertyDef> definitions() {
+		if(this.parent == null)
+			return definitions;
+		else
+			return this.parent.definitions();
+	}
+	
+	@Override
 	public void addConstraint(Constraint constraint) {
 		assert constraints != null : "Trying to add constraint to " + name + " when " + name + ".constraints = null\n";
 		constraints.add(constraint);
@@ -154,43 +161,151 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.constraints = constraints;
 	}
 	
+	protected void setDefinitions(Collection<PropertyDef> definitions) {
+		this.definitions = definitions;
+	}
+	
 	protected void pushDownConstraints() {
-		Collection<IWorldTree> children = this.children();
-		if(children == null)
+		if(this.children == null || this.children.size() == 0)
 			return;
-		for(Constraint c : this.constraints) {
-			Class<?> constraintClass = c.level().HierarchyClass();
-			if(constraintClass.equals(this.getClass())) {
-				Datum d = c.condition().value();
-				List<Datum> values = d.split(children.size());
-				for(IWorldTree child : children) {
-					Datum value = values.get((new Random().nextInt(values.size())));
-					String childClassName 	= child.getClass().getName();
-					Hierarchy childLevel 	= Hierarchy.parse(child.getClass());
+		
+		Hierarchy myLevel = Hierarchy.parse(this.getClass());
+//		Only root contains all constraints
+		IWorldTree root = this.root();
+		if(root == null)
+			root = this;
 
-//						FIXME: This will only work for very simple conditions!
-					IQuery subConstraintQuery 			= null;
-					ICondition subConstraintCondition 	= null;
-					
-					{
-						subConstraintCondition = new Condition(c.condition().notFlag(), c.condition());
-						subConstraintCondition.setValue(value);
-						
-						IPattern constraintQueryPattern 	= c.query().pattern();
-						ICondition constraintQueryCondition = c.query().condition();
-						IQuery constraintSubQuery 			= c.query().subQuery();
-						
-//							FIXME: This will fail if constraintSubQuery is anything other than null due to different 'level'
-						subConstraintQuery	= new Query(childLevel, constraintQueryPattern, constraintQueryCondition, constraintSubQuery);
+		Collection<Constraint> constraints 	= this.constraints();
+		Collection<PropertyDef> definitions	= root.definitions();
+		
+		for(Constraint constraint : constraints) {
+			if(myLevel.equals(constraint.level())) {
+				String property = constraint.condition().property().name();
+				
+				PropertyDef definition = null;
+				for(PropertyDef def : definitions) {
+					if(def.property().name().equals(property) && (def.level().equals(myLevel))) {
+						definition = def;
+						break;
 					}
+				}
+				if(definition == null)
+					throw new IllegalStateException("Property " + property + " has no definition!\n");
+				
+				List<RandomSpec> bounds = new ArrayList<RandomSpec>();
+				for(IWorldTree child : this.children) {
+					RandomSpec bound = child.getBounds(definition);
+					bounds.add(bound);
+				}
+				
+				switch(definition.type()) {
+				case AGGREGATE:
+					switch(definition.aggregateExpression().type()) {
+					case COUNT:
+						break;
+					case MAX:
+						break;
+					case MIN:
+						break;
+					case SUM:
+						break;
+					default:
+						break;
 					
-					Constraint subConstraint = new Constraint(childLevel, subConstraintQuery, subConstraintCondition);
-					child.addConstraint(subConstraint);
-					
-					values.remove(value);
+					}
+					break;
+				default:
+					break;
+				
 				}
 			}
 		}
+	}
+	
+	public RandomSpec getBounds(PropertyDef parentDefinition) {
+		Hierarchy myLevel = Hierarchy.parse(this.getClass());
+		
+		IWorldTree root = this.root();
+		if(root == null)
+			root = this;
+		
+		String property = parentDefinition.property().name();
+		
+		Collection<PropertyDef> definitions	= root.definitions();
+		
+		PropertyDef definition = null;
+		for(PropertyDef def : definitions) {
+			if(def.property().name().equals(property) && (def.level().equals(myLevel))) {
+				definition = def;
+				break;
+			}
+		}
+		
+		List<RandomSpec> bounds = new ArrayList<RandomSpec>();
+		for(IWorldTree child : this.children) {
+			RandomSpec bound = child.getBounds(definition);
+			bounds.add(bound);
+		}
+				
+//		TODO: Perhaps we should use the in-built Datum.add method?
+		float min = Float.MAX_VALUE;
+		float max = Float.MIN_VALUE;
+		Datum.DatumType type = null;
+				
+		switch(definition.type()) {
+		case AGGREGATE:
+			switch(definition.aggregateExpression().type()) {
+			case COUNT:
+				return new RandomSpec(RandomSpecType.INT, new Datum.Int(0), new Datum.Int(this.children.size()));
+			case MAX:
+			case MIN:
+				for(RandomSpec spec : bounds) {
+					float maxVal = (Float) spec.high().toFlt().data();
+					float minVal = (Float) spec.low().toFlt().data();
+					if(maxVal > max) {
+						max = maxVal;
+						type = spec.high().type();
+					}
+					if(minVal < min) {
+						min = minVal;
+					}
+				}
+				break;
+			case SUM:
+				min = 0;
+				max = 0;
+				type = DatumType.INT;
+				for(RandomSpec spec : bounds) {
+					float maxVal = (Float) spec.high().toFlt().data();
+					float minVal = (Float) spec.low().toFlt().data();
+					if(type != DatumType.FLOAT && spec.type().equals(RandomSpecType.FLOAT))
+						type = DatumType.FLOAT;
+					max += maxVal;
+					min += minVal;
+				}
+				break;
+			}
+			switch(type) {
+			case FLOAT:
+				return new RandomSpec(RandomSpecType.FLOAT, new Datum.Flt(min), new Datum.Flt(max));
+			case INT:
+				return new RandomSpec(RandomSpecType.INT, new Datum.Int((int)min), new Datum.Int((int)max));
+			default:
+				throw new IllegalStateException("Default case in allocating MAX? Type is :" + type);
+			
+			}
+		case BASIC:
+//			TODO
+			break;
+		case INHERIT:
+//			TODO
+			break;
+		case RANDOM:
+			return definition.randomspec();
+		default:
+			throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
+		}
+		return null;
 	}
 	
 	/* -------------------------------------------  String methods  ------------------------------------------- */
