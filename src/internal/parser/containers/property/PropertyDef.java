@@ -158,7 +158,6 @@ public class PropertyDef extends Statement {
 				result.append(" WHERE " + condition);
 			break;
 		}
-		result.append(")");
 		return result.toString();
 	}
 	
