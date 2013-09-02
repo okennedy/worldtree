@@ -15,12 +15,14 @@ import internal.parser.containers.query.IQuery;
  *
  */
 public class Constraint extends Statement {
+	private Type type;
 	private Hierarchy level;
 	private IQuery query;
 	private ICondition condition;
 	
-	public Constraint(Hierarchy level, IQuery query, ICondition condition) {
+	public Constraint(Type type, Hierarchy level, IQuery query, ICondition condition) {
 		super(StatementType.CONSTRAINT);
+		this.type		= type;
 		this.level		= level;
 		this.query		= query;
 		this.condition	= condition;
@@ -65,5 +67,15 @@ public class Constraint extends Statement {
 	 */
 	public ICondition condition() {
 		return condition;
+	}
+	
+	public Type type() {
+		return type;
+	}
+	
+	public enum Type {
+		USER_DEFINED,
+		PROGRAM_GENERATED,
+		
 	}
 }
