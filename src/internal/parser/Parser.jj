@@ -10,6 +10,7 @@ import internal.parser.containers.query.*;
 import internal.parser.containers.property.*;
 import internal.parser.containers.expr.*;
 import internal.parser.containers.expr.AggExpr.AggType;
+import internal.parser.containers.Constraint.Type;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.parser.containers.property.PropertyDef.RandomSpec.RandomSpecType;
 
@@ -259,7 +260,7 @@ Constraint constraint() :
 {
     < FOR > < ALL > lvl = word() { level = Hierarchy.parse(lvl); }
     	query = query(level) < ASSERT > condition = condition()
-    		{ return new Constraint(level, query, condition); }
+    		{ return new Constraint(Type.USER_DEFINED, level, query, condition); }
 }
 
 
