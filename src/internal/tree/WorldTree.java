@@ -1,20 +1,30 @@
 package internal.tree;
 
 import internal.Helper.Hierarchy;
+import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
+import internal.parser.containers.Constraint.Type;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Datum.DatumType;
-import internal.parser.containers.Datum.Flt;
+import internal.parser.containers.Reference;
+import internal.parser.containers.condition.BaseCondition;
+import internal.parser.containers.condition.BaseCondition.ConditionType;
+import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.pattern.BasePattern;
+import internal.parser.containers.pattern.IPattern;
+import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.parser.containers.property.PropertyDef.RandomSpec.RandomSpecType;
-
+import internal.parser.containers.query.BaseQuery;
+import internal.parser.containers.query.IQuery;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Stack;
 
 /**
@@ -165,15 +175,28 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.definitions = definitions;
 	}
 	
-	protected void pushDownConstraints() {
-		if(this.children == null || this.children.size() == 0)
+	public void pushDownConstraints() {
+		if(this.children() == null || this.children().size() == 0) {
+			Hierarchy myLevel = Hierarchy.parse(this.getClass());
+			if(myLevel == Hierarchy.Tile) {
+				Collection<Constraint> constraints 	= this.constraints();
+				for(Constraint constraint : constraints) {
+					if(constraint.type() == Constraint.Type.PROGRAM_GENERATED) {
+						String property = constraint.condition().property().name();
+						Datum value		= constraint.condition().value();
+						this.addProperty(property, value);
+					}
+				}
+			}
+			else {
+				System.err.println("Warning: pushDownConstraints has been called when the entire skeleton has not been initialized");
+			}
 			return;
+		}
 		
 		Hierarchy myLevel = Hierarchy.parse(this.getClass());
 //		Only root contains all constraints
 		IWorldTree root = this.root();
-		if(root == null)
-			root = this;
 
 		Collection<Constraint> constraints 	= this.constraints();
 		Collection<PropertyDef> definitions	= root.definitions();
@@ -192,42 +215,390 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				if(definition == null)
 					throw new IllegalStateException("Property " + property + " has no definition!\n");
 				
+//				FIXME: Not all children may be part of the definition - definition may have conditions on which child to apply to
 				List<RandomSpec> bounds = new ArrayList<RandomSpec>();
-				for(IWorldTree child : this.children) {
+				for(IWorldTree child : this.children()) {
 					RandomSpec bound = child.getBounds(definition);
 					bounds.add(bound);
 				}
 				
-				switch(definition.type()) {
-				case AGGREGATE:
-					switch(definition.aggregateExpression().type()) {
-					case COUNT:
-						break;
-					case MAX:
-						break;
-					case MIN:
-						break;
-					case SUM:
-						break;
-					default:
-						break;
-					
-					}
-					break;
-				default:
-					break;
+				Map<IWorldTree, Datum> childConstraintValues = split(constraint, definition, bounds);
 				
+				
+				for(IWorldTree child : this.children()) {
+					Hierarchy childLevel = Hierarchy.parse(child.getClass());
+					int index = new Random().nextInt(childConstraintValues.size());
+					Datum value = childConstraintValues.get(child);
+					childConstraintValues.remove(index);
+					
+					Constraint childConstraint = null;
+					{
+						IPattern pattern		= new BasePattern(new Reference("this"), null, null);
+						Property childProperty	= new Property(new Reference("this"), property);
+						ICondition condition	= new BaseCondition(false, ConditionType.BASIC, childProperty, TokenCmpOp.EQ, value);
+						IQuery query = new BaseQuery(childLevel, pattern, null);
+						childConstraint = new Constraint(Type.PROGRAM_GENERATED, childLevel, query, condition);
+					}
+					child.addConstraint(childConstraint);
 				}
 			}
 		}
 	}
 	
+	private Map<IWorldTree, Datum> split(Constraint constraint, PropertyDef definition, List<RandomSpec> bounds) {
+		Map<IWorldTree, Datum> result 	= new HashMap<IWorldTree, Datum>();
+		
+		ICondition constraintCondition	= constraint.condition();
+		Random random = new Random();
+		
+		float constraintValue 	= Float.parseFloat(constraintCondition.value().toString());
+		float requiredValue 	= constraintValue; 
+		
+		int nodeCount = -1;
+		
+		List<IWorldTree> children 	= new ArrayList<IWorldTree>(this.children());
+		int availableNodes			= children.size();
+		
+		switch(definition.aggregateExpression().type()) {
+		case COUNT:
+			switch(constraintCondition.operator()) {
+			case EQ:
+				nodeCount = (int) requiredValue;
+				break;
+			case GE:
+				nodeCount	= (int) (requiredValue + (Math.random() * (availableNodes - requiredValue)));
+				break;
+			case GT:
+				nodeCount	= (int) (requiredValue + 1 + (Math.random() * (availableNodes - requiredValue)));
+				break;
+			case LE:
+				nodeCount	= (int) (0 + (Math.random() * (requiredValue + 1)));
+				break;
+			case LT:
+				nodeCount	= (int) (0 + (Math.random() * (requiredValue)));
+				break;
+			case NOTEQ:
+				while(nodeCount != requiredValue)
+					nodeCount	= (int) (0 + (Math.random() * (availableNodes)));
+				break;
+			default:
+				break;
+			}
+			while(result.size() < nodeCount) {
+				int childIndex 			= random.nextInt(children.size());
+				RandomSpec bound 		= bounds.get(childIndex);
+				
+				float randomSpecHigh	= (Float) bound.high().toFlt().data();
+				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float diff				= randomSpecHigh - randomSpecLow;
+				
+				switch(constraintCondition.value().type()) {
+				case FLOAT: {
+					float data = (float) (randomSpecLow + (float) (random.nextFloat() * (diff)));
+					if(data == 0)
+						continue;
+					result.put(children.get(childIndex), new Datum.Flt(data));
+					break;
+				}
+				case INT: {
+					int data = (int) (randomSpecLow + (float) (random.nextFloat() * (diff)));
+					if(data == 0)
+						continue;
+					result.put(children.get(childIndex), new Datum.Int(data));
+					break;
+				}
+				default:
+					throw new IllegalStateException("Trying to aggregate over type " + constraintCondition.value().type() + "!\n");
+				}
+				
+			}
+//			Fill in the remaining children with 0
+			for(IWorldTree child : children) {
+				result.put(child, new Datum.Flt(0f));
+			}
+			break;
+		case MAX:
+
+			List<RandomSpec> applicableList	= new ArrayList<RandomSpec>();
+			for(RandomSpec bound : bounds) {
+				float randomSpecHigh 	= (Float) bound.high().toFlt().data();
+				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				if(requiredValue >= randomSpecLow && requiredValue < randomSpecHigh)
+					applicableList.add(bound);
+			}
+			
+            assert (applicableList.size() > 0) : 
+            	"Constraint demands impossible value!\n" + 
+            	"Constraint condition : " + constraintCondition.toString() + "\n" +
+            	"Definition           : " + definition.toString() + "\n";
+            applicableList	= null;
+            
+			boolean satisfiesConstraint = false;
+			while(result.size() < availableNodes) {
+				int childIndex 			= result.size();
+				IWorldTree child		= children.get(childIndex);
+				RandomSpec bound		= bounds.get(childIndex);
+
+				float randomSpecHigh	= (Float) bound.high().toFlt().data();
+				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float diff				= randomSpecHigh - randomSpecLow;
+				
+				float data = (float) (randomSpecLow + (float) (random.nextFloat() * (diff)));
+
+//				TODO: Remove this
+				if(requiredValue == randomSpecLow)
+					data = randomSpecLow;
+				
+				switch(constraintCondition.operator()) {
+				case EQ:
+					if(data > requiredValue)
+						continue;
+					if(data == requiredValue)
+						satisfiesConstraint = true;
+					if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+						if(requiredValue >= randomSpecLow && requiredValue < randomSpecHigh) {
+							data = requiredValue;
+							satisfiesConstraint = true;
+						}
+					}
+					break;
+				case GE:
+					if(data >= requiredValue)
+						satisfiesConstraint = true;
+					if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+						data = (float) (requiredValue + (float) (random.nextFloat() * (randomSpecHigh - requiredValue)));
+						satisfiesConstraint = true;
+					}
+					break;
+				case GT:
+					if(data > requiredValue)
+						satisfiesConstraint = true;
+					if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+						data = (float) (requiredValue + (float) (random.nextFloat() * (randomSpecHigh - requiredValue)));
+						if(data == requiredValue)
+							continue;
+						satisfiesConstraint = true;
+					}
+					break;
+				case LE:
+					if(data > requiredValue)
+						continue;
+					break;
+				case LT:
+					if(data >= requiredValue)
+						continue;
+					break;
+				case NOTEQ:
+					if(data == requiredValue && !satisfiesConstraint)
+						continue;
+					break;
+				
+				}
+				switch(bound.type()) {	//FIXME: Should this be bound.type()?
+				case FLOAT:
+					result.put(child, new Datum.Flt(data));
+					break;
+				case INT:
+					int val = (int) (Math.floor(data));
+					assert val >= (int) randomSpecLow && val < (int) randomSpecHigh : 
+						"Logic to convert float to int before adding value failed!\n";
+					result.put(child, new Datum.Int(val));
+					break;
+				}
+			}
+			assert satisfiesConstraint == true : "Finished allocating but did not satisfy constraint!\n";
+			break;
+		case MIN:
+			applicableList	= new ArrayList<RandomSpec>();
+			for(RandomSpec bound : bounds) {
+				float randomSpecHigh 	= (Float) bound.high().toFlt().data();
+				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				if(requiredValue >= randomSpecLow && requiredValue < randomSpecHigh)
+					applicableList.add(bound);
+			}
+			
+            assert (applicableList.size() > 0) : 
+            	"Constraint demands impossible value!\n" + 
+            	"Constraint condition : " + constraintCondition.toString() + "\n" +
+            	"Definition           : " + definition.toString() + "\n";
+
+			satisfiesConstraint = false;
+			while(result.size() < availableNodes) {
+				int childIndex 			= result.size();
+				IWorldTree child		= children.get(childIndex);
+				RandomSpec bound		= bounds.get(childIndex);
+
+				float randomSpecHigh	= (Float) bound.high().toFlt().data();
+				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float diff				= randomSpecHigh - randomSpecLow;
+				
+				float data = (float) (randomSpecLow + (float) (random.nextFloat() * (diff)));
+				switch(constraintCondition.operator()) {
+				case EQ:
+					if(data < requiredValue)
+						continue;
+					if(data == requiredValue)
+						satisfiesConstraint = true;
+					if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+						if(requiredValue >= randomSpecLow && requiredValue < randomSpecHigh) {
+							data = requiredValue;
+							satisfiesConstraint = true;
+						}
+					}
+					break;
+				case GE:
+					if(data < requiredValue)
+						continue;
+					if(data >= requiredValue)
+						satisfiesConstraint = true;
+					break;
+				case GT:
+					if(data <= requiredValue)
+						continue;
+					if(data > requiredValue)
+						satisfiesConstraint = true;
+					if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+						data = (float) (requiredValue + (float) (random.nextFloat() * (randomSpecHigh - requiredValue)));
+						if(data == requiredValue)
+							continue;
+						satisfiesConstraint = true;
+					}
+					break;
+				case LE:
+					if(data <= requiredValue)
+						satisfiesConstraint = true;
+					if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+						data = (float) (randomSpecLow + (float) (random.nextFloat() * (requiredValue - randomSpecLow)));
+						satisfiesConstraint = true;
+					}
+					break;
+				case LT:
+					if(data < requiredValue)
+						satisfiesConstraint = true;
+					if(result.size() == availableNodes - 1 && !satisfiesConstraint) {
+						data = (float) (randomSpecLow + (float) (random.nextFloat() * (requiredValue - randomSpecLow)));
+						if(data == requiredValue)
+							continue;
+						satisfiesConstraint = true;
+					}
+					break;
+				case NOTEQ:
+					if(data == requiredValue && !satisfiesConstraint)
+						continue;
+					break;
+				
+				}
+				switch(bound.type()) {	//FIXME: Should this be bound.type()?
+				case FLOAT:
+					result.put(child, new Datum.Flt(data));
+					break;
+				case INT:
+					int val = (int) (Math.floor(data));
+					assert val >= randomSpecLow && val < randomSpecHigh : "Logic to convert float to int before adding value failed!\n";
+					result.put(child, new Datum.Int(val));
+					break;
+				}
+			}
+			assert satisfiesConstraint == true : "Finished allocating but did not satisfy constraint!\n";
+			break;
+		case SUM:
+			float sumOfBoundsLow 	= 0;
+			float sumOfBoundsHigh	= 0;
+			for(RandomSpec bound : bounds) {
+				float randomSpecHigh 	= (Float) bound.high().toFlt().data();
+				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				sumOfBoundsLow		   += randomSpecLow;
+				sumOfBoundsHigh		   += randomSpecHigh;
+			}
+			assert (requiredValue < sumOfBoundsHigh && requiredValue >= sumOfBoundsLow) : 
+            	"Constraint demands impossible value!\n" + 
+            	"Constraint condition : " + constraintCondition.toString() + "\n" +
+            	"Definition           : " + definition.toString() + "\n" + 
+            	"Bounds				  : " + sumOfBoundsLow + " - " + sumOfBoundsHigh + "\n";
+			
+//			We first fix a value that we are going to attain
+			float newRequiredValue = 0;
+			switch(constraintCondition.operator()) {
+			case EQ:
+				newRequiredValue = requiredValue;
+				break;
+			case GE:
+				newRequiredValue = (float) (requiredValue + (random.nextFloat() * (sumOfBoundsHigh - requiredValue)));
+				break;
+			case GT:
+				newRequiredValue = (float) (requiredValue + 1 + (random.nextFloat() * (sumOfBoundsHigh - requiredValue)));
+				break;
+			case LE:
+				newRequiredValue = (float) (sumOfBoundsLow + (random.nextFloat() * (requiredValue - sumOfBoundsLow + 1)));
+				break;
+			case LT:
+				newRequiredValue = (float) (sumOfBoundsLow - 1 + (random.nextFloat() * (requiredValue - sumOfBoundsLow)));
+				break;
+			case NOTEQ:
+				while(newRequiredValue != requiredValue)
+					newRequiredValue = (float) (sumOfBoundsLow + (random.nextFloat() * (sumOfBoundsHigh - sumOfBoundsLow)));
+				break;
+			}
+			
+			requiredValue = newRequiredValue;
+			
+			while(true) {
+				while(children.size() > 0) {
+					int childIndex			= random.nextInt(children.size());
+					IWorldTree child 		= children.get(childIndex);
+					children.remove(childIndex);
+					
+					RandomSpec bound		= bounds.get(childIndex);
+
+					float randomSpecHigh	= (Float) bound.high().toFlt().data();
+					float randomSpecLow		= (Float) bound.low().toFlt().data();
+					float diff				= randomSpecHigh - randomSpecLow;
+					
+					float data = (float) (randomSpecLow + (random.nextFloat() * (diff)));
+					
+					if(data > requiredValue)
+						data = requiredValue;
+					else if(requiredValue == 0)
+						data = 0;
+					else if(children.size() == 0 && requiredValue >= randomSpecLow && requiredValue < randomSpecHigh)
+						data = requiredValue;
+					
+					switch(bound.type()) {	//FIXME: Should this be bound.type()?
+					case FLOAT:
+						result.put(child, new Datum.Flt(data));
+						requiredValue -= data;
+						break;
+					case INT:
+						int val = (int) (Math.floor(data));
+						assert val >= randomSpecLow && val < randomSpecHigh : 
+								"Logic to convert float to int before adding value failed!\n" + 
+								"Bounds  :" + randomSpecLow + " - " + randomSpecHigh + "\n" +
+								"Data    :" + data + "\n";
+						result.put(child, new Datum.Int(val));
+						requiredValue -= val;
+						break;
+					}
+				}
+				if(requiredValue != 0) {
+					result.clear();
+					requiredValue	= newRequiredValue;
+					children		= new ArrayList<IWorldTree>(this.children());
+				}
+				else
+					break;
+			}
+			
+			break;
+		default:
+			break;
+		}
+		return result;
+	}
+
 	public RandomSpec getBounds(PropertyDef parentDefinition) {
 		Hierarchy myLevel = Hierarchy.parse(this.getClass());
 		
 		IWorldTree root = this.root();
-		if(root == null)
-			root = this;
 		
 		String property = parentDefinition.property().name();
 		
@@ -242,9 +613,11 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		}
 		
 		List<RandomSpec> bounds = new ArrayList<RandomSpec>();
-		for(IWorldTree child : this.children) {
-			RandomSpec bound = child.getBounds(definition);
-			bounds.add(bound);
+		if(this.children() != null) {
+			for(IWorldTree child : this.children()) {
+				RandomSpec bound = child.getBounds(definition);
+				bounds.add(bound);
+			}
 		}
 				
 //		TODO: Perhaps we should use the in-built Datum.add method?
@@ -258,16 +631,26 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			case COUNT:
 				return new RandomSpec(RandomSpecType.INT, new Datum.Int(0), new Datum.Int(this.children.size()));
 			case MAX:
-			case MIN:
+//				TODO: Determine whether min = minVal when maxVal > max
 				for(RandomSpec spec : bounds) {
 					float maxVal = (Float) spec.high().toFlt().data();
 					float minVal = (Float) spec.low().toFlt().data();
 					if(maxVal > max) {
-						max = maxVal;
-						type = spec.high().type();
+						max 	= maxVal;
+						type 	= spec.high().type();
+						min		= minVal;
 					}
+				}
+				break;
+			case MIN:
+//				TODO: Determine whether max = maxVal when minVal < min
+				for(RandomSpec spec : bounds) {
+					float maxVal = (Float) spec.high().toFlt().data();
+					float minVal = (Float) spec.low().toFlt().data();
 					if(minVal < min) {
-						min = minVal;
+						min 	= minVal;
+						type 	= spec.high().type();
+						max		= maxVal;
 					}
 				}
 				break;
@@ -282,6 +665,10 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 						type = DatumType.FLOAT;
 					max += maxVal;
 					min += minVal;
+					
+					if(spec.type() == RandomSpecType.INT)
+//						Since the above logic only works natively with FLOAT
+						max -= 1;
 				}
 				break;
 			}

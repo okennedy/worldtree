@@ -52,6 +52,11 @@ public interface IWorldTree {
 	public Collection<Constraint> constraints();
 	
 	/**
+	 * Push down the {@code Constraints} defined at this level to its children
+	 */
+	public void pushDownConstraints();
+	
+	/**
 	 * Obtain the definitions of this {@code IWorldTree} instance
 	 * @return {@code Collection<PropertyDef>}
 	 */
