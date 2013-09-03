@@ -104,7 +104,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		int listIndex = 0;
 		while(listIndex < result.size()) {
 			node = result.get(listIndex);
-			result.addAll(node.children());
+			if(node.children() != null)
+				result.addAll(node.children());
 			listIndex++;
 		}
 		return result;
