@@ -72,6 +72,12 @@ public interface IWorldTree {
 	public void addConstraint(Constraint constraint);
 	
 	/**
+	 * Remove the specified constraint
+	 * @param constraint {@code Constraint} to be removed
+	 */
+	public void removeConstraint(Constraint constraint);
+	
+	/**
 	 * Add a new property to this {@code IWorldTree}
 	 * @param name {@code String} containing the name of this property
 	 * @param value {@code Datum} containing the value of this property

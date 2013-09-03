@@ -156,6 +156,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	}
 	
 	@Override
+	public boolean removeConstraint(Constraint constraint) {
+		assert constraints != null : "Trying to remove constraint :\n" + constraint + "\nwhen " + name + ".constraints = null\n";
+		return constraints.remove(constraint);
+	}
+	
+	@Override
 	public void addProperty(String name, Datum value) {
 		properties.put(name, value);
 	}
