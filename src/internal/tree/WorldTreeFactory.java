@@ -151,7 +151,7 @@ public class WorldTreeFactory implements Serializable {
 			super(name, parent, constraints);
 //			FIXME: Added this to solve NPE on constraints()
 			if(constraints == null)
-				this.setConstraints(new ArrayList<Constraint>(3));
+				this.setConstraints(new ArrayList<Constraint>(0));
 			this.setDefinitions(definitions);
 		}
 
@@ -280,8 +280,14 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void materializeConstraints() {
-			for(IWorldTree node : allNodes())
+			for(IWorldTree node : allNodes()) {
 				node.pushDownConstraints();
+				
+//				for(Constraint constraint : node.constraints()) {
+//					if(constraint.type().equals(Constraint.Type.PROGRAM_GENERATED))
+//						node.removeConstraint(constraint);
+//				}
+			}
 		}
 	}
 	
@@ -299,7 +305,7 @@ public class WorldTreeFactory implements Serializable {
 		private static final long serialVersionUID = 3733417833903485812L;
 
 		public Room(String name, IWorldTree parent) {
-			super(name, parent, new ArrayList<Constraint>(3));
+			super(name, parent, new ArrayList<Constraint>(0));
 		}
 
 //		The Room must decide the location of the tiles (I think..)
@@ -362,7 +368,7 @@ public class WorldTreeFactory implements Serializable {
 		
 		private Space space;
 		public Region(String name, IWorldTree parent, Space space) {
-			super(name, parent, new ArrayList<Constraint>(3));
+			super(name, parent, new ArrayList<Constraint>(0));
 			this.space = space;
 		}
 
@@ -418,12 +424,7 @@ public class WorldTreeFactory implements Serializable {
 					Coordinates coords = new Coordinates(true, j, i);
 					ITile tile = initTile(coords, constraints);
 					ITile existingTile = space.getByCoord(coords);
-					tile.setConstraints(existingTile.constraints());
-					for(java.util.Map.Entry<String, Datum> entry : existingTile.properties().entrySet())
-						tile.addProperty(entry.getKey(), entry.getValue());
-					for(String string : existingTile.artifacts())
-						tile.addArtifact(string);
-					space.setByCoord(coords, tile);
+					existingTile.setPiece(tile.piece());
 				}
 			}
 			initString();
@@ -590,7 +591,7 @@ public class WorldTreeFactory implements Serializable {
 		public Tile(String name, Coordinates coord, IWorldTree parent, IPiece tilePiece) {
 			super(name, parent, new ArrayList<Constraint>(0));
 			this.piece 			= tilePiece;
-			this.artifacts		= new ArrayList<String>(3);
+			this.artifacts		= new ArrayList<String>(0);
 			initialize();
 		}
 		
@@ -722,6 +723,11 @@ public class WorldTreeFactory implements Serializable {
 		@Override
 		public Collection<String> artifacts() {
 			return artifacts;
+		}
+
+		@Override
+		public void setPiece(IPiece piece) {
+			this.piece = piece;
 		}
 	}
 	

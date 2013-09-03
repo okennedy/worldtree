@@ -74,8 +74,10 @@ public interface IWorldTree {
 	/**
 	 * Remove the specified constraint
 	 * @param constraint {@code Constraint} to be removed
+	 * @return <b>true</b> if the constraint was removed successfully <br>
+	 * <b>false</b> otherwise
 	 */
-	public void removeConstraint(Constraint constraint);
+	public boolean removeConstraint(Constraint constraint);
 	
 	/**
 	 * Add a new property to this {@code IWorldTree}
@@ -185,6 +187,12 @@ public interface IWorldTree {
 		 * @return {@code IPiece} object referencing this Tile's piece
 		 */
 		public IPiece piece();
+		
+		/**
+		 * Set <b>piece</b> as the {@code IPiece} for this {@code ITile}
+		 * @param piece {@code IPiece} referencing the piece to set
+		 */
+		public void setPiece(IPiece piece);
 		
 		/**
 		 * Check whether this Tile has the specified interface
