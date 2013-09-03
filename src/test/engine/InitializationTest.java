@@ -4,11 +4,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.Random;
+import java.util.Scanner;
 
 import static internal.Helper.*;
 
 import internal.parser.ParseException;
 import internal.parser.Parser;
+import internal.parser.TokenCmpOp;
+import internal.parser.containers.Constraint;
+import internal.parser.containers.Datum;
+import internal.parser.containers.Reference;
+import internal.parser.containers.Constraint.Type;
+import internal.parser.containers.condition.BaseCondition;
+import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.condition.BaseCondition.ConditionType;
+import internal.parser.containers.pattern.BasePattern;
+import internal.parser.containers.pattern.IPattern;
+import internal.parser.containers.property.Property;
+import internal.parser.containers.query.BaseQuery;
 import internal.parser.containers.query.IQuery;
 import internal.parser.resolve.ResolutionEngine;
 import internal.parser.resolve.Result;
@@ -38,14 +52,33 @@ public class InitializationTest {
 	@Test
 	public void materializationTest() {
 		factory = new WorldTreeFactory("init.properties", "world.definitions");
-		map = factory.newMap("InitTestMap", null);
-		map.initRooms();
-		map.initRegions();
-		map.initTiles();
+
+		int maxTreasure = 32;
+		int runs = 100;
 		
-		map.materializeConstraints();
-		System.out.println();
+		for(int testIndex = 0; testIndex < runs; testIndex++) {
+			Constraint constraint = null;
+			{
+				int treasure			= new Random().nextInt(maxTreasure);
+				Datum value				= new Datum.Int(treasure);
+				IPattern pattern		= new BasePattern(new Reference("this"), null, null);
+				Property childProperty	= new Property(new Reference("this"), "treasure");
+				ICondition condition	= new BaseCondition(false, ConditionType.BASIC, childProperty, TokenCmpOp.EQ, value);
+				IQuery query = new BaseQuery(Hierarchy.Map, pattern, null);
+				constraint = new Constraint(Type.PROGRAM_GENERATED, Hierarchy.Map, query, condition);
+			}
+			map = factory.newMap("InitTestMap", null);
+			
+			map.addConstraint(constraint);
+			
+			map.initRooms();
+			map.initRegions();
+			map.initTiles();
 		
+			map.materializeConstraints();
+			write(map);
+			System.out.println("Finished run :" + testIndex);
+		}
 	}
 	
 	@Test

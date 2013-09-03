@@ -32,19 +32,26 @@ public class MemoryTest {
 		map.initTiles();
 		
 		long endTime 	= System.nanoTime();
-		System.out.println("Time taken to create skeleton  :" + ((endTime - startTime)/1e9) + " seconds");
+		System.out.println("Time taken to create skeleton          :" + ((endTime - startTime)/1e9) + " seconds");
 		
 		startTime		= System.nanoTime();
 		map.fill();
 		endTime			= System.nanoTime();
-		System.out.println("Time taken to fill entire map  :" + ((endTime - startTime)/1e9) + " seconds");
-		
+		System.out.println("Time taken to fill entire map          :" + ((endTime - startTime)/1e9) + " seconds");
 		
 		
 		startTime		= System.nanoTime();
-		write(map);
+		map.pushDownConstraints();
 		endTime			= System.nanoTime();
-		System.out.println("Time taken to write map        :" + ((endTime - startTime)/1e9) + " seconds");
+		System.out.println("Time taken to materialize constraints  :" + ((endTime - startTime)/1e9) + " seconds");
+		
+//		startTime		= System.nanoTime();
+//		write(map);
+//		endTime			= System.nanoTime();
+//		System.out.println("Time taken to write map        :" + ((endTime - startTime)/1e9) + " seconds");
+		
+		System.out.println("\nNumber of objects in " + map.name() + "'s hierarchy  :" +
+								String.format("%,d", map.getAllChildren().size()) + "\n");
 		
 		getMemoryUsage();
 		
