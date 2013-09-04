@@ -182,6 +182,47 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.definitions = definitions;
 	}
 	
+	
+	private Datum pickValue(Datum.DatumType type, float lowerBound, float upperBound, Constraint constraint) {
+		ICondition constraintCondition	= constraint.condition();
+		Datum datum						= constraintCondition.value();
+		
+		float constraintValue	= (Float) datum.toFlt().data();
+		float value = 0;
+		switch(constraintCondition.operator()) {
+		case EQ:
+			value = (Float) datum.toFlt().data();
+			break;
+		case GE:
+			value = (float) (constraintValue + (float) (Math.random() * (upperBound - constraintValue)));
+			break;
+		case GT:
+			while(value <= constraintValue)
+				value = (float) (constraintValue + (float) (Math.random() * (upperBound - constraintValue)));
+			break;
+		case LE:
+			value = (float) (lowerBound + (float) (Math.random() * (constraintValue - lowerBound)));
+			break;
+		case LT:
+			while(value >= constraintValue)
+				value = (float) (lowerBound + (float) (Math.random() * (constraintValue - lowerBound)));
+			break;
+		case NOTEQ:
+			while(value != constraintValue)
+				value = (float) (lowerBound + (float) (Math.random() * (upperBound - lowerBound)));
+			break;
+		}
+		switch(type) {
+		case FLOAT:
+			return new Datum.Flt(value);
+		case INT:
+			return new Datum.Int((int) value);
+		default:
+			System.err.println("Warning: No code to initialize " + datum.type() + " at the leaves");
+			return null;
+		}
+	}
+	
 	public void pushDownConstraints() {
 		if(this.children() == null || this.children().size() == 0) {
 			Hierarchy myLevel = Hierarchy.parse(this.getClass());
@@ -189,8 +230,24 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				Collection<Constraint> constraints 	= this.constraints();
 				for(Constraint constraint : constraints) {
 					if(constraint.type() == Constraint.Type.PROGRAM_GENERATED) {
-						String property = constraint.condition().property().name();
-						Datum value		= constraint.condition().value();
+						ICondition constraintCondition = constraint.condition();
+						String property 		= constraintCondition.property().name();
+						Datum datum				= constraintCondition.value();
+						
+						PropertyDef definition	= null;
+						for(PropertyDef def : this.definitions()) {
+							if(def.property().name().equals(property)) {
+								definition = def;
+								break;
+							}
+						}
+						
+						RandomSpec randomSpec 			= definition.randomspec();
+						assert randomSpec != null : "No randomspec at leaves of the hierarchy!\n";
+						float randomSpecHigh	= (Float) randomSpec.high().toFlt().data();
+						float randomSpecLow		= (Float) randomSpec.low().toFlt().data();
+						
+						Datum value = pickValue(datum.type(), randomSpecLow, randomSpecHigh, constraint);
 						this.addProperty(property, value);
 					}
 				}
@@ -242,7 +299,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 					{
 						IPattern pattern		= new BasePattern(new Reference("this"), null, null);
 						Property childProperty	= new Property(new Reference("this"), property);
-						ICondition condition	= new BaseCondition(false, ConditionType.BASIC, childProperty, TokenCmpOp.EQ, value);
+						TokenCmpOp operator		= constraint.condition().operator();
+						ICondition condition	= new BaseCondition(false, ConditionType.BASIC, childProperty, operator, value);
 						IQuery query = new BaseQuery(childLevel, pattern, null);
 						childConstraint = new Constraint(Type.PROGRAM_GENERATED, childLevel, query, condition);
 					}
@@ -268,29 +326,9 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		
 		switch(definition.aggregateExpression().type()) {
 		case COUNT:
-			switch(constraintCondition.operator()) {
-			case EQ:
-				nodeCount = (int) requiredValue;
-				break;
-			case GE:
-				nodeCount	= (int) (requiredValue + (Math.random() * (availableNodes - requiredValue)));
-				break;
-			case GT:
-				nodeCount	= (int) (requiredValue + 1 + (Math.random() * (availableNodes - requiredValue)));
-				break;
-			case LE:
-				nodeCount	= (int) (0 + (Math.random() * (requiredValue + 1)));
-				break;
-			case LT:
-				nodeCount	= (int) (0 + (Math.random() * (requiredValue)));
-				break;
-			case NOTEQ:
-				while(nodeCount != requiredValue)
-					nodeCount	= (int) (0 + (Math.random() * (availableNodes)));
-				break;
-			default:
-				break;
-			}
+			Datum value = pickValue(Datum.DatumType.INT, 0, availableNodes, constraint);
+			nodeCount	= (Integer) value.data();
+			
 			while(result.size() < nodeCount) {
 				int childIndex 			= random.nextInt(children.size());
 				RandomSpec bound 		= bounds.get(childIndex);
