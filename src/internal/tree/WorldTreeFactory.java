@@ -158,12 +158,12 @@ public class WorldTreeFactory implements Serializable {
 		@Override
 		public void initialize() {
 			children = new ArrayList<IWorldTree>();
-			String countString 	= properties.getProperty("Map.children.size");
+			String countString 	= properties.getProperty("Room.count");
 			if(countString == null)
 				throw new IllegalStateException("Properties file has no size for " + this.getClass());
 			int childrenCount 	= Integer.parseInt(countString);
 			for(int i = 0; i < childrenCount; i++) {
-				String name 	= properties.getProperty("Map.child" + i + ".name");
+				String name 	= properties.getProperty("Room" + i + ".name");
 				if(name == null)
 					name = "Room" + i;
 				children.add(new Room(name, this));
@@ -314,26 +314,26 @@ public class WorldTreeFactory implements Serializable {
 			children = new ArrayList<IWorldTree>();
 			String[] regionNames = null;
 			
-			String countString	= properties.getProperty("Room.children.size");
+			String countString	= properties.getProperty("Region.count");
 			if(countString == null)
 				throw new IllegalStateException("Properties file has no size for " + this.getClass());
 			int childrenCount 	= Integer.parseInt(countString);
 			
-			if(properties.getProperty("Room.children.names") != null)
-				regionNames = properties.getProperty("Room.children.names").split(" ");
+			if(properties.getProperty("Region.names") != null)
+				regionNames = properties.getProperty("Region.names").split(" ");
 
 			for(int i = 0; i < childrenCount; i++) {
-				String name = properties.getProperty("Room.child" + i + ".name");
+				String name = properties.getProperty("Region" + i + ".name");
 				if(name == null) {
 					if(regionNames == null)
-						throw new IllegalStateException("Properties file has no name for child of " + this.getClass());
+						throw new IllegalStateException("Properties file has no name for child of " + this.name());
 					int nextInt = (new Random()).nextInt(regionNames.length);
 					name 		= regionNames[nextInt];
 				}
 				
-				if(properties.getProperty("Room.child" + i + ".size") == null)
-					throw new IllegalStateException("Properties file has no size for child " + i + " of " + this.getClass());
-				String[] size 		= properties.getProperty("Room.child" + i + ".size").split("x");
+				if(properties.getProperty("Region" + i + ".size") == null)
+					throw new IllegalStateException("Properties file has no size for child " + i + " of " + this.name());
+				String[] size 		= properties.getProperty("Region" + i + ".size").split("x");
 				int[] dimensions 	= new int[] {Integer.parseInt(size[0]), Integer.parseInt(size[1])}; 
 				children.add(newRegion(name, this, new Space(dimensions[0], dimensions[1])));
 			}
