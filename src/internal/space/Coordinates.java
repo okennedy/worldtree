@@ -63,10 +63,21 @@ public class Coordinates implements Serializable {
 	
 	public static Coordinates stringToArray(String string) {
 		string = string.replace("(", "");
+		string = string.replace(")", "");
 		String[] strings = string.split(",");
 		int x = Integer.parseInt(strings[0]);
 		int y = Integer.parseInt(strings[1]);
 		Coordinates coords = new Coordinates(false, x, y);
+		return coords;
+	}
+	
+	public static Coordinates stringToCoord(String string) {
+		string = string.replace("(", "");
+		string = string.replace(")", "");
+		String[] strings = string.split(",");
+		int x = Integer.parseInt(strings[0]);
+		int y = Integer.parseInt(strings[1]);
+		Coordinates coords = new Coordinates(true, x, y);
 		return coords;
 	}
 }

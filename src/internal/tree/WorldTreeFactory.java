@@ -625,8 +625,7 @@ public class WorldTreeFactory implements Serializable {
 			Region parent = (Region) this.parent;
 			
 			String name = this.name();
-			Coordinates coordinates = Coordinates.stringToArray(name.substring(name.indexOf("(")));
-			coordinates = ( (Region) this.parent).space.arrayToCoord(coordinates);
+			Coordinates coordinates = Coordinates.stringToCoord(name.substring(name.indexOf("(")));
 			
 			assert(coordinates.cartesian());
 			
