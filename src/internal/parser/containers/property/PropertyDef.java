@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
+import development.com.collection.range.Range;
+
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Statement;
@@ -171,34 +173,25 @@ public class PropertyDef extends Statement {
 	
 	public static class RandomSpec implements IContainer {
 		RandomSpecType type;
-		Datum low, high;
+		Range range;
 		
-		public RandomSpec(RandomSpecType type, Datum low, Datum high) {
+		public RandomSpec(RandomSpecType type, Range range) {
 			this.type	= type;
-			this.low	= low;
-			this.high	= high;
+			this.range	= range;
 		}
 		
 		public RandomSpecType type() {
 			return type;
 		}
 		
-		public Datum low() {
-			return low;
-		}
-		
-		public Datum high() {
-			return high;
-		}
-		
 		@Override
 		public String debugString() {
-			return "RANDOMSPEC(RANDOM UNIFORM " + type + " FROM " + low + " TO " + high + ")";	
+			return "RANDOMSPEC(RANDOM UNIFORM " + type + " FROM " + range.lowerBound() + " TO " + range.upperBound() + ")";	
 		}
 		
 		@Override
 		public String toString() {
-			return "RANDOM UNIFORM " + type + " FROM " + low + " TO " + high;
+			return "RANDOM UNIFORM " + type + " FROM " + range.lowerBound() + " TO " + range.upperBound();
 		}
 		
 		public static enum RandomSpecType {
@@ -220,6 +213,10 @@ public class PropertyDef extends Statement {
 				throw new IllegalArgumentException(type + " is not a valid data type for specifying Random!\n"
 						+ "Valid types are :" + values());
 			}
+		}
+
+		public Range range() {
+			return range;
 		}
 	}
 }
