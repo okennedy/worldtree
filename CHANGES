@@ -1,3 +1,8 @@
+09052013:gurupras
+	Phasing out CHANGES file.
+        All issues are now being moved to the github issue-tracker
+
+
 08042013:gurupras
 	Added private methods to Map class for easy collections
 	Added materializeConstraints method to IMap
