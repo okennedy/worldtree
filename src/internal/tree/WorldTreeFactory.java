@@ -610,17 +610,6 @@ public class WorldTreeFactory implements Serializable {
 			children = null;
 		}
 		
-		@Override
-		public String toString() {
-			return this.name();
-		}
-		
-		public List<String> getStringRepresentation() {
-			List<String> stringRepresentation = new ArrayList<String>(Arrays.asList(piece().toString().split("\n")));
-			updateVisuals(stringRepresentation);
-			return stringRepresentation;
-		}
-		
 		protected void addChild(IWorldTree child) {
 			throw new IllegalStateException("Cannot add a child to the lowest level in the hierarchy!\n");
 		}
@@ -681,11 +670,23 @@ public class WorldTreeFactory implements Serializable {
 				return null;
 		}
 		
+		@Override
+		public String toString() {
+			return this.name();
+		}
+		
+		public List<String> getStringRepresentation() {
+			List<String> stringRepresentation = new ArrayList<String>(Arrays.asList(piece().toString().split("\n")));
+			updateVisuals(stringRepresentation);
+			return stringRepresentation;
+		}
+		
 		private void updateVisuals(List<String> stringRepresentation) {
 			StringBuffer sb = new StringBuffer();
 			for(String s : stringRepresentation)
 				sb.append(s + "\n");
 			
+			artifacts.clear();
 			for(java.util.Map.Entry<String, Datum> entry : this.properties().entrySet()) {
 				String property = entry.getKey();
 				Datum value		= entry.getValue();
