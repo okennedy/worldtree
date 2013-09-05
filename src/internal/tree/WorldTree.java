@@ -239,7 +239,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 						
 						PropertyDef definition	= null;
 						for(PropertyDef def : this.definitions()) {
-							if(def.property().name().equals(property)) {
+							if(def.property().name().equals(property) && def.level().equals(myLevel)) {
 								definition = def;
 								break;
 							}
