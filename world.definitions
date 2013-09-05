@@ -1,2 +1,12 @@
-DEFINE Room R.treasure AS AGGREGATE SUM(T.treasure) 
-   IN AT TILE T;
+FOR ALL MAP M ASSERT M.treasure > 20;
+
+DEFINE MAP M.treasure AS AGGREGATE SUM(R.treasure)
+	in ROOM R;
+	
+DEFINE ROOM R.treasure as AGGREGATE SUM(REG.treasure)
+	in REGION REG;
+	
+DEFINE REGION R.treasure as AGGREGATE SUM(T.treasure)
+	in TILE T;
+	
+DEFINE TILE T.treasure as RANDOM UNIFORM INT FROM 0 to 5;
