@@ -18,6 +18,7 @@ import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.parser.containers.property.PropertyDef.RandomSpec.RandomSpecType;
 import internal.parser.containers.query.BaseQuery;
 import internal.parser.containers.query.IQuery;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Stack;
+
+import development.com.collection.range.*;
 
 /**
  * WorldTree is the abstract class that every object in the hierarchy extends.
@@ -244,8 +247,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 						
 						RandomSpec randomSpec 			= definition.randomspec();
 						assert randomSpec != null : "No randomspec at leaves of the hierarchy!\n";
-						float randomSpecHigh	= (Float) randomSpec.high().toFlt().data();
-						float randomSpecLow		= (Float) randomSpec.low().toFlt().data();
+						float randomSpecHigh	= (Float) randomSpec.range().upperBound().toFlt().data();
+						float randomSpecLow		= (Float) randomSpec.range().lowerBound().toFlt().data();
 						
 						Datum value = pickValue(datum.type(), randomSpecLow, randomSpecHigh, constraint);
 						this.addProperty(property, value);
@@ -333,8 +336,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				int childIndex 			= random.nextInt(children.size());
 				RandomSpec bound 		= bounds.get(childIndex);
 				
-				float randomSpecHigh	= (Float) bound.high().toFlt().data();
-				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float randomSpecHigh	= (Float) bound.range().upperBound().toFlt().data();
+				float randomSpecLow		= (Float) bound.range().lowerBound().toFlt().data();
 				float diff				= randomSpecHigh - randomSpecLow;
 				
 				switch(constraintCondition.value().type()) {
@@ -366,8 +369,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 
 			List<RandomSpec> applicableList	= new ArrayList<RandomSpec>();
 			for(RandomSpec bound : bounds) {
-				float randomSpecHigh 	= (Float) bound.high().toFlt().data();
-				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float randomSpecHigh 	= (Float) bound.range().upperBound().toFlt().data();
+				float randomSpecLow		= (Float) bound.range().lowerBound().toFlt().data();
 				if(requiredValue >= randomSpecLow && requiredValue < randomSpecHigh)
 					applicableList.add(bound);
 			}
@@ -384,8 +387,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				IWorldTree child		= children.get(childIndex);
 				RandomSpec bound		= bounds.get(childIndex);
 
-				float randomSpecHigh	= (Float) bound.high().toFlt().data();
-				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float randomSpecHigh	= (Float) bound.range().upperBound().toFlt().data();
+				float randomSpecLow		= (Float) bound.range().lowerBound().toFlt().data();
 				float diff				= randomSpecHigh - randomSpecLow;
 				
 				float data = (float) (randomSpecLow + (float) (random.nextFloat() * (diff)));
@@ -456,8 +459,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		case MIN:
 			applicableList	= new ArrayList<RandomSpec>();
 			for(RandomSpec bound : bounds) {
-				float randomSpecHigh 	= (Float) bound.high().toFlt().data();
-				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float randomSpecHigh 	= (Float) bound.range().upperBound().toFlt().data();
+				float randomSpecLow		= (Float) bound.range().lowerBound().toFlt().data();
 				if(requiredValue >= randomSpecLow && requiredValue < randomSpecHigh)
 					applicableList.add(bound);
 			}
@@ -473,8 +476,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				IWorldTree child		= children.get(childIndex);
 				RandomSpec bound		= bounds.get(childIndex);
 
-				float randomSpecHigh	= (Float) bound.high().toFlt().data();
-				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float randomSpecHigh	= (Float) bound.range().upperBound().toFlt().data();
+				float randomSpecLow		= (Float) bound.range().lowerBound().toFlt().data();
 				float diff				= randomSpecHigh - randomSpecLow;
 				
 				float data = (float) (randomSpecLow + (float) (random.nextFloat() * (diff)));
@@ -550,8 +553,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			float sumOfBoundsLow 	= 0;
 			float sumOfBoundsHigh	= 0;
 			for(RandomSpec bound : bounds) {
-				float randomSpecHigh 	= (Float) bound.high().toFlt().data();
-				float randomSpecLow		= (Float) bound.low().toFlt().data();
+				float randomSpecHigh 	= (Float) bound.range().upperBound().toFlt().data();
+				float randomSpecLow		= (Float) bound.range().lowerBound().toFlt().data();
 				sumOfBoundsLow		   += randomSpecLow;
 				sumOfBoundsHigh		   += randomSpecHigh;
 			}
@@ -595,8 +598,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 					
 					RandomSpec bound		= bounds.get(childIndex);
 
-					float randomSpecHigh	= (Float) bound.high().toFlt().data();
-					float randomSpecLow		= (Float) bound.low().toFlt().data();
+					float randomSpecHigh	= (Float) bound.range().upperBound().toFlt().data();
+					float randomSpecLow		= (Float) bound.range().lowerBound().toFlt().data();
 					float diff				= randomSpecHigh - randomSpecLow;
 					
 					float data = (float) (randomSpecLow + (random.nextFloat() * (diff)));
@@ -668,62 +671,68 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 //		TODO: Perhaps we should use the in-built Datum.add method?
 		float min = Float.MAX_VALUE;
 		float max = Float.MIN_VALUE;
-		Datum.DatumType type = null;
-				
+		
+		Range resultRange = null;
 		switch(definition.type()) {
 		case AGGREGATE:
+			Datum.DatumType type = bounds.get(0).range().lowerBound().type();
 			switch(definition.aggregateExpression().type()) {
 			case COUNT:
-				return new RandomSpec(RandomSpecType.INT, new Datum.Int(0), new Datum.Int(this.children.size()));
+				resultRange = IntegerRange.openClosed(0, this.children().size());
+				return new RandomSpec(RandomSpecType.INT, resultRange);
 			case MAX:
 //				TODO: Determine whether min = minVal when maxVal > max
 				for(RandomSpec spec : bounds) {
-					float maxVal = (Float) spec.high().toFlt().data();
-					float minVal = (Float) spec.low().toFlt().data();
+					float maxVal = (Float) spec.range().upperBound().toFlt().data();
 					if(maxVal > max) {
-						max 	= maxVal;
-						type 	= spec.high().type();
-						min		= minVal;
+						max = maxVal;
+						resultRange = spec.range();
 					}
 				}
 				break;
 			case MIN:
 //				TODO: Determine whether max = maxVal when minVal < min
 				for(RandomSpec spec : bounds) {
-					float maxVal = (Float) spec.high().toFlt().data();
-					float minVal = (Float) spec.low().toFlt().data();
+					float minVal = (Float) spec.range().lowerBound().toFlt().data();
 					if(minVal < min) {
-						min 	= minVal;
-						type 	= spec.high().type();
-						max		= maxVal;
+						min = minVal;
+						resultRange = spec.range();
 					}
 				}
 				break;
 			case SUM:
 				min = 0;
 				max = 0;
-				type = DatumType.INT;
-				for(RandomSpec spec : bounds) {
-					float maxVal = (Float) spec.high().toFlt().data();
-					float minVal = (Float) spec.low().toFlt().data();
-					if(type != DatumType.FLOAT && spec.type().equals(RandomSpecType.FLOAT))
-						type = DatumType.FLOAT;
-					max += maxVal;
-					min += minVal;
-					
-					if(spec.type() == RandomSpecType.INT)
-//						Since the above logic only works natively with FLOAT
-						max -= 1;
+				resultRange = null;
+				
+				switch(type) {
+				case FLOAT:
+					resultRange = FloatRange.closed(0, 0);
+					break;
+				case INT:
+					resultRange = IntegerRange.closed(0, 0);
+					break;
+				default:
+					System.err.println("Warning: Trying to sum INT/FLOAT with type :" + type);
+					break;
 				}
+				
+//				We assume that all bounds are of the same 'type'
+				for(RandomSpec spec : bounds) {
+					resultRange = resultRange.add(spec.range());
+				}
+				max = (Float) resultRange.upperBound().toFlt().data();
+				min = (Float) resultRange.lowerBound().toFlt().data();
+				
 				break;
 			}
 			switch(type) {
 			case FLOAT:
-				return new RandomSpec(RandomSpecType.FLOAT, new Datum.Flt(min), new Datum.Flt(max));
+				return new RandomSpec(RandomSpecType.FLOAT, resultRange);
 			case INT:
-				return new RandomSpec(RandomSpecType.INT, new Datum.Int((int)min), new Datum.Int((int)max));
+				return new RandomSpec(RandomSpecType.INT, resultRange);
 			default:
-				throw new IllegalStateException("Default case in allocating MAX? Type is :" + type);
+				throw new IllegalStateException("Default case in allocating type is :" + type);
 			
 			}
 		case BASIC:

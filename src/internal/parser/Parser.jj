@@ -2,6 +2,8 @@
  * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
  */options{  JDK_VERSION = "1.5";  static = false;}PARSER_BEGIN(Parser)package internal.parser;
 
+import development.com.collection.range.*;
+
 import internal.parser.containers.*;
 import internal.parser.containers.pattern.*;
 import internal.parser.containers.condition.*;
@@ -236,9 +238,18 @@ RandomSpec randomspec() :
 {
     RandomSpecType type = null;
     Datum low 			= null;
-    Datum high 			= null;}
+    Datum high			= null;}
 {    < UNIFORM > (< INT > | < FLOAT >) {type = RandomSpecType.parse(token.image); }
-        < FROM > low = constant() < TO > high = constant() 		{ return new RandomSpec(type, low, high); }|   < IN > < LPARANS > constant() (":" constant())? (< COMMA > constant() (":" constant())?)* < RPARANS >
+        < FROM > low = constant() < TO > high = constant()
+        {
+            if(type == RandomSpecType.INT)        	{
+            	Range range = IntegerRange.closedOpen((Integer) low.toInt().data(), (Integer) high.toInt().data());
+            	return new RandomSpec(type, range);
+        	}
+        	else        	{        	    Range range = FloatRange.closedOpen((Float) low.toFlt().data(), (Float) high.toFlt().data());
+        	    return new RandomSpec(type, range);
+        	}
+     }|   < IN > < LPARANS > constant() (":" constant())? (< COMMA > constant() (":" constant())?)* < RPARANS >
 }
 
 IQuery query(Hierarchy level) :
