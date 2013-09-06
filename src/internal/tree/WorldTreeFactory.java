@@ -298,7 +298,15 @@ public class WorldTreeFactory implements Serializable {
 	 * @return {@code IMap} object corresponding to the specified parameters
 	 */
 	public IMap newMap(String name, IWorldTree parent) {
-		return new Map(name, parent, constraints, new ArrayList<PropertyDef>(definitions));
+		List<Constraint> constraints 	= null;
+		List<PropertyDef> definitions	= null;
+		
+		if(this.constraints != null)
+			constraints		= new ArrayList<Constraint>(this.constraints);
+		if(this.definitions != null)
+			definitions		= new ArrayList<PropertyDef>(this.definitions);
+		
+		return new Map(name, parent, constraints, definitions);
 	}
 	
 	private  class Room extends WorldTree implements IRoom {
@@ -326,9 +334,11 @@ public class WorldTreeFactory implements Serializable {
 				String name = properties.getProperty("Region" + i + ".name");
 				if(name == null) {
 					if(regionNames == null)
-						throw new IllegalStateException("Properties file has no name for child of " + this.name());
-					int nextInt = (new Random()).nextInt(regionNames.length);
-					name 		= regionNames[nextInt];
+						name	= "Region" + i;
+					else {
+						int nextInt = (new Random()).nextInt(regionNames.length);
+						name 		= regionNames[nextInt];
+					}
 				}
 				
 				if(properties.getProperty("Region" + i + ".size") == null)
