@@ -22,4 +22,11 @@ public class MemUnit {
 	public MemUnit difference(MemUnit memUnit) {
 		return new MemUnit(this.bytes - memUnit.bytes);
 	}
+	
+	public static MemUnit getUsedMemory() {
+		long total	= Runtime.getRuntime().totalMemory();
+		long free	= Runtime.getRuntime().freeMemory();
+		
+		return new MemUnit(total - free);
+	}
 }
