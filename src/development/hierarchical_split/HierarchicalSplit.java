@@ -24,7 +24,7 @@ public class HierarchicalSplit {
 		Map<IWorldTree, Range> childRanges = new HashMap<IWorldTree, Range>();
 //		FIXME: Not all children may be part of the definition - definition may have conditions on which child to apply to
 		Result queryResult 			= ResolutionEngine.evaluate(node, definition.query());
-		String columnName 			= definition.query().pattern().rhs().toString();	//FIXME: Hard-coded! Need to replace this with better logic
+		String columnName 			= definition.query().pattern().lhs().toString();	//FIXME: Hard-coded! replace this with better logic
 		List<IWorldTree> children 	= queryResult.get(columnName);
 		for(IWorldTree child : children) {
 			RandomSpec bound = child.getBounds(definition);
