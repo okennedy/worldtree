@@ -172,11 +172,19 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			value = (float) (lowerBound + (float) (Math.random() * (constraintValue - lowerBound)));
 			break;
 		case LT:
+			value = constraintValue;
+			if(constraintValue == lowerBound) {
+//				FIXME: This is a hack. 
+//				HierarchicalSplit is not supposed to pick a value equal to lowerBound when Operator is '<'
+//				We cannot go lesser than the lowerBound...
+				break;
+			}
 			while(value >= constraintValue)
 				value = (float) (lowerBound + (float) (Math.random() * (constraintValue - lowerBound)));
 			break;
 		case NOTEQ:
-			while(value != constraintValue)
+			value = constraintValue;
+			while(value == constraintValue)
 				value = (float) (lowerBound + (float) (Math.random() * (upperBound - lowerBound)));
 			break;
 		}
