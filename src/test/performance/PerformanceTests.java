@@ -20,6 +20,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import test.MemUsageMonitor;
 import test.memory.MemUnit;
 
 public class PerformanceTests {
@@ -48,7 +49,7 @@ public class PerformanceTests {
 	 * 
 	 */
 	@Test
-	public void IncreasingAreaTest() {
+	public void increasingAreaTest() {
 		
 		int dimensionalLimit = 1000;
 		
@@ -60,18 +61,22 @@ public class PerformanceTests {
 			
 			Statistics timingStats	= new Statistics();
 			Statistics memoryStats	= new Statistics();
+			Statistics maxMemStats	= new Statistics();
 			
 			Properties timeProperty 	= new Properties();
 			Properties memoryProperty	= new Properties();
+			Properties maxMemProperty	= new Properties();
 			
-			IMap map = null;
-			for(int xDim = 1; xDim <= dimensionalLimit; xDim++) {
+			for(int xDim = dimensionalLimit; xDim >= 1; xDim--) {
 				long iterationStartTime	= System.nanoTime();
 				System.out.println("Iteration    :" + xDim);
-				for(int yDim = 1; yDim <= dimensionalLimit; yDim++) {
+				for(int yDim = dimensionalLimit; yDim >= 1; yDim--) {
 					int area = xDim * yDim;
 					if(timingStats.containsKey(area))
 						continue;
+					
+					MemUsageMonitor memUsageMonitor = new MemUsageMonitor(10, true);
+					memUsageMonitor.start();
 					
 					propertiesFile.delete();
 					FileWriter writer = new FileWriter(propertiesFile);
@@ -82,7 +87,7 @@ public class PerformanceTests {
 					
 					long startTime 	= System.nanoTime();
 					
-					map = factory.newMap("testMap", null);
+					IMap map = factory.newMap("testMap", null);
 					map.initRooms();
 					map.initRegions();
 					map.initTiles();
@@ -94,52 +99,54 @@ public class PerformanceTests {
 					System.gc();
 					Thread.sleep(5);
 					
-					MemUnit usage	= MemUnit.getUsedMemory();
+					memUsageMonitor.interrupt();
+					memUsageMonitor.join();
+					
+					if(!maxMemStats.containsKey(area))
+						maxMemStats.put(area, new ArrayList<Long>());
+					maxMemStats.get(area).add(memUsageMonitor.getMax().bytes());
+					
 					if(!timingStats.containsKey(area))
 						timingStats.put(area, new ArrayList<Long>());
 					timingStats.get(area).add(endTime - startTime);
-					
+
+					MemUnit usage	= MemUnit.getUsedMemory();
 					if(!memoryStats.containsKey(area))
 						memoryStats.put(area, new ArrayList<Long>());
 					memoryStats.get(area).add(usage.bytes());
+					
+					factory = null;
+					map		= null;
 				}
 				long iterationEndTime	= System.nanoTime();
-				MemUnit usage	= MemUnit.getUsedMemory();
-				System.out.println("Memory       :" + usage);
 				System.out.println("Time Taken   :" + String.format("%.4f", (iterationEndTime - iterationStartTime) / 1e9) + "seconds\n");
 			}
 					
-			for(Map.Entry<Integer, List<Long>> entry : timingStats.entrySet()) {
-				List<Long> list = entry.getValue();
-				
-				long average	= 0;
-				for(Long value : list)
-					average	   += value;
-				
-				average 	   /= list.size();
-				
-				timeProperty.put("" + entry.getKey(), "" + average);
-			}
+			storeAverages(timingStats, timeProperty);
+			storeAverages(memoryStats, memoryProperty);
+			storeAverages(maxMemStats, maxMemProperty);
 			
+			timeProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/timing_data")), "Area - Time Taken");
+			memoryProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data")), "Area - Memory Footprint");
+			maxMemProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data")), "Area - Max Memory Footprint");
 			
-			for(Map.Entry<Integer, List<Long>> entry : memoryStats.entrySet()) {
-				List<Long> list = entry.getValue();
-				
-				long average	= 0;
-				for(Long value : list)
-					average	   += value;
-				
-				average 	   /= list.size();
-				
-				memoryProperty.put("" + entry.getKey(), "" + average);
-			}
-			
-			timeProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/timing_data")), "Auto-generated timing info");
-			timeProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data")), "Auto-generated memory usage info");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+		}
+	}
+
+	private void storeAverages(Statistics stats, Properties property) {
+		for(Map.Entry<Integer, List<Long>> entry : stats.entrySet()) {
+			long average = 0;
+			
+			List<Long> list = entry.getValue();
+			for(long value : list)
+				average += value;
+			average /= list.size();
+			
+			property.put(entry.getKey(), average);
 		}
 	}
 
