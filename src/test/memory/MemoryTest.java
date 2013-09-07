@@ -34,7 +34,7 @@ public class MemoryTest {
 		map = factory.newMap("InitTestMap", null);
 		map.initRooms();
 		map.initRegions();
-//		map.initTiles();
+		map.initTiles();
 		
 		long endTime 	= System.nanoTime();
 		System.out.println("Time taken to create skeleton          :" + ((endTime - startTime)/1e9) + " seconds");
@@ -46,14 +46,14 @@ public class MemoryTest {
 		
 		
 		startTime		= System.nanoTime();
-//		map.pushDownConstraints();
+		map.materializeConstraints();
 		endTime			= System.nanoTime();
 		System.out.println("Time taken to materialize constraints  :" + ((endTime - startTime)/1e9) + " seconds");
 		
-//		startTime		= System.nanoTime();
-//		write(map);
-//		endTime			= System.nanoTime();
-//		System.out.println("Time taken to write map        :" + ((endTime - startTime)/1e9) + " seconds");
+		startTime		= System.nanoTime();
+		write(map);
+		endTime			= System.nanoTime();
+		System.out.println("Time taken to write map        :" + ((endTime - startTime)/1e9) + " seconds");
 		
 		getMemoryUsage();
 		
