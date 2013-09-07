@@ -202,8 +202,4 @@ public interface IWorldTree {
 		 */
 		public boolean hasInterface(TileInterfaceType it);
 	}
-
-	public Collection<IWorldTree> getAllChildren();
-	
-	public Collection<IWorldTree> getChildrenByClass(String className);
 }
