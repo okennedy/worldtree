@@ -8,6 +8,8 @@ import internal.tree.WorldTreeFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import test.MemUsageMonitor;
+
 public class MemoryTest {
 	private IMap map;
 	private WorldTreeFactory factory = null;
@@ -24,6 +26,9 @@ public class MemoryTest {
 
 	@Test
 	public void sizeTest() {
+		Thread memUsage = new MemUsageMonitor(1, true);
+		memUsage.start();
+		
 		long startTime 	= System.nanoTime();
 		factory = new WorldTreeFactory("init.properties", "world.definitions");
 		map = factory.newMap("InitTestMap", null);
@@ -64,6 +69,8 @@ public class MemoryTest {
 		}
 		
 		getMemoryUsage();
+		
+		memUsage.interrupt();
 	}
 	
 	private void getMemoryUsage() {
