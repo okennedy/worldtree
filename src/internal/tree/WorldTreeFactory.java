@@ -233,13 +233,17 @@ public class WorldTreeFactory implements Serializable {
 			while(nodeList.size() > 0) {
 				IWorldTree node	= nodeList.get(0);
 				nodeLevel	= Hierarchy.parse(node.getClass());
-				if(nodeLevel == level)
-					result.add(node);
-				else if(nodeLevel.compareTo(level) > 0)
+				
+				if(nodeLevel.compareTo(level) > 0)
 					break;	//TODO: Validate this logic
-				Collection<IWorldTree> children = node.children();
-				if(children != null)
-					nodeList.addAll(children);
+				
+				else if(nodeLevel == level)
+					result.add(node);
+				else {
+					Collection<IWorldTree> children = node.children();
+					if(children != null)
+						nodeList.addAll(children);
+				}
 				nodeList.remove(node);
 			}
 			return result;
