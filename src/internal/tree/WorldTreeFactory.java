@@ -157,16 +157,17 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void initialize() {
-			children = new ArrayList<IWorldTree>();
+			this.children = new ArrayList<IWorldTree>(0);
 			String countString 	= properties.getProperty("Room.count");
 			if(countString == null)
-				throw new IllegalStateException("Properties file has no size for " + this.getClass());
+				throw new IllegalStateException("Properties file has no attribute Room.count");
 			int childrenCount 	= Integer.parseInt(countString);
 			for(int i = 0; i < childrenCount; i++) {
 				String name 	= properties.getProperty("Room" + i + ".name");
 				if(name == null)
 					name = "Room" + i;
-				children.add(new Room(name, this));
+				IWorldTree child = new Room(name, this);
+				this.children.add(child);
 			}
 		}
 		
@@ -177,14 +178,14 @@ public class WorldTreeFactory implements Serializable {
 		
 		@Override
 		public void initRegions() {
-			for(IWorldTree child : getRooms()) {
+			for(IWorldTree child : getNodesByLevel(Hierarchy.Room)) {
 				child.initialize();
 			}
 		}
 		
 		@Override
 		public void initTiles() {
-			for(IWorldTree child : getRegions()) {
+			for(IWorldTree child : getNodesByLevel(Hierarchy.Region)) {
 				child.initialize();
 			}
 		}
@@ -221,67 +222,42 @@ public class WorldTreeFactory implements Serializable {
 			// TODO Auto-generated method stub
 			return null;
 		}
-
-		private Collection<IWorldTree> allNodes() {
-			List<IWorldTree> result = new ArrayList<IWorldTree>();
-			result.add(this);
-			IWorldTree node = null;
-			try {
-				int index = 0;
-				while(index < result.size()) {
-					node = result.get(index);
-					if(node.children() != null)
-						result.addAll(node.children());
-					index++;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return result;
-		}
-		private Collection<IWorldTree> getRooms() {
-			Collection<IWorldTree> result 	= new ArrayList<IWorldTree>();
-			Collection<IWorldTree> nodes 	= allNodes();
-			
-			for(IWorldTree n : nodes) {
-				if(n.getClass().equals(WorldTreeFactory.Room.class))
-					result.add(n);
-			}
-			return result;
-		}
 		
-		private Collection<IWorldTree> getRegions() {
+		private Collection<IWorldTree> getNodesByLevel(Hierarchy level) {
 			Collection<IWorldTree> result 	= new ArrayList<IWorldTree>();
-			Collection<IWorldTree> nodes 	= allNodes();
 			
-			for(IWorldTree n : nodes) {
-				if(n.getClass().equals(WorldTreeFactory.Region.class))
-					result.add(n);
-			}
-			return result;
-		}
-		
-		private Collection<IWorldTree> getTiles() {
-			Collection<IWorldTree> result 	= new ArrayList<IWorldTree>();
-			Collection<IWorldTree> nodes 	= allNodes();
-			for(IWorldTree n : nodes) {
-				if(n.getClass().equals(WorldTreeFactory.Tile.class))
-					result.add(n);
+			List<IWorldTree> nodeList = new ArrayList<IWorldTree>();
+			nodeList.add(this);
+			Hierarchy nodeLevel	= Hierarchy.parse(this.getClass());
+			
+			while(nodeList.size() > 0) {
+				IWorldTree node	= nodeList.get(0);
+				nodeLevel	= Hierarchy.parse(node.getClass());
+				if(nodeLevel == level)
+					result.add(node);
+				else if(nodeLevel.compareTo(level) > 0)
+					break;	//TODO: Validate this logic
+				Collection<IWorldTree> children = node.children();
+				if(children != null)
+					nodeList.addAll(children);
+				nodeList.remove(node);
 			}
 			return result;
 		}
 		
 		@Override
 		public void fill() {
-			for(IWorldTree r : getRegions()) {
+			for(IWorldTree r : getNodesByLevel(Hierarchy.Region)) {
 				((Region) r).initRegion();
 			}
 		}
 
 		@Override
 		public void materializeConstraints() {
-			for(IWorldTree node : allNodes()) {
-				node.pushDownConstraints();
+			for(Hierarchy level : Hierarchy.values()) {
+				Collection<IWorldTree> nodes = getNodesByLevel(level);
+				for(IWorldTree node : nodes)
+					node.pushDownConstraints();
 				
 //				for(Constraint constraint : node.constraints()) {
 //					if(constraint.type().equals(Constraint.Type.PROGRAM_GENERATED))
@@ -324,7 +300,7 @@ public class WorldTreeFactory implements Serializable {
 			
 			String countString	= properties.getProperty("Region.count");
 			if(countString == null)
-				throw new IllegalStateException("Properties file has no size for " + this.getClass());
+				throw new IllegalStateException("Properties file has no attribute Region.count");
 			int childrenCount 	= Integer.parseInt(countString);
 			
 			if(properties.getProperty("Region.names") != null)
@@ -421,8 +397,6 @@ public class WorldTreeFactory implements Serializable {
 					space.setByCoord(coords, tile);
 				}
 			}
-//			initRegion();
-			initString();
 		}
 		
 		/**
@@ -434,10 +408,10 @@ public class WorldTreeFactory implements Serializable {
 					Coordinates coords = new Coordinates(true, j, i);
 					ITile tile = initTile(coords, constraints);
 					ITile existingTile = space.getByCoord(coords);
-					existingTile.setPiece(tile.piece());
+					if(existingTile != null)
+						existingTile.setPiece(tile.piece());
 				}
 			}
-			initString();
 		}
 		
 		/**
