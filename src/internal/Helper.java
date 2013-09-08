@@ -36,7 +36,6 @@ public class Helper {
 		"UR",
 		"DR",
 		"DL",
-		""
 	};
 	
 	
