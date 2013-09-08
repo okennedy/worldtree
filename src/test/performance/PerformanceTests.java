@@ -2,14 +2,17 @@ package test.performance;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import internal.Helper;
 import internal.piece.PieceFactory;
@@ -23,8 +26,9 @@ import org.junit.Test;
 import test.MemUsageMonitor;
 import test.memory.MemUnit;
 
+import static internal.Helper.*;
+
 public class PerformanceTests {
-	private static WorldTreeFactory factory;
 	private static StringBuffer result;
 	private static File outputDir = new File("output/PerformanceTests");
 	
@@ -40,18 +44,23 @@ public class PerformanceTests {
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
-		factory = null;
 		result	= null;
 	}
 
 	/**
-	 * In this test, we have just 1 Room and 1 Region but keep increasing the number of Tiles.
-	 * 
+	 * In this test, we have just 1 Room and 1 Region but keep increasing the number of Tiles. <br>
+	 * There are also no constraints to materialize. Thus, IMap.materializeConstraints is never called<br>
+	 * This test measures the following: <br> 
+	 * <pre>
+	 *     - Time taken to materialize instances
+	 *     - Memory used by each materialized rinstance
+	 *     - Maximum memory requirement during materialization
+	 * </pre>
 	 */
 	@Test
 	public void increasingAreaTest() {
 		
-		int dimensionalLimit = 1000;
+		int dimensionalLimit = 1000000;
 		
 		File propertiesFile	= new File(outputDir.getAbsolutePath() + "/IncreasingAreaTest.properties");
 		try {
@@ -67,57 +76,54 @@ public class PerformanceTests {
 			Properties memoryProperty	= new Properties();
 			Properties maxMemProperty	= new Properties();
 			
-			for(int xDim = dimensionalLimit; xDim >= 1; xDim--) {
+			for(int xDim = 1000; xDim <= dimensionalLimit; xDim += 1000) {
 				long iterationStartTime	= System.nanoTime();
 				System.out.println("Iteration    :" + xDim);
-				for(int yDim = dimensionalLimit; yDim >= 1; yDim--) {
-					int area = xDim * yDim;
-					if(timingStats.containsKey(area))
-						continue;
-					
-					MemUsageMonitor memUsageMonitor = new MemUsageMonitor(10, true);
-					memUsageMonitor.start();
-					
-					propertiesFile.delete();
-					FileWriter writer = new FileWriter(propertiesFile);
-					properties.put("Region0.size", "" + xDim + "x" + yDim);
-					properties.store(writer, "Auto-generated properties");
-					
-					WorldTreeFactory factory = new WorldTreeFactory(propertiesFile.getAbsolutePath());
-					
-					long startTime 	= System.nanoTime();
-					
-					IMap map = factory.newMap("testMap", null);
-					map.initRooms();
-					map.initRegions();
-					map.initTiles();
-					map.materializeConstraints();
-					map.fill();
-					
-					long endTime	= System.nanoTime();
-					
-					System.gc();
-					Thread.sleep(5);
-					
-					memUsageMonitor.interrupt();
-					memUsageMonitor.join();
-					
-					if(!maxMemStats.containsKey(area))
-						maxMemStats.put(area, new ArrayList<Long>());
-					maxMemStats.get(area).add(memUsageMonitor.getMax().bytes());
-					
-					if(!timingStats.containsKey(area))
-						timingStats.put(area, new ArrayList<Long>());
-					timingStats.get(area).add(endTime - startTime);
+				
+				int area = xDim * 1;
+				
+				MemUsageMonitor memUsageMonitor = new MemUsageMonitor(10, true);
+				memUsageMonitor.start();
+				
+				propertiesFile.delete();
+				FileWriter writer = new FileWriter(propertiesFile);
+				properties.put("Region0.size", "" + xDim + "x" + 1);
+				properties.store(writer, "Auto-generated properties");
+				
+				WorldTreeFactory factory = new WorldTreeFactory(propertiesFile.getAbsolutePath());
+				
+				long startTime 	= System.nanoTime();
+				
+				IMap map = factory.newMap("testMap", null);
+				map.initRooms();
+				map.initRegions();
+				map.initTiles();
+				map.materializeConstraints();
+				map.fill();
+				
+				long endTime	= System.nanoTime();
+				
+				System.gc();
+				Thread.sleep(5);
+				
+				memUsageMonitor.interrupt();
+				memUsageMonitor.join();
+				
+				if(!maxMemStats.containsKey(area))
+					maxMemStats.put(area, new ArrayList<Long>());
+				maxMemStats.get(area).add(memUsageMonitor.getMax().bytes());
+				
+				if(!timingStats.containsKey(area))
+					timingStats.put(area, new ArrayList<Long>());
+				timingStats.get(area).add(endTime - startTime);
 
-					MemUnit usage	= MemUnit.getUsedMemory();
-					if(!memoryStats.containsKey(area))
-						memoryStats.put(area, new ArrayList<Long>());
-					memoryStats.get(area).add(usage.bytes());
-					
-					factory = null;
-					map		= null;
-				}
+				MemUnit usage	= MemUnit.getUsedMemory();
+				if(!memoryStats.containsKey(area))
+					memoryStats.put(area, new ArrayList<Long>());
+				memoryStats.get(area).add(usage.bytes());
+				
+				factory = null;
+				map		= null;
 				long iterationEndTime	= System.nanoTime();
 				System.out.println("Time Taken   :" + String.format("%.4f", (iterationEndTime - iterationStartTime) / 1e9) + "seconds\n");
 			}
@@ -128,7 +134,86 @@ public class PerformanceTests {
 			
 			timeProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/timing_data")), "Area - Time Taken");
 			memoryProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data")), "Area - Memory Footprint");
-			maxMemProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data")), "Area - Max Memory Footprint");
+			maxMemProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/max_mem_data")), "Area - Max Memory Footprint");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+//	@Test
+	public void IncreasingAreaWriteTest() {
+		int dimensionalLimit = 10000;
+		
+		File propertiesFile	= new File(outputDir.getAbsolutePath() + "/IncreasingAreaTest.properties");
+		try {
+			Properties properties 	= new Properties();
+			properties.put("Room.count", "1");
+			properties.put("Region.count", "1");
+			
+			Statistics timingStats	= new Statistics();
+			Statistics memoryStats	= new Statistics();
+			Statistics maxMemStats	= new Statistics();
+			
+			for(int xDim = 1; xDim <= dimensionalLimit; xDim++) {
+				long iterationStartTime	= System.nanoTime();
+				System.out.println("Iteration    :" + xDim);
+				int area = xDim * 1;
+				if(timingStats.containsKey(area))
+					continue;
+				
+				MemUsageMonitor memUsageMonitor = new MemUsageMonitor(10, true);
+				memUsageMonitor.start();
+				
+				propertiesFile.delete();
+				FileWriter writer = new FileWriter(propertiesFile);
+				properties.put("Region0.size", "" + xDim + "x" + 1);
+				properties.store(writer, "Auto-generated properties");
+				
+				WorldTreeFactory factory = new WorldTreeFactory(propertiesFile.getAbsolutePath());
+				
+				long startTime 	= System.nanoTime();
+				IMap map = factory.newMap("testMap", null);
+				map.initRooms();
+				map.initRegions();
+				map.initTiles();
+				map.materializeConstraints();
+				map.fill();
+				
+				
+				write(map);
+				long endTime	= System.nanoTime();
+				
+				System.gc();
+				Thread.sleep(5);
+				
+				memUsageMonitor.interrupt();
+				memUsageMonitor.join();
+				
+				if(!maxMemStats.containsKey(area))
+					maxMemStats.put(area, new ArrayList<Long>());
+				maxMemStats.get(area).add(memUsageMonitor.getMax().bytes());
+				
+				if(!timingStats.containsKey(area))
+					timingStats.put(area, new ArrayList<Long>());
+				timingStats.get(area).add(endTime - startTime);
+
+				MemUnit usage	= MemUnit.getUsedMemory();
+				if(!memoryStats.containsKey(area))
+					memoryStats.put(area, new ArrayList<Long>());
+				memoryStats.get(area).add(usage.bytes());
+				
+				factory = null;
+				map		= null;
+				long iterationEndTime	= System.nanoTime();
+				System.out.println("Time Taken   :" + String.format("%.4f", (iterationEndTime - iterationStartTime) / 1e9) + "seconds\n");
+			}
+
+			timingStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/timing_data")), "Area - Time Taken");
+			memoryStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/mem_data")), "Area - Memory Footprint");
+			maxMemStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/max_mem_data")), "Area - Max Memory Footprint");
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -146,16 +231,42 @@ public class PerformanceTests {
 				average += value;
 			average /= list.size();
 			
-			property.put(entry.getKey(), average);
+			property.put(Integer.toString(entry.getKey()), Long.toString(average));
 		}
 	}
 
-	private class Statistics extends HashMap<Integer, List<Long>> {
-		
+	private class Statistics extends TreeMap<Integer, List<Long>> {
+		private static final long serialVersionUID = -7576749890787643554L;
+
 		public Statistics() {
 			super();
 		}
 		
+		public void store(FileWriter fileWriter, String comments) {
+			try {
+				BufferedWriter out = new BufferedWriter(fileWriter);
+				out.write("#" + comments);
+				out.newLine();
+				SimpleDateFormat sdf = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+				out.write("#" + sdf.format(Calendar.getInstance().getTime()));
+				out.newLine();
+				for(Map.Entry<Integer, List<Long>> entry : entrySet()) {
+					int key 		= entry.getKey();
+					double value 	= 0;
+					
+					List<Long> list	= entry.getValue();
+					for(Long l : list)
+						value += l;
+					value /= list.size();
+					
+					out.write(Integer.toString(key) + "=" + Double.toString(value));
+					out.newLine();
+				}
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 		@Override
 		public synchronized List<Long> put(Integer integer, List<Long> list) {
 			return super.put(integer, list);
