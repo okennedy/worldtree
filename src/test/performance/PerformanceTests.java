@@ -61,7 +61,7 @@ public class PerformanceTests {
 	public void increasingAreaTest() {
 		
 		int dimensionalLimit = 1000000;
-		
+		File outputDir = setupOutputDir("IncreasingAreaTest/limit_" + dimensionalLimit);
 		File propertiesFile	= new File(outputDir.getAbsolutePath() + "/IncreasingAreaTest.properties");
 		try {
 			Properties properties 	= new Properties();
@@ -152,14 +152,7 @@ public class PerformanceTests {
 	@Test
 	public void increasingRegionTest() {
 		int dimensionalLimit = 1000000;
-		{
-			outputDir = new File(outputDir.getAbsolutePath() + "/increasingRegionTest/limit_" + dimensionalLimit);
-			if(outputDir.exists()) {
-				System.out.println("Warning: " + outputDir.getAbsolutePath() + "\nAlready Exists!");
-				return;
-			}
-			outputDir.mkdirs();
-		}
+		File outputDir = setupOutputDir("/increasingRegionTest/limit_" + dimensionalLimit);
 		
 		File propertiesFile	= new File(outputDir.getAbsolutePath() + "/IncreasingAreaTest.properties");
 		try {
@@ -383,5 +376,22 @@ public class PerformanceTests {
 		public synchronized boolean containsKey(Object key) {
 			return super.containsKey(key);
 		}
+	}
+	
+	
+	/**
+	 * Set up the output directory for a test. <br>
+	 * The final path is always the concatenation of the default {@code outputDir.getAbsolutePath} and <b>path</b>
+	 * @param path {@code String} to append
+	 * @return 
+	 */
+	private File setupOutputDir(String path) {
+		File outputDir = new File(PerformanceTests.outputDir.getAbsolutePath() + path);
+		if(outputDir.exists()) {
+			System.out.println("Warning: " + outputDir.getAbsolutePath() + "\nAlready Exists!");
+			System.exit(-1);
+		}
+		outputDir.mkdirs();
+		return outputDir;
 	}
 }
