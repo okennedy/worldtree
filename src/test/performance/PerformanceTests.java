@@ -143,6 +143,108 @@ public class PerformanceTests {
 		}
 	}
 	
+	
+	/**
+	 * This test aims to evaluate performance by increasing the number of Regions required to cover a fixed area. <br>
+	 * The area is defined by {@code dimensionalLimit} and the test iterates area-per-region from 1,000 upto {@code dimensionalLimit} <br>
+	 * The number of regions is computed as {@code dimensionalLimit / areaPerRegion} <br>
+	 */
+	@Test
+	public void increasingRegionTest() {
+		int dimensionalLimit = 1000000;
+		{
+			outputDir = new File(outputDir.getAbsolutePath() + "/increasingRegionTest/limit_" + dimensionalLimit);
+			if(outputDir.exists()) {
+				System.out.println("Warning: " + outputDir.getAbsolutePath() + "\nAlready Exists!");
+				return;
+			}
+			outputDir.mkdirs();
+		}
+		
+		File propertiesFile	= new File(outputDir.getAbsolutePath() + "/IncreasingAreaTest.properties");
+		try {
+			Properties properties 	= new Properties();
+			properties.put("Room.count", "1");
+			
+			Statistics timingStats	= new Statistics();
+			Statistics memoryStats	= new Statistics();
+			Statistics maxMemStats	= new Statistics();
+			
+			Properties timeProperty 	= new Properties();
+			Properties memoryProperty	= new Properties();
+			Properties maxMemProperty	= new Properties();
+			
+			for(int areaPerRegion = 1000; areaPerRegion <= dimensionalLimit; areaPerRegion += 1000) {
+				int regionCount = dimensionalLimit / areaPerRegion;
+				properties.put("Region.count", Integer.toString(regionCount));
+				for(int regionIndex = 0; regionIndex < regionCount; regionIndex++) {
+					properties.put("Region" + regionIndex + ".size", "" + areaPerRegion + "x" + 1);
+				}
+				
+				long iterationStartTime	= System.nanoTime();
+				System.out.println("Iteration    :" + areaPerRegion);
+				
+				MemUsageMonitor memUsageMonitor = new MemUsageMonitor(10, true);
+				memUsageMonitor.start();
+				
+				propertiesFile.delete();
+				FileWriter writer = new FileWriter(propertiesFile);
+				
+				properties.store(writer, "Auto-generated properties");
+				
+				WorldTreeFactory factory = new WorldTreeFactory(propertiesFile.getAbsolutePath());
+				
+				long startTime 	= System.nanoTime();
+				
+				IMap map = factory.newMap("testMap", null);
+				map.initRooms();
+				map.initRegions();
+				map.initTiles();
+				map.materializeConstraints();
+				map.fill();
+				
+				long endTime	= System.nanoTime();
+				
+				System.gc();
+				Thread.sleep(5);
+				
+				memUsageMonitor.interrupt();
+				memUsageMonitor.join();
+				
+				if(!maxMemStats.containsKey(areaPerRegion))
+					maxMemStats.put(areaPerRegion, new ArrayList<Long>());
+				maxMemStats.get(areaPerRegion).add(memUsageMonitor.getMax().bytes());
+				
+				if(!timingStats.containsKey(areaPerRegion))
+					timingStats.put(areaPerRegion, new ArrayList<Long>());
+				timingStats.get(areaPerRegion).add(endTime - startTime);
+
+				MemUnit usage	= MemUnit.getUsedMemory();
+				if(!memoryStats.containsKey(areaPerRegion))
+					memoryStats.put(areaPerRegion, new ArrayList<Long>());
+				memoryStats.get(areaPerRegion).add(usage.bytes());
+				
+				factory = null;
+				map		= null;
+				long iterationEndTime	= System.nanoTime();
+				System.out.println("Time Taken   :" + String.format("%.4f", (iterationEndTime - iterationStartTime) / 1e9) + "seconds\n");
+			}
+					
+			storeAverages(timingStats, timeProperty);
+			storeAverages(memoryStats, memoryProperty);
+			storeAverages(maxMemStats, maxMemProperty);
+			
+			timeProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/timing_data")), "Area - Time Taken");
+			memoryProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data")), "Area - Memory Footprint");
+			maxMemProperty.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/max_mem_data")), "Area - Max Memory Footprint");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
 //	@Test
 	public void IncreasingAreaWriteTest() {
 		int dimensionalLimit = 10000;
