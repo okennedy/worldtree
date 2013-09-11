@@ -47,6 +47,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	private Collection<Constraint> constraints;
 	private Collection<PropertyDef> definitions;
 	private Map<String, Datum> properties;
+	private Map<String, RandomSpec> bounds;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		this.parent 		= parent;
@@ -54,6 +55,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.name 			= name;
 		this.constraints 	= constraints;
 		this.properties		= new HashMap<String, Datum>(0);
+		this.bounds			= null;
 		
 		if(parent != null) {
 			IWorldTree root = this.root();
@@ -200,7 +202,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	}
 	
 	public void pushDownConstraints() {
-		if(this.children() == null || this.children().size() == 0) {
+//		FIXME: The following lines has been commented because of quadratic-ish behaviour
+//		if(this.children() == null || this.children().size() == 0) {
 			Hierarchy myLevel = Hierarchy.parse(this.getClass());
 			if(myLevel == Hierarchy.Tile) {
 				Collection<Constraint> constraints 	= this.constraints();
@@ -228,13 +231,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 					}
 				}
 			}
-			else {
-				System.err.println("Warning: pushDownConstraints has been called when the entire skeleton has not been initialized");
-			}
-			return;
-		}
-		
-		Hierarchy myLevel = Hierarchy.parse(this.getClass());
+			
 //		Only root contains all constraints
 		IWorldTree root = this.root();
 
@@ -295,6 +292,9 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				break;
 			}
 		}
+		
+		if(bounds != null && bounds.get(property) != null)
+			return bounds.get(property);
 		
 		List<RandomSpec> bounds = new ArrayList<RandomSpec>();
 		if(this.children() != null) {
@@ -362,11 +362,19 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				
 				break;
 			}
+			
+//			We need to save bounds..allocate if null
+			if(this.bounds == null)
+				this.bounds = new HashMap<String, RandomSpec>(0);
 			switch(type) {
 			case FLOAT:
-				return new RandomSpec(RandomSpecType.FLOAT, resultRange);
+				RandomSpec bound = new RandomSpec(RandomSpecType.FLOAT, resultRange);
+				this.bounds.put(property, bound);
+				return this.bounds.get(property);
 			case INT:
-				return new RandomSpec(RandomSpecType.INT, resultRange);
+				bound = new RandomSpec(RandomSpecType.FLOAT, resultRange);
+				this.bounds.put(property, bound);
+				return this.bounds.get(property);
 			default:
 				throw new IllegalStateException("Default case in allocating type is :" + type);
 			
