@@ -154,7 +154,7 @@ public class Space extends Dimension {
 	 * @return {@code List<IWorldTree} containing every {@code ITile} from this Space
 	 */
 	public Collection<IWorldTree> collection() {
-		List<IWorldTree> returnList = new ArrayList<IWorldTree>();
+		List<IWorldTree> returnList = new ArrayList<IWorldTree>(xDimension * yDimension);
 		for(int i = 0; i < getYDimension(); i++) {
 			for(int j = 0; j < getXDimension(); j++) {
 				Coordinates coordinates = new Coordinates(true, j, i);
