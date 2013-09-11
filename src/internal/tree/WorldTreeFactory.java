@@ -261,17 +261,7 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void materializeConstraints() {
-			List<IWorldTree> nodes = new Vector<IWorldTree>();
-			nodes.add(this);
-			while(nodes.size() > 0) {
-				IWorldTree node = nodes.get(0);
-				if(node.constraints() != null && node.constraints().size() > 0)
-					node.pushDownConstraints();
-				Collection<IWorldTree> children = node.children();
-				if(children != null)
-					nodes.addAll(children);
-				nodes.remove(0);
-			}
+			this.pushDownConstraints();
 		}
 	}
 	

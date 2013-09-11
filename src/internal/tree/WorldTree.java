@@ -230,6 +230,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 						this.addProperty(property, value);
 					}
 				}
+				return;
 			}
 			
 //		Only root contains all constraints
@@ -273,6 +274,14 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 					child.addConstraint(childConstraint);
 				}
 			}
+		}
+		
+//		Now push down the children
+//		this.children() should *NOT* be null at this point..check anyway
+		if(this.children() == null)
+			return;
+		for(IWorldTree child : this.children()) {
+			child.pushDownConstraints();
 		}
 	}
 
