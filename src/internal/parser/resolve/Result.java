@@ -61,8 +61,8 @@ public class Result extends ArrayList<Column> {
 	 * @param row {@code List<IWorldTree>} containing the elements to add
 	 */
 	public void add(List<IWorldTree> row) {
-		if(contains(row))
-			return;
+//		if(contains(row))
+//			return;
 		
 		int index = 0;
 		for(Column t : this) {
@@ -78,15 +78,7 @@ public class Result extends ArrayList<Column> {
 	 * {@code false} otherwise
 	 */
 	public boolean contains(List<IWorldTree> row) {
-		StringBuffer errorMsg = new StringBuffer("Trying to insert " + row.toString() + " into ");
-		
-		List<String> stringList = new ArrayList<String>();
-		for(Column c : this) {
-			stringList.add(c.toString());
-		}
-		errorMsg.append(multiLine(stringList));
-		
-		assert row.size() == size() : errorMsg.toString();
+		assert row.size() == size();
 		
 		int rowIndex = 0;
 		while(rowIndex < get(0).size()) {
@@ -97,8 +89,9 @@ public class Result extends ArrayList<Column> {
 					result = false;
 				columnIndex++;
 			}
-			if(result)
-				return true;
+			if(result) {
+				throw new IllegalStateException("Duplicate row being added!");
+			}
 			rowIndex++;
 		}
 		return false;
