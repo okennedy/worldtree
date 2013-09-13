@@ -12,8 +12,10 @@ import internal.tree.IWorldTree;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import development.com.collection.range.Range;
 import development.com.collection.range.Range.BoundType;
@@ -35,24 +37,23 @@ public class HierarchicalSplit {
 		Node root = buildTree(childRanges, definition);
 		
 		Datum requiredValue = constraint.condition().value();
-		root.split(result, requiredValue, definition);
+		root.split(result, requiredValue);
 		return result;
 	}
 
 	private static Node buildTree(Map<IWorldTree, Range> childRanges, PropertyDef definition) {
-		List<IWorldTree> children = new ArrayList<IWorldTree>(childRanges.keySet());
+		List<Node> nodeList		= new LinkedList<Node>();
 		
-		List<Node> nodeList = new ArrayList<Node>();
-		
-		for(IWorldTree child : children) {
-			Node node 	= new Node(definition, null);
-			Range range	= childRanges.get(child);
+		for(Map.Entry<IWorldTree, Range> entry : childRanges.entrySet()) {
+			IWorldTree child	= entry.getKey();
+			Range range			= entry.getValue();
+			Node node 			= new Node(null);
 			node.setObject(child, range);
 			nodeList.add(node);
 		}
 		
 		while(nodeList.size() > 1) {
-			Node node 		= new Node(definition, null);
+			Node node 		= new Node(null);
 			
 			Node listHead	= nodeList.get(0);
 			node.insert(listHead);
@@ -65,6 +66,8 @@ public class HierarchicalSplit {
 			}
 			nodeList.add(node);
 		}
+		Node root = nodeList.get(0);
+		root.setDefinition(definition);
 		return nodeList.get(0);
 	}
 	
@@ -77,12 +80,16 @@ public class HierarchicalSplit {
 		private Range range;
 		private PropertyDef definition;
 		
-		public Node(PropertyDef definition, Node parent) {
-			this.parent	= parent;
-			this.lhs	= null;
-			this.rhs	= null;
-			this.object	= null;
-			this.range	= null;
+		public Node(Node parent) {
+			this.parent		= parent;
+			this.lhs		= null;
+			this.rhs		= null;
+			this.object		= null;
+			this.range		= null;
+			this.definition	= null;
+		}
+
+		public void setDefinition(PropertyDef definition) {
 			this.definition	= definition;
 		}
 
@@ -137,9 +144,9 @@ public class HierarchicalSplit {
 			else if(rhs == null)
 				return lhs.range();
 			else {
-				switch(definition.type()) {
+				switch(definition().type()) {
 				case AGGREGATE:
-					switch(definition.aggregateExpression().type()) {
+					switch(definition().aggregateExpression().type()) {
 					case COUNT:
 					case SUM:
 						return this.lhs.range().add(this.rhs.range());	//FIXME: Potentially wrong
@@ -157,11 +164,11 @@ public class HierarchicalSplit {
 			throw new IllegalStateException("Shouldn't be trying to return null");
 		}
 		
-		public void split(Map<IWorldTree, Datum> values, Datum requiredValue, PropertyDef definition) {
+		public void split(Map<IWorldTree, Datum> values, Datum requiredValue) {
 			Datum lhsValue 	= null;
 			Datum rhsValue	= null;
 			
-			switch(definition.type()) {
+			switch(definition().type()) {
 			case AGGREGATE:
 				Range intersection 	= null;
 				if(object != null)
@@ -172,7 +179,7 @@ public class HierarchicalSplit {
 					if(rhs != null)
 						intersection	= intersection.intersection(rhs.range());
 				}
-				switch(definition.aggregateExpression().type()) {
+				switch(definition().aggregateExpression().type()) {
 				case COUNT:
 					lhsValue	= intersection.generateRandom();
 					rhsValue	= requiredValue.subtract(lhsValue);
@@ -237,9 +244,9 @@ public class HierarchicalSplit {
 				values.put(object, requiredValue);
 			}
 			if(lhs != null)
-				this.lhs.split(values, lhsValue, definition);
+				this.lhs.split(values, lhsValue);
 			if(rhs != null)
-				this.rhs.split(values, rhsValue, definition);
+				this.rhs.split(values, rhsValue);
 		}
 	}
 }

@@ -1,10 +1,6 @@
 package development.hierarchical_split;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import development.com.collection.range.Range;
-
+import static org.junit.Assert.*;
 import internal.Helper;
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
@@ -13,18 +9,35 @@ import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree;
-import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
+import internal.tree.IWorldTree.IMap;
 
-public class Test {
+import java.util.HashMap;
+import java.util.Map;
 
-	public static void main(String[] args) {
-		try {
-			PieceFactory.initialize(Helper.pieceStrings);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		WorldTreeFactory factory = new WorldTreeFactory("init.properties", "world.definitions");
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import development.com.collection.range.Range;
+
+import static internal.Helper.*;
+
+public class TestClass {
+	public static WorldTreeFactory factory = null;
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		PieceFactory.initialize(Helper.pieceStrings);
+		factory = new WorldTreeFactory("init.properties", "world.definitions");
+	}
+
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
+	}
+
+	@Test
+	public void preliminaryTest() {
 		IMap map = factory.newMap("TestMap", null);
 		map.initRooms();
 		map.initRegions();
@@ -59,5 +72,21 @@ public class Test {
 			System.out.println("Chosen value   :" + entry.getValue());
 			System.out.println();
 		}
+	}
+	
+	@Test
+	public void timingTest() {
+		IMap map = factory.newMap("TestMap", null);
+		map.initRooms();
+		map.initRegions();
+		map.initTiles();
+
+		long startTime	= System.nanoTime();
+		map.materializeConstraints();
+		long endTime	= System.nanoTime();
+		
+		System.out.println("Time taken  :" + String.format("%.4f", ((endTime - startTime) / 1e9)) + "seconds");
+//		write(map);
+		
 	}
 }
