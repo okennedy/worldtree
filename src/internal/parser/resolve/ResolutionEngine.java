@@ -17,6 +17,7 @@ import internal.parser.containers.IStatement;
 import internal.parser.containers.Reference;
 import internal.parser.containers.Relation;
 import internal.parser.containers.Relation.InbuiltRelationEnum;
+import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
@@ -72,20 +73,6 @@ public class ResolutionEngine {
 			
 			List<IWorldTree> objectList = getObjects(node, level);
 			
-//			Filter objectList based on condition - if any
-			if(query.condition() != null) {
-				String property = query.condition().property().name();
-				for(IWorldTree object : getObjects(node, level)) {
-					if(!object.properties().containsKey(property))
-						objectList.remove(object);
-					else {
-						Datum conditionValue = query.condition().value();
-						Datum objPropValue = object.properties().get(property);
-						if(objPropValue.compareTo(conditionValue, query.condition().operator()) != 0)
-							objectList.remove(object);
-					}
-				}
-			}
 			while(query != null) {
 				level		= query.level().HierarchyClass();
 				pattern		= query.pattern();
@@ -104,6 +91,35 @@ public class ResolutionEngine {
 						rhsColumn			= new Column(rhsColumnName, objectList);
 					
 					result = resolveQuery(node, level, pattern, result, rhsColumn);
+					
+//					Filter based on conditions
+					if(query.condition() != null) {
+						ICondition condition = query.condition();
+						while(condition != null) {
+							String columnName	= condition.property().reference().toString();
+							String property		= condition.property().name();
+							Column column		= result.get(columnName);
+							if(column == null)
+								throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
+							Column columnCopy	= new Column(column.name(), column);
+							for(IWorldTree object : columnCopy) {
+								if(!object.properties().containsKey(property)) {
+									int rowIndex = column.indexOf(object);
+									result.removeRow(rowIndex);
+								}
+								else {
+									Datum value 		= condition.value();
+									Datum objectValue	= object.properties().get(property);
+									if(objectValue.compareTo(value, condition.operator()) != 0) {
+										int rowIndex 	= column.indexOf(object);
+										result.removeRow(rowIndex);
+									}
+								}
+							}
+							condition = condition.subCondition();
+						}
+					}
+					
 					pattern = pattern.subPattern();
 				}
 //				Check if we need to union
