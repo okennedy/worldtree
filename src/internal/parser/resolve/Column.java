@@ -27,7 +27,7 @@ public class Column extends Vector<IWorldTree> {
 		StringBuffer result = new StringBuffer(name + "\n");
 		
 		for(IWorldTree obj : this) {
-			result.append(obj.name() + "\n");
+			result.append(obj.absoluteName() + "\n");
 		}
 		
 		return result.toString();
