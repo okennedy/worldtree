@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -107,12 +108,11 @@ public class ResolutionEngine {
 				}
 //				Check if we need to union
 				if(oldResult != null) {
-					String errMsg = "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
 //					First check for semantics
-					assert result.size() == oldResult.size() : errMsg;
+					assert result.size() == oldResult.size() : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
 					int index = 0;
 					while(index < result.size()) {	//We have already verified that both results have same number of columns
-						assert result.get(index).name.equals(oldResult.get(index).name) : errMsg;
+						assert result.get(index).name.equals(oldResult.get(index).name) : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
 						index++;
 					}
 					
@@ -120,7 +120,7 @@ public class ResolutionEngine {
 					List<IWorldTree> row = null;
 					for(index = 0; index < oldResult.get(0).size(); index++) {
 						row = oldResult.getRow(index);
-						if(!result.contains(row))
+//						if(!result.contains(row))
 							result.add(row);
 					}
 				}
@@ -215,6 +215,7 @@ public class ResolutionEngine {
 			try {
 				method = instance.relationMap.get(relation.name().toLowerCase());
 				result = (Result) method.invoke(null, pattern, result, objects);
+				
 				if(pattern.relation().regex().equals(Relation.Regex.PLUS)) {
 //					FIXME: Remove * entries
 					Column lhs = result.get(pattern.lhs().toString());
@@ -253,8 +254,8 @@ public class ResolutionEngine {
 	 * @return {@code Collection<IWorldTree>} containing all nodes in the tree at <b> level </b> having <b> node </b> as root 
 	 */
 	private List<IWorldTree> getObjects(IWorldTree node, Class<?> level) {
-		List<IWorldTree> nodeList	= new ArrayList<IWorldTree>();
-		List<IWorldTree> objectList	= new ArrayList<IWorldTree>();
+		List<IWorldTree> nodeList	= new LinkedList<IWorldTree>();
+		List<IWorldTree> objectList	= new LinkedList<IWorldTree>();
 //		Get collection of relevant objects
 		nodeList.add(node);
 		IWorldTree currentNode = null;
