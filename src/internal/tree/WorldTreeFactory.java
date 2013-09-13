@@ -195,23 +195,11 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void fullInit() {
-			this.initialize();
-			List<IWorldTree> nodes = new ArrayList<IWorldTree>();
-			if(this.children() != null)
-				nodes.addAll(this.children());
-			
-			IWorldTree node = null;
-			try {
-				while(nodes.size() > 0) {
-					node = nodes.get(0);
-					node.initialize();
-					if(node.children() != null)
-						nodes.addAll(node.children());
-					nodes.remove(node);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			this.initRooms();
+			this.initRegions();
+			this.initTiles();
+			this.materializeConstraints();
+			this.fill();
 		}
 		
 		@Override
