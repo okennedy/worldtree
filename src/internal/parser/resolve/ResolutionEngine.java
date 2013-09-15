@@ -19,10 +19,13 @@ import internal.parser.containers.Relation;
 import internal.parser.containers.Relation.InbuiltRelationEnum;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.pattern.IPattern;
+import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
+import internal.piece.TileInterfaceType;
 import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
+import internal.tree.IWorldTree.ITile;
 
 /**
  * ResolutionEngine is a Singleton class responsible for evaluating statements issued by the user
@@ -96,23 +99,40 @@ public class ResolutionEngine {
 					if(query.condition() != null) {
 						ICondition condition = query.condition();
 						while(condition != null) {
+							boolean inbuiltProperty	= false;
 							String columnName	= condition.property().reference().toString();
 							String property		= condition.property().name();
+							if (Property.InbuiltPropertyEnum.check(property) != null)
+								inbuiltProperty = true;
 							Column column		= result.get(columnName);
 							if(column == null)
 								throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
 							Column columnCopy	= new Column(column.name(), column);
 							for(IWorldTree object : columnCopy) {
-								if(!object.properties().containsKey(property)) {
-									int rowIndex = column.indexOf(object);
-									result.removeRow(rowIndex);
+								if(inbuiltProperty) {
+									Method method = instance.relationMap.get(property.toLowerCase());
+									try {
+										boolean satisfies = (Boolean) method.invoke(null, object, condition.property());
+										if(!satisfies) {
+											int rowIndex = column.indexOf(object);
+											result.removeRow(rowIndex);
+										}
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
 								}
 								else {
-									Datum value 		= condition.value();
-									Datum objectValue	= object.properties().get(property);
-									if(objectValue.compareTo(value, condition.operator()) != 0) {
-										int rowIndex 	= column.indexOf(object);
+									if(!object.properties().containsKey(property)) {
+										int rowIndex = column.indexOf(object);
 										result.removeRow(rowIndex);
+									}
+									else {
+										Datum value 		= condition.value();
+										Datum objectValue	= object.properties().get(property);
+										if(objectValue.compareTo(value, condition.operator()) != 0) {
+											int rowIndex 	= column.indexOf(object);
+											result.removeRow(rowIndex);
+										}
 									}
 								}
 							}
@@ -303,11 +323,18 @@ public class ResolutionEngine {
 						instance.relationMap.put(proxyMethod, m);
 				}
 			}
+			for(Method m : InbuiltProperties.class.getMethods()) {
+				if(m.isAnnotationPresent(Proxy.class)) {
+					assert(m.isAnnotationPresent(Inbuilt.class));
+					Proxy proxy = m.getAnnotation(Proxy.class);
+					for(String proxyMethod : proxy.methods().split(" "))
+						instance.relationMap.put(proxyMethod, m);
+				}
+			}
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		}
 	}
-	
 	
 	
 	/**
@@ -321,6 +348,7 @@ public class ResolutionEngine {
 		String methods() default "";
 	}
 	
+	
 	/**
 	 * Annotation to suggest that a method is built-in
 	 * @author guru
@@ -330,7 +358,6 @@ public class ResolutionEngine {
 	@Retention(RetentionPolicy.RUNTIME)
 	public @interface Inbuilt {
 	}
-	
 	
 	
 	/**
@@ -456,6 +483,41 @@ public class ResolutionEngine {
 				objIndex++;
 			}
 			return subResult;
+		}
+	}
+	
+	
+	/**
+	 * Container class used to store logic for processing built-in properties
+	 * @author guru
+	 *
+	 */
+	private static class InbuiltProperties {
+		
+		/**
+		 * Built-in method to handle all in-built properties related conditions
+		 * @param node {@code IWorldTree} which is to be checked
+		 * @param property {@code Property} to check for 
+		 * @return <b> true </b> if node contains the specified property <br>
+		 * <b> false </b> otherwise
+		 * 
+		 */
+		@Inbuilt
+		@Proxy(methods = "passableeast passablewest")
+		public static boolean passable(IWorldTree node, Property property) {
+			String propertyName = property.name();
+			
+			switch(Property.InbuiltPropertyEnum.check(propertyName)) {
+			case PASSABLE_EAST:
+				ITile tile = (ITile) node;
+				return tile.piece().hasInterface(TileInterfaceType.R);
+			case PASSABLE_WEST:
+				tile = (ITile) node;
+				return tile.piece().hasInterface(TileInterfaceType.L);
+			default:
+				throw new IllegalStateException("Should not be reaching default case in switch!");
+			
+			}
 		}
 	}
 }
