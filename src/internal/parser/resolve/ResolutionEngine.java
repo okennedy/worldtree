@@ -296,9 +296,9 @@ public class ResolutionEngine {
 		instance = new ResolutionEngine();
 		try {
 			for(Method m : InbuiltRelations.class.getMethods()) {
-				if(m.isAnnotationPresent(InbuiltRelations.Proxy.class)) {
-					assert(m.isAnnotationPresent(InbuiltRelations.Inbuilt.class));
-					InbuiltRelations.Proxy proxy = m.getAnnotation(InbuiltRelations.Proxy.class);
+				if(m.isAnnotationPresent(Proxy.class)) {
+					assert(m.isAnnotationPresent(Inbuilt.class));
+					Proxy proxy = m.getAnnotation(Proxy.class);
 					for(String proxyMethod : proxy.methods().split(" "))
 						instance.relationMap.put(proxyMethod, m);
 				}
@@ -308,33 +308,37 @@ public class ResolutionEngine {
 		}
 	}
 	
+	
+	
+	/**
+	 * Annotation to suggest that a method is used as a proxy for other methods
+	 * @author guru
+	 *
+	 */
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface Proxy {
+		String methods() default "";
+	}
+	
+	/**
+	 * Annotation to suggest that a method is built-in
+	 * @author guru
+	 *
+	 */
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.RUNTIME)
+	public @interface Inbuilt {
+	}
+	
+	
+	
 	/**
 	 * Container class used to store logic for processing built-in relations
 	 * @author guru
 	 *
 	 */
 	private static class InbuiltRelations {
-		
-		/**
-		 * Annotation to suggest that a method is used as a proxy for other methods
-		 * @author guru
-		 *
-		 */
-		@Target(ElementType.METHOD)
-		@Retention(RetentionPolicy.RUNTIME)
-		public @interface Proxy {
-			String methods() default "";
-		}
-		
-		/**
-		 * Annotation to suggest that a method is built-in
-		 * @author guru
-		 *
-		 */
-		@Target(ElementType.METHOD)
-		@Retention(RetentionPolicy.RUNTIME)
-		public @interface Inbuilt {
-		}
 		
 		/**
 		 * Built-in method to handle all direction related queries
