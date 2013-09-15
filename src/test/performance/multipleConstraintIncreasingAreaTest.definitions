@@ -1,0 +1,48 @@
+FOR ALL MAP M ASSERT M.treasure >= 1000;
+DEFINE MAP M.treasure AS AGGREGATE MAX(R.treasure)
+	in ROOM R;
+DEFINE ROOM R.treasure as AGGREGATE SUM(REG.treasure)
+	in REGION REG;
+DEFINE REGION R.treasure as AGGREGATE SUM(T.treasure)
+	in TILE T;
+DEFINE TILE T.treasure as RANDOM UNIFORM INT FROM 0 to 5;
+
+
+FOR ALL MAP M ASSERT M.monster < 300;
+DEFINE MAP M.monster AS AGGREGATE SUM(R.monster)
+	in ROOM R;
+DEFINE ROOM R.monster as AGGREGATE SUM(REG.monster)
+	in REGION REG;
+DEFINE REGION R.monster as AGGREGATE SUM(T.monster)
+	in TILE T;
+DEFINE TILE T.monster as RANDOM UNIFORM INT FROM 0 to 5;
+
+
+FOR ALL MAP M ASSERT M.key >= 1;
+DEFINE MAP M.key AS AGGREGATE MIN(R.key)
+	in ROOM R;
+DEFINE ROOM R.key as AGGREGATE SUM(REG.key)
+	in REGION REG;
+DEFINE REGION R.key as AGGREGATE SUM(T.key)
+	in TILE T;
+DEFINE TILE T.key as RANDOM UNIFORM INT FROM 0 to 2;
+
+
+FOR ALL MAP M ASSERT M.difficulty < 3;
+DEFINE MAP M.difficulty AS AGGREGATE MAX(R.difficulty)
+	in ROOM R;
+DEFINE ROOM R.difficulty as AGGREGATE MAX(REG.difficulty)
+	in REGION REG;
+DEFINE REGION R.difficulty as AGGREGATE MAX(T.difficulty)
+	in TILE T;
+DEFINE TILE T.difficulty as RANDOM UNIFORM INT FROM 0 to 5;
+
+
+FOR ALL MAP M ASSERT M.portal <= 5;
+DEFINE MAP M.portal AS AGGREGATE SUM(R.portal)
+	in ROOM R;
+DEFINE ROOM R.portal as AGGREGATE SUM(REG.portal)
+	in REGION REG;
+DEFINE REGION R.portal as AGGREGATE SUM(T.portal)
+	in TILE T;
+DEFINE TILE T.portal as RANDOM UNIFORM INT FROM 0 to 1;

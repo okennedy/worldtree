@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -14,6 +15,7 @@ import java.util.Random;
 import java.util.TreeMap;
 
 import internal.Helper;
+import internal.parser.containers.Constraint;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
@@ -379,6 +381,94 @@ public class PerformanceTests {
 			memoryStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data")), "Area - Memory Footprint");
 			maxMemStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/max_mem_data")), "Area - Max Memory Footprint");
 			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	@Test
+	public void multipleConstraintIncreasingAreaTest() {
+		int dimensionalLimit = 1000000;
+		File outputDir 			= setupOutputDir("multipleConstraintIncreasingAreaTest/limit_" + dimensionalLimit);
+		File definitionsFile	= new File("src/test/performance/multipleConstraintIncreasingAreaTest.definitions");
+		assert definitionsFile.exists() : "Definitions file does not exist for multipleConstraintIncreasingAreaTest\n";
+		File propertiesFile	= new File(outputDir.getAbsolutePath() + "/IncreasingAreaTest.properties");
+		try {
+			Properties properties 	= new Properties();
+			properties.put("Room.count", "1");
+			properties.put("Region.count", "1");
+			
+			
+			for(int constraintCount = 0; constraintCount < 5; constraintCount++) {
+				Statistics timingStats	= new Statistics();
+				Statistics memoryStats	= new Statistics();
+				Statistics maxMemStats	= new Statistics();
+				
+				for(int xDim = 1000; xDim <= dimensionalLimit; xDim += 1000) {
+					long iterationStartTime	= System.nanoTime();
+					System.out.println("Iteration    :" + xDim);
+					
+					int area = xDim * 1;
+					
+					MemUsageMonitor memUsageMonitor = new MemUsageMonitor(10, true);
+					memUsageMonitor.start();
+					
+					propertiesFile.delete();
+					FileWriter writer = new FileWriter(propertiesFile);
+					for(int regionIndex = 0; regionIndex < 1; regionIndex++)
+						properties.put("Region" + regionIndex + ".size", "" + xDim + "x" + 1);
+					properties.store(writer, "Auto-generated properties");
+					
+					WorldTreeFactory factory = new WorldTreeFactory(propertiesFile.getAbsolutePath(), definitionsFile.getAbsolutePath());
+					List<Constraint> constraints = new ArrayList<Constraint>(factory.constraints());
+					for(Constraint constraint : constraints) {
+						int index = constraints.indexOf(constraint);
+						if(index > constraintCount)
+							factory.constraints().remove(constraint);
+					}
+					long startTime 	= System.nanoTime();
+					
+					IMap map = factory.newMap("testMap", null);
+					map.initRooms();
+					map.initRegions();
+					map.initTiles();
+					map.materializeConstraints();
+					map.fill();
+					
+					long endTime	= System.nanoTime();
+					
+					System.gc();
+					Thread.sleep(5);
+					
+					memUsageMonitor.interrupt();
+					memUsageMonitor.join();
+					
+					if(!maxMemStats.containsKey(area))
+						maxMemStats.put(area, new ArrayList<Long>());
+					maxMemStats.get(area).add(memUsageMonitor.getMax().bytes());
+					
+					if(!timingStats.containsKey(area))
+						timingStats.put(area, new ArrayList<Long>());
+					timingStats.get(area).add(endTime - startTime);
+
+					MemUnit usage	= MemUnit.getUsedMemory();
+					if(!memoryStats.containsKey(area))
+						memoryStats.put(area, new ArrayList<Long>());
+					memoryStats.get(area).add(usage.bytes());
+					
+					factory = null;
+					map		= null;
+					long iterationEndTime	= System.nanoTime();
+					System.out.println("Time Taken   :" + String.format("%.4f", (iterationEndTime - iterationStartTime) / 1e9) + "seconds\n");
+				}
+						
+				timingStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/timing_data_" + constraintCount)), "Area - Time Taken");
+				memoryStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data_" + constraintCount)), "Area - Memory Footprint");
+				maxMemStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/max_mem_data_" + constraintCount)), "Area - Max Memory Footprint");
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (InterruptedException e) {
