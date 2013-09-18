@@ -1,5 +1,6 @@
 package development.com.collection.range;
 
+import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 
 /**
@@ -78,10 +79,22 @@ public abstract class Range {
 	
 	public void setUpperBound(Datum upperBound) {
 		this.upperBound	= upperBound;
+		if (this.upperBoundType.equals(BoundType.OPEN)) {
+				assert upperBound.compareTo(this.lowerBound, TokenCmpOp.GT) == 0 : "Trying to create invalid range :" + toString();
+		}
+		else {
+			assert upperBound.compareTo(this.lowerBound, TokenCmpOp.GE) == 0 : "Trying to create invalid range :" + toString();
+		}
 	}
 	
 	public void setLowerBound(Datum lowerBound) {
 		this.lowerBound	= lowerBound;
+		if (this.lowerBoundType.equals(BoundType.OPEN)) {
+			assert lowerBound.compareTo(this.upperBound, TokenCmpOp.LT) == 0 : "Trying to create invalid range :" + toString();
+		}
+		else {
+			assert lowerBound.compareTo(this.upperBound, TokenCmpOp.LE) == 0 : "Trying to create invalid range :" + toString();
+		}
 	}
 	
 	public void setUpperBoundType(BoundType upperBoundType) {
