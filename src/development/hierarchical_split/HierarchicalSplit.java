@@ -29,7 +29,7 @@ public class HierarchicalSplit {
 		if(definition.aggregateExpression().expr().property() != null)
 			columnName				= definition.aggregateExpression().expr().property().reference().toString();
 		else
-			columnName 			= definition.query().pattern().lhs().toString();	//FIXME: Hard-coded! replace this with better logic
+			columnName 			= definition.query().pattern().lhs().toString();
 		List<IWorldTree> children 	= queryResult.get(columnName);
 		for(IWorldTree child : children) {
 			RandomSpec bound = child.getBounds(definition);
@@ -221,16 +221,24 @@ public class HierarchicalSplit {
 					}
 					break;
 				case SUM:
-					if(requiredValue.compareTo(intersection.upperBound(), TokenCmpOp.GE) == 0) {
-						intersection.setLowerBound(requiredValue.subtract(intersection.upperBound()));
-						intersection.setLowerBoundType(BoundType.OPEN);
+					if(object == null) {
+						if(requiredValue.compareTo(intersection.upperBound(), TokenCmpOp.GE) == 0) {
+							Datum increment = requiredValue.subtract(intersection.upperBound()).divide(new Datum.Int(2));
+							intersection.setLowerBound(intersection.lowerBound().add(increment));
+							intersection.setUpperBound(requiredValue.divide(new Datum.Int(2)));
+							lhsValue	= intersection.generateRandom();
+							rhsValue	= requiredValue.subtract(lhsValue);
+						}
+						else if(requiredValue.compareTo(intersection.lowerBound(), TokenCmpOp.GT) == 0 &&
+								requiredValue.compareTo(intersection.upperBound(), TokenCmpOp.LT) == 0) {
+							Datum upperBound = requiredValue.subtract(intersection.lowerBound());
+							Range intersectionCopy = intersection.clone();
+							intersectionCopy.setUpperBound(upperBound);
+							lhsValue = intersectionCopy.generateRandom();
+							rhsValue = requiredValue.subtract(lhsValue);
+							assert intersection.contains(rhsValue);
+						}
 					}
-					else {
-						intersection.setUpperBound(requiredValue);
-					}
-					lhsValue	= intersection.generateRandom();
-					rhsValue	= requiredValue.subtract(lhsValue);
-					break;
 				}
 				break;
 			case BASIC:
@@ -256,4 +264,3 @@ public class HierarchicalSplit {
 		}
 	}
 }
-
