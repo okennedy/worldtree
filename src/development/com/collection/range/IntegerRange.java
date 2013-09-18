@@ -54,9 +54,6 @@ public class IntegerRange extends Range {
 		int lowerBound				= (Integer) this.lowerBound().add(range.lowerBound()).data();
 		int upperBound				= (Integer) this.upperBound().add(range.upperBound()).data();
 		
-		BoundType lowerBoundType	= BoundType.CLOSED;
-		BoundType upperBoundType	= BoundType.OPEN;
-		
 		if(this.lowerBoundType() == BoundType.OPEN)
 			lowerBound++;
 		if(this.upperBoundType() == BoundType.OPEN)
@@ -67,9 +64,7 @@ public class IntegerRange extends Range {
 		if(range.upperBoundType() == BoundType.OPEN)
 			upperBound--;
 		
-		upperBound++;
-		
-		return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
 	}
 	
 	@Override
