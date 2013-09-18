@@ -25,7 +25,11 @@ public class HierarchicalSplit {
 	public static Map<IWorldTree, Datum> split(IWorldTree node, Constraint constraint, PropertyDef definition) {
 		Map<IWorldTree, Range> childRanges = new HashMap<IWorldTree, Range>();
 		Result queryResult 			= ResolutionEngine.evaluate(node, definition.query());
-		String columnName 			= definition.query().pattern().lhs().toString();	//FIXME: Hard-coded! replace this with better logic
+		String columnName			= null;
+		if(definition.aggregateExpression().expr().property() != null)
+			columnName				= definition.aggregateExpression().expr().property().reference().toString();
+		else
+			columnName 			= definition.query().pattern().lhs().toString();	//FIXME: Hard-coded! replace this with better logic
 		List<IWorldTree> children 	= queryResult.get(columnName);
 		for(IWorldTree child : children) {
 			RandomSpec bound = child.getBounds(definition);
@@ -241,6 +245,8 @@ public class HierarchicalSplit {
 			}
 			
 			if(object != null) {
+				Range objectRange = object.getBounds(this.definition()).range();
+				assert objectRange.contains(requiredValue) : "Trying to set " + requiredValue + "\nwhen range is :" + objectRange;
 				values.put(object, requiredValue);
 			}
 			if(lhs != null)
