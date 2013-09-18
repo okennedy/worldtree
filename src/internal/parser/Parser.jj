@@ -243,7 +243,7 @@ RandomSpec randomspec() :
         < FROM > low = constant() < TO > high = constant()
         {
             if(type == RandomSpecType.INT)        	{
-            	Range range = IntegerRange.closedOpen((Integer) low.toInt().data(), (Integer) high.toInt().data());
+            	Range range = IntegerRange.closed((Integer) low.toInt().data(), (Integer) high.toInt().data() - 1);
             	return new RandomSpec(type, range);
         	}
         	else        	{        	    Range range = FloatRange.closedOpen((Float) low.toFlt().data(), (Float) high.toFlt().data());
