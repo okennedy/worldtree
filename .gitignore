@@ -1,4 +1,3 @@
-bin
 .*
 *.class
 *.swp
@@ -10,3 +9,5 @@ worldtree
 !src
 !.gitignore
 !CHANGES
+
+build.properties

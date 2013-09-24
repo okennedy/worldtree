@@ -4,14 +4,19 @@ import internal.parser.containers.IStatement;
 import internal.parser.resolve.Column;
 import internal.parser.resolve.Result;
 import internal.tree.IWorldTree;
+import internal.parser.containers.Constraint;
+import internal.parser.containers.Datum;
 
+import java.io.Writer;
 import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Helper class contains all helper methods
@@ -40,13 +45,38 @@ public class Helper {
 	
 	
 	/**
+	 * Get a buffered writer for a specified path.  
+	 * @param path {@code String} path to get a writer for ('-' means stdout)
+	 * @returns {@code BufferedWriter} writer for path.
+	 */
+	public static BufferedWriter writerFor(String path)
+    throws IOException
+	{
+	 Writer out;
+    if(path.equals("-")){
+      out = new OutputStreamWriter(System.out);
+    } else {
+      out = new FileWriter(new File(path));
+    }
+    return new BufferedWriter(out);
+	}
+	
+	/**
 	 * Write an {@code IWorldTree} object to file {@code 'output/output.txt'}
 	 * @param object {@code IWorldTree} object to write
 	 */
 	public static void write(IWorldTree object) {
+    write(object, "output/output.txt");
+  }
+	/**
+	 * Write an {@code IWorldTree} object to the specified file
+	 * @param object {@code IWorldTree} object to write
+	 * @param output {@code String} filename to write to ('-' for stdout)
+	 */
+	public static void write(IWorldTree object, String output) {
 		BufferedWriter out = null;
 		try {
-			out = new BufferedWriter(new FileWriter(new File("output/output.txt")));
+		  out = writerFor(output);
 			out.write(object.toString());
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -86,6 +116,56 @@ public class Helper {
 			}
 		}
 	}
+	
+	/**
+	 * Dump the properties and constraints of a particular {@code WorldTree} node 
+	 * and all of its children to a file
+	 * @param {@code IWorldTree} node The root of the hierarchy to dump
+	 * @param {@code String} filename The file to dump to
+   */
+	public static void writeProperties(IWorldTree node, String output)
+	{
+    BufferedWriter out = null;
+    try {
+      out = writerFor(output);
+      writeProperties(node, out, "");
+    } catch(IOException e){
+      e.printStackTrace();
+    } finally {
+      try {
+        if(out != null){ out.close(); }
+      } catch(IOException e){
+        e.printStackTrace();
+      }
+    }
+	}
+	
+	/**
+	 * Dump the properties and constraints of a particular {@code WorldTree} node 
+	 * and all of its children to a file.  
+	 *
+	 * Internal function for recursing.
+	 * @param {@code IWorldTree} node The current node of the hierarchy
+	 * @param {@code BufferedWriter} out output stream to dump to
+	 * @param {@code String} indent indentation prefix
+   */
+	protected static void writeProperties(IWorldTree node, BufferedWriter out, 
+	                                      String indent)
+    throws IOException
+  {
+    out.write(indent+"=== " + node.name() + "===\n");
+    for(Constraint c : node.constraints()){
+      out.write(indent+"  >  "+c.toString()+"\n");
+    }
+    for(Map.Entry<String, Datum> p : node.properties().entrySet()){
+      out.write(indent+"  >  "+p.getKey()+" : "+p.getValue()+"\n");
+    }
+    if(node.children() != null){
+      for(IWorldTree child : node.children()){
+        writeProperties(child, out, indent+"   ");
+      }
+    }
+  }
 	
 	/**
 	 * Converts multiple multi-line visuals into a single string representation

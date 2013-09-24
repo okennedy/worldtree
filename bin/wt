@@ -1,0 +1,6 @@
+#!/bin/bash
+
+BASEDIR="$(dirname $0)/.."
+LIBS=$(ls $BASEDIR/lib/*.jar | tr '\n' ':')
+
+java -cp $BASEDIR/build:$LIBS Driver $*
