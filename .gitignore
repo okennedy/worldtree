@@ -1,12 +1,10 @@
-bin
 .*
 *.class
 *.swp
 *.*~
 output
 build
-worldtree
-
+build.properties
 !src
 !.gitignore
 !CHANGES
