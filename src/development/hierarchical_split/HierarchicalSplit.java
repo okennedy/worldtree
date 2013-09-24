@@ -4,6 +4,7 @@ import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Datum.Int;
+import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.parser.resolve.ResolutionEngine;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import development.com.collection.range.IntegerRange;
 import development.com.collection.range.Range;
 import development.com.collection.range.Range.BoundType;
 
@@ -26,10 +28,16 @@ public class HierarchicalSplit {
 		Map<IWorldTree, Range> childRanges = new HashMap<IWorldTree, Range>();
 		Result queryResult 			= ResolutionEngine.evaluate(node, definition.query());
 		String columnName			= null;
-		if(definition.aggregateExpression().expr().property() != null)
-			columnName				= definition.aggregateExpression().expr().property().reference().toString();
+		if(definition.aggregateExpression().expr() != null) {
+			IExpr aggExpr = definition.aggregateExpression().expr();
+			if(aggExpr.property() != null)
+				columnName			= definition.aggregateExpression().expr().property().reference().toString();
+			else
+				columnName 			= definition.query().pattern().lhs().toString();
+		}
 		else
-			columnName 			= definition.query().pattern().lhs().toString();
+			columnName 				= definition.query().pattern().lhs().toString();
+		
 		List<IWorldTree> children 	= queryResult.get(columnName);
 		for(IWorldTree child : children) {
 			RandomSpec bound = child.getBounds(definition);
@@ -185,8 +193,13 @@ public class HierarchicalSplit {
 				}
 				switch(definition().aggregateExpression().type()) {
 				case COUNT:
-					lhsValue	= intersection.generateRandom();
-					rhsValue	= requiredValue.subtract(lhsValue);
+					if(rhs == null)
+						lhsValue = requiredValue;
+					else {
+						intersection 	= IntegerRange.closed(0, (Integer) requiredValue.toInt().data());
+						lhsValue 		= intersection.generateRandom();
+						rhsValue		= requiredValue.subtract(lhsValue);
+					}
 					break;
 				case MAX:
 					if(rhs == null)
@@ -253,9 +266,28 @@ public class HierarchicalSplit {
 			}
 			
 			if(object != null) {
-				Range objectRange = object.getBounds(this.definition()).range();
-				assert objectRange.contains(requiredValue) : "Trying to set " + requiredValue + "\nwhen range is :" + objectRange;
-				values.put(object, requiredValue);
+				if(definition().type().equals(PropertyDef.Type.AGGREGATE)) {
+					switch(definition().aggregateExpression().type()) {
+					case COUNT:
+						Range objectRange 	= object.getBounds(this.definition()).range();
+						int children		= object.children().size();
+						Datum lowerBound	= objectRange.lowerBound().multiply(new Datum.Int(children));
+						Datum upperBound	= objectRange.upperBound().multiply(new Datum.Int(children));
+						objectRange.setUpperBound(upperBound);
+						objectRange.setLowerBound(lowerBound);
+						
+						Datum value = objectRange.generateRandom();
+						values.put(object, value);
+						break;
+					case MAX:
+					case MIN:
+					case SUM:
+						objectRange = object.getBounds(this.definition()).range();
+						assert objectRange.contains(requiredValue) : "Trying to set " + requiredValue + "\nwhen range is :" + objectRange;
+						values.put(object, requiredValue);
+						break;
+					}
+				}
 			}
 			if(lhs != null)
 				this.lhs.split(values, lhsValue);
