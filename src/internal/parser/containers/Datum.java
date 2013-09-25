@@ -43,83 +43,11 @@ public abstract class Datum {
 	}
 	
 	public abstract List<Datum> split(int size);
-	
-	public Datum add(Datum datum) {
-		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
-		
-		int data 			= (Integer) this.data;
-		switch(datum.type) {
-		case BOOL:
-			break;
-		case FLOAT:
-			return new Datum.Flt(data + (Float) datum.data);
-		case INT:
-			return new Datum.Int(data + (Integer) datum.data);
-		case STRING:
-			break;
-		default:
-			break;
-		}
-		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
-	}
-	
-	public Datum subtract(Datum datum) {
-		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
-		
-		int data 			= (Integer) this.data;
-		switch(datum.type) {
-		case BOOL:
-			break;
-		case FLOAT:
-			return new Datum.Flt(data - (Float) datum.data);
-		case INT:
-			return new Datum.Int(data - (Integer) datum.data);
-		case STRING:
-			break;
-		default:
-			break;
-		}
-		throw new IllegalArgumentException("Cannot subtract Datum types " + this.type + " , " + datum.type);
-	}
-	
-	public Datum multiply(Datum datum) {
-		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
-		
-		int data 			= (Integer) this.data;
-		switch(datum.type) {
-		case BOOL:
-			break;
-		case FLOAT:
-			return new Datum.Flt(data * (Float) datum.data);
-		case INT:
-			return new Datum.Int(data * (Integer) datum.data);
-		case STRING:
-			break;
-		default:
-			break;
-		}
-		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
-	}
-	
-	public Datum divide(Datum datum) {
-		assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
-		
-		int data 			= (Integer) this.data;
-		switch(datum.type) {
-		case BOOL:
-			break;
-		case FLOAT:
-			return new Datum.Flt(data / (Float) datum.data);
-		case INT:
-			return new Datum.Int(data / (Integer) datum.data);
-		case STRING:
-			break;
-		default:
-			break;
-		}
-		throw new IllegalArgumentException("Cannot add Datum types " + this.type + " , " + datum.type);
-	}
-	
+	public abstract Datum add(Datum datum);
+	public abstract Datum subtract(Datum datum);
+	public abstract Datum multiply(Datum datum);
+	public abstract Datum divide(Datum datum);
+	public abstract Datum modulo(Datum datum);
 	
 	public Datum toInt() {
 		Datum datum = null;
@@ -293,6 +221,87 @@ public abstract class Datum {
 					+ "Available       :" + data + "\n";
 			return result;
 		}
+		
+		public Datum add(Datum datum) {
+			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+			
+			int data 			= (Integer) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data + (Float) datum.data);
+			case INT:
+				return new Datum.Int(data + (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+			
+		}
+		
+		public Datum subtract(Datum datum) {
+			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot subtract Datum types " + this.type + " , " + datum.type;
+			
+			int data 			= (Integer) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data - (Float) datum.data);
+			case INT:
+				return new Datum.Int(data - (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+		}
+		
+		public Datum multiply(Datum datum) {
+			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot multiply Datum types " + this.type + " , " + datum.type;
+			
+			int data 			= (Integer) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data * (Float) datum.data);
+			case INT:
+				return new Datum.Int(data * (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+		}
+		
+		public Datum divide(Datum datum) {
+			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot divide Datum types " + this.type + " , " + datum.type;
+			
+			int data 			= (Integer) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data / (Float) datum.data);
+			case INT:
+				return new Datum.Int(data / (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+		}
+		
+		public Datum modulo(Datum datum) {
+			assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+			
+			int data 			= (Integer) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data % (Float) datum.data);
+			case INT:
+				return new Datum.Int(data % (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+		}
 	}
 	
 	
@@ -328,6 +337,88 @@ public abstract class Datum {
 					+ "Available       :" + data + "\n";
 			return result;
 		}
+		
+		public Datum add(Datum datum) {
+			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+			
+			float data 			= (Float) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data + (Float) datum.data);
+			case INT:
+				return new Datum.Flt(data + (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+			
+		}
+		
+		public Datum subtract(Datum datum) {
+			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot subtract Datum types " + this.type + " , " + datum.type;
+			
+			float data 			= (Float) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data - (Float) datum.data);
+			case INT:
+				return new Datum.Flt(data - (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+		}
+		
+		public Datum multiply(Datum datum) {
+			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot multiply Datum types " + this.type + " , " + datum.type;
+			
+			float data 			= (Float) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data * (Float) datum.data);
+			case INT:
+				return new Datum.Flt(data * (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+		}
+		
+		public Datum divide(Datum datum) {
+			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot divide Datum types " + this.type + " , " + datum.type;
+			
+			float data 			= (Float) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data / (Float) datum.data);
+			case INT:
+				return new Datum.Flt(data / (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+		}
+		
+		public Datum modulo(Datum datum) {
+			assert (type.equals(DatumType.INT) || type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
+			
+			float data 			= (Float) this.data;
+			switch(datum.type) {
+			case FLOAT:
+				return new Datum.Flt(data % (Float) datum.data);
+			case INT:
+				return new Datum.Flt(data % (Integer) datum.data);
+			case STRING:
+			case BOOL:
+			default:
+				throw new IllegalStateException("Should not be here!");
+			}
+		}
+		
 	}
 	
 	
@@ -345,6 +436,31 @@ public abstract class Datum {
 		@Override
 		public List<Datum> split(int size) {
 			throw new IllegalStateException("Cannot allocate value of type " + this.getClass().getName());
+		}
+
+		@Override
+		public Datum add(Datum datum) {
+			throw new IllegalStateException("Cannot add types " + this.type + " and " + datum.type);
+		}
+
+		@Override
+		public Datum subtract(Datum datum) {
+			throw new IllegalStateException("Cannot subtract types " + this.type + " and " + datum.type);
+		}
+
+		@Override
+		public Datum multiply(Datum datum) {
+			throw new IllegalStateException("Cannot multiply types " + this.type + " and " + datum.type);
+		}
+
+		@Override
+		public Datum divide(Datum datum) {
+			throw new IllegalStateException("Cannot divide types " + this.type + " and " + datum.type);
+		}
+		
+		@Override
+		public Datum modulo(Datum datum) {
+			throw new IllegalStateException("Cannot modulo types " + this.type + " and " + datum.type);
 		}
 	}
 	
@@ -364,6 +480,31 @@ public abstract class Datum {
 		public List<Datum> split(int size) {
 			// TODO Auto-generated method stub
 			return null;
+		}
+
+		@Override
+		public Datum add(Datum datum) {
+			throw new IllegalStateException("Cannot add types " + this.type + " and " + datum.type);
+		}
+
+		@Override
+		public Datum subtract(Datum datum) {
+			throw new IllegalStateException("Cannot subtract types " + this.type + " and " + datum.type);
+		}
+
+		@Override
+		public Datum multiply(Datum datum) {
+			throw new IllegalStateException("Cannot multiply types " + this.type + " and " + datum.type);
+		}
+
+		@Override
+		public Datum divide(Datum datum) {
+			throw new IllegalStateException("Cannot divide types " + this.type + " and " + datum.type);
+		}
+		
+		@Override
+		public Datum modulo(Datum datum) {
+			throw new IllegalStateException("Cannot modulo types " + this.type + " and " + datum.type);
 		}
 	}
 
