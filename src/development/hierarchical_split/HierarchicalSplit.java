@@ -235,21 +235,54 @@ public class HierarchicalSplit {
 					break;
 				case SUM:
 					if(object == null) {
-						if(requiredValue.compareTo(intersection.upperBound(), TokenCmpOp.GE) == 0) {
-							Datum increment = requiredValue.subtract(intersection.upperBound()).divide(new Datum.Int(2));
-							intersection.setLowerBound(intersection.lowerBound().add(increment));
-							intersection.setUpperBound(requiredValue.divide(new Datum.Int(2)));
-							lhsValue	= intersection.generateRandom();
-							rhsValue	= requiredValue.subtract(lhsValue);
+						Range lhsRange 	= this.lhs.range().clone();
+						Range rhsRange	= this.rhs.range().clone();
+						Range span		= lhsRange.span(rhsRange);
+						Range sum		= lhsRange.add(rhsRange);
+						Range smaller	= null;
+						Range greater	= null;
+						assert sum.contains(requiredValue) : "Constraint cannot be satisfied!\n";
+						
+						if(lhsRange.upperBound().compareTo(rhsRange.upperBound(), TokenCmpOp.GT) == 0) {
+							smaller = rhsRange;
+							greater	= lhsRange;
 						}
-						else if(requiredValue.compareTo(intersection.lowerBound(), TokenCmpOp.GT) == 0 &&
-								requiredValue.compareTo(intersection.upperBound(), TokenCmpOp.LT) == 0) {
-							Datum upperBound = requiredValue.subtract(intersection.lowerBound());
-							Range intersectionCopy = intersection.clone();
-							intersectionCopy.setUpperBound(upperBound);
-							lhsValue = intersectionCopy.generateRandom();
-							rhsValue = requiredValue.subtract(lhsValue);
-							assert intersection.contains(rhsValue);
+						else {
+							smaller = lhsRange;
+							greater	= rhsRange;
+						}
+						
+						if(!span.contains(requiredValue)) {
+							if(greater.upperBound().add(smaller.lowerBound()).compareTo(requiredValue, TokenCmpOp.GE) == 0) {
+							}
+							else {
+								Datum smallerLowerBound	= requiredValue.subtract(greater.upperBound());
+								smaller.setLowerBound(smallerLowerBound);
+							
+								Datum smallerUpperBound	= smaller.upperBound();
+//								Datum upperBound		= requiredValue.subtract(greater.lowerBound());
+//								if(upperBound.compareTo(smallerUpperBound, TokenCmpOp.LT) == 0)
+//									smallerUpperBound	= upperBound;
+//								smaller.setUpperBound(smallerUpperBound);
+							}
+						}
+						if(requiredValue.subtract(greater.lowerBound()).compareTo(smaller.upperBound(), TokenCmpOp.LT) == 0)
+						{
+							Datum smallerUpperBound	= smaller.upperBound();
+							Datum decrement			= smaller.upperBound().subtract(requiredValue.subtract(greater.lowerBound()));
+//							FIXME: We currently assume that the ranges overlap
+							smallerUpperBound		= smallerUpperBound.subtract(decrement);
+							smaller.setUpperBound(smallerUpperBound);
+						}
+						Datum randomValue	= smaller.generateRandom();
+						Datum fixedValue	= requiredValue.subtract(randomValue);
+						if(smaller == lhsRange) {
+							lhsValue 		= randomValue;
+							rhsValue		= fixedValue;
+						}
+						else {
+							lhsValue		= fixedValue;
+							rhsValue		= randomValue;
 						}
 					}
 				}
