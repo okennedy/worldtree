@@ -96,8 +96,8 @@ public class IntegerRange extends Range {
 	public boolean contains(Datum datum) {
 		Integer value = null;
 		
-		Integer lowerBoundData	= (Integer) lowerBound().data();
-		Integer upperBoundData	= (Integer) upperBound().data();
+		int lowerBoundData	= (Integer) lowerBound().data();
+		int upperBoundData	= (Integer) upperBound().data();
 		
 		try {
 			value 			= (Integer) datum.data();

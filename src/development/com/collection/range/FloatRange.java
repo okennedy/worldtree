@@ -89,8 +89,8 @@ public class FloatRange extends Range {
 	public boolean contains(Datum datum) {
 		Float value = null;
 		
-		Float lowerBoundData	= (Float) lowerBound().data();
-		Float upperBoundData	= (Float) upperBound().data();
+		float lowerBoundData	= (Float) lowerBound().data();
+		float upperBoundData	= (Float) upperBound().data();
 		
 		try {
 			value 			= (Float) datum.data();
