@@ -1,6 +1,7 @@
 package development.com.collection.range;
 
 import internal.parser.containers.Datum;
+import internal.parser.containers.Datum.DatumType;
 import internal.parser.containers.Datum.Int;
 
 public class IntegerRange extends Range {
@@ -17,17 +18,41 @@ public class IntegerRange extends Range {
 		return new IntegerRange(lowerBound, BoundType.OPEN, upperBound, BoundType.OPEN);
 	}
 	
+	public static IntegerRange open(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
+		return new IntegerRange((Integer) lowerBound.data(), BoundType.OPEN, (Integer) upperBound.data(), BoundType.OPEN);
+	}
+	
+	
 	public static IntegerRange closed(int lowerBound, int upperBound) {
 		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
 	}
+	
+	public static IntegerRange closed(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
+		return new IntegerRange((Integer) lowerBound.data(), BoundType.CLOSED, (Integer) upperBound.data(), BoundType.CLOSED);
+	}
+	
 	
 	public static IntegerRange openClosed(int lowerBound, int upperBound) {
 		return new IntegerRange(lowerBound, BoundType.OPEN, upperBound, BoundType.CLOSED);
 	}
 	
+	public static IntegerRange openClosed(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
+		return new IntegerRange((Integer) lowerBound.data(), BoundType.OPEN, (Integer) upperBound.data(), BoundType.CLOSED);
+	}
+	
+	
 	public static IntegerRange closedOpen(int lowerBound, int upperBound) {
 		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.OPEN);
 	}
+	
+	public static IntegerRange closedOpen(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
+		return new IntegerRange((Integer) lowerBound.data(), BoundType.CLOSED, (Integer) upperBound.data(), BoundType.OPEN);
+	}
+	
 	
 	public IntegerRange intersection(Range range) {
 		int lowerBoundData			= (Integer) this.lowerBound().data();

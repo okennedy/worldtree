@@ -3,6 +3,7 @@ package development.com.collection.range;
 import development.com.collection.range.Range.BoundType;
 
 import internal.parser.containers.Datum;
+import internal.parser.containers.Datum.DatumType;
 
 public class FloatRange extends Range {
 	
@@ -18,16 +19,39 @@ public class FloatRange extends Range {
 		return new FloatRange(lowerBound, BoundType.OPEN, upperBound, BoundType.OPEN);
 	}
 	
+	public static FloatRange open(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.FLOAT && upperBound.type() == DatumType.FLOAT) : "FloatRange: Datum type is not FLOAT";
+		return new FloatRange((Float) lowerBound.data(), BoundType.OPEN, (Float) upperBound.data(), BoundType.OPEN);
+	}
+	
+	
 	public static FloatRange closed(float lowerBound, float upperBound) {
 		return new FloatRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
 	}
+	
+	public static FloatRange closed(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.FLOAT && upperBound.type() == DatumType.FLOAT) : "FloatRange: Datum type is not FLOAT";
+		return new FloatRange((Float) lowerBound.data(), BoundType.CLOSED, (Float) upperBound.data(), BoundType.CLOSED);
+	}
+	
 	
 	public static FloatRange openClosed(float lowerBound, float upperBound) {
 		return new FloatRange(lowerBound, BoundType.OPEN, upperBound, BoundType.CLOSED);
 	}
 	
+	public static FloatRange openClosed(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.FLOAT && upperBound.type() == DatumType.FLOAT) : "FloatRange: Datum type is not FLOAT";
+		return new FloatRange((Float) lowerBound.data(), BoundType.OPEN, (Float) upperBound.data(), BoundType.CLOSED);
+	}
+	
+	
 	public static FloatRange closedOpen(float lowerBound, float upperBound) {
 		return new FloatRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.OPEN);
+	}
+	
+	public static FloatRange closedOpen(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.FLOAT && upperBound.type() == DatumType.FLOAT) : "FloatRange: Datum type is not FLOAT";
+		return new FloatRange((Float) lowerBound.data(), BoundType.CLOSED, (Float) upperBound.data(), BoundType.OPEN);
 	}
 	
 	public FloatRange intersection(Range range) {
