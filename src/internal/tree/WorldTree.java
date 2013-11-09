@@ -47,7 +47,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	private Collection<Constraint> constraints;
 	private Collection<PropertyDef> definitions;
 	private Map<String, Datum> properties;
-	private Map<String, RandomSpec> bounds;
+	private Map<String, Range> bounds;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		this.parent 		= parent;
@@ -285,7 +285,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		}
 	}
 
-	public RandomSpec getBounds(PropertyDef parentDefinition) {
+	public Range getBounds(PropertyDef parentDefinition) {
 		Hierarchy myLevel = Hierarchy.parse(this.getClass());
 		
 		IWorldTree root = this.root();
@@ -305,10 +305,10 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		if(bounds != null && bounds.get(property) != null)
 			return bounds.get(property);
 		
-		List<RandomSpec> bounds = new ArrayList<RandomSpec>();
+		List<Range> bounds = new ArrayList<Range>();
 		if(this.children() != null) {
 			for(IWorldTree child : this.children()) {
-				RandomSpec bound = child.getBounds(definition);
+				Range bound = child.getBounds(definition);
 				bounds.add(bound);
 			}
 		}
@@ -320,28 +320,28 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		Range resultRange = null;
 		switch(definition.type()) {
 		case AGGREGATE:
-			Datum.DatumType type = bounds.get(0).range().lowerBound().type();
+			Datum.DatumType type = bounds.get(0).lowerBound().type();
 			switch(definition.aggregateExpression().type()) {
 			case COUNT:
-				resultRange = IntegerRange.openClosed(0, this.children().size());
-				return new RandomSpec(RandomSpecType.INT, resultRange);
+				resultRange = IntegerRange.closed(0, this.children().size());
+				return resultRange;
 			case MAX:
 //				TODO: Determine whether min = minVal when maxVal > max
-				for(RandomSpec spec : bounds) {
-					float maxVal = (Float) spec.range().upperBound().toFlt().data();
+				for(Range range : bounds) {
+					float maxVal = (Float) range.upperBound().toFlt().data();
 					if(maxVal > max) {
 						max = maxVal;
-						resultRange = spec.range();
+						resultRange = range;
 					}
 				}
 				break;
 			case MIN:
 //				TODO: Determine whether max = maxVal when minVal < min
-				for(RandomSpec spec : bounds) {
-					float minVal = (Float) spec.range().lowerBound().toFlt().data();
+				for(Range range : bounds) {
+					float minVal = (Float) range.lowerBound().toFlt().data();
 					if(minVal < min) {
 						min = minVal;
-						resultRange = spec.range();
+						resultRange = range;
 					}
 				}
 				break;
@@ -363,8 +363,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				}
 				
 //				We assume that all bounds are of the same 'type'
-				for(RandomSpec spec : bounds) {
-					resultRange = resultRange.add(spec.range());
+				for(Range range : bounds) {
+					resultRange = resultRange.add(range);
 				}
 				max = (Float) resultRange.upperBound().toFlt().data();
 				min = (Float) resultRange.lowerBound().toFlt().data();
@@ -374,15 +374,13 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			
 //			We need to save bounds..allocate if null
 			if(this.bounds == null)
-				this.bounds = new HashMap<String, RandomSpec>(0);
+				this.bounds = new HashMap<String, Range>(0);
 			switch(type) {
 			case FLOAT:
-				RandomSpec bound = new RandomSpec(RandomSpecType.FLOAT, resultRange);
-				this.bounds.put(property, bound);
+				this.bounds.put(property, resultRange);
 				return this.bounds.get(property);
 			case INT:
-				bound = new RandomSpec(RandomSpecType.FLOAT, resultRange);
-				this.bounds.put(property, bound);
+				this.bounds.put(property, resultRange);
 				return this.bounds.get(property);
 			default:
 				throw new IllegalStateException("Default case in allocating type is :" + type);
@@ -395,7 +393,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 //			TODO
 			break;
 		case RANDOM:
-			return definition.randomspec();
+			return definition.randomspec().range();
 		default:
 			throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
 		}

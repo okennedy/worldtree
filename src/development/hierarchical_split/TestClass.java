@@ -62,8 +62,8 @@ public class TestClass {
 		Map<IWorldTree, Range> childRanges = new HashMap<IWorldTree, Range>();
 		
 		for(IWorldTree child : map.children()) {
-			RandomSpec bound = child.getBounds(definition);
-			childRanges.put(child, bound.range());
+			Range bound = child.getBounds(definition);
+			childRanges.put(child, bound);
 		}
 		Map<IWorldTree, Datum> split = HierarchicalSplit.split(map, constraint, definition);
 		

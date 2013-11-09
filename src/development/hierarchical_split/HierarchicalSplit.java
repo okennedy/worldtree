@@ -40,8 +40,8 @@ public class HierarchicalSplit {
 		
 		List<IWorldTree> children 	= queryResult.get(columnName);
 		for(IWorldTree child : children) {
-			RandomSpec bound = child.getBounds(definition);
-			childRanges.put(child, bound.range());
+			Range bound = child.getBounds(definition);
+			childRanges.put(child, bound);
 		}
 		
 		Map<IWorldTree, Datum> result = new HashMap<IWorldTree, Datum>();
@@ -302,7 +302,7 @@ public class HierarchicalSplit {
 				if(definition().type().equals(PropertyDef.Type.AGGREGATE)) {
 					switch(definition().aggregateExpression().type()) {
 					case COUNT:
-						Range objectRange 	= object.getBounds(this.definition()).range();
+						Range objectRange 	= object.getBounds(this.definition());
 						int children		= object.children().size();
 						Datum lowerBound	= objectRange.lowerBound().multiply(new Datum.Int(children));
 						Datum upperBound	= objectRange.upperBound().multiply(new Datum.Int(children));
@@ -315,7 +315,7 @@ public class HierarchicalSplit {
 					case MAX:
 					case MIN:
 					case SUM:
-						objectRange = object.getBounds(this.definition()).range();
+						objectRange = object.getBounds(this.definition());
 						assert objectRange.contains(requiredValue) : "Trying to set " + requiredValue + "\nwhen range is :" + objectRange;
 						values.put(object, requiredValue);
 						break;

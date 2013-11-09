@@ -5,6 +5,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import development.com.collection.range.Range;
+
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.property.PropertyDef;
@@ -114,10 +116,10 @@ public interface IWorldTree {
 	/**
 	 * Return bounds of the specified {@code PropertyDef} on this {@code IWorldTree} instance
 	 * @param parentDefinition {@code PropertyDef} definition whose bounds are required
-	 * @return {@code Map<PropertyDef, RandomSpec>} containing the minimum and maximum values for each definition 
+	 * @return {@code Range} containing the minimum and maximum values for each definition 
 	 * that matches the parent definition
 	 */
-	public RandomSpec getBounds(PropertyDef parentDefinition);
+	public Range getBounds(PropertyDef parentDefinition);
 	
 	/**
 	 * Get set of strings used to represent this {@code IWorldTree} instance.
