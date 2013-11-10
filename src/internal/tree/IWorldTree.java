@@ -114,6 +114,12 @@ public interface IWorldTree {
 	public void move(test.ui.Direction direction);
 	
 	/**
+	 * Pre-processing step to compute bounds.
+	 * This should occur before the first call to getBounds.
+	 */
+	public void processBounds();
+	
+	/**
 	 * Return bounds of the specified {@code PropertyDef} on this {@code IWorldTree} instance
 	 * @param parentDefinition {@code PropertyDef} definition whose bounds are required
 	 * @return {@code Range} containing the minimum and maximum values for each definition 

@@ -6,6 +6,8 @@ import internal.parser.containers.Constraint;
 import internal.parser.containers.Constraint.Type;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Datum.DatumType;
+import internal.parser.containers.Datum.Flt;
+import internal.parser.containers.Datum.Int;
 import internal.parser.containers.Reference;
 import internal.parser.containers.condition.BaseCondition;
 import internal.parser.containers.condition.BaseCondition.ConditionType;
@@ -29,6 +31,7 @@ import java.util.Random;
 import java.util.Stack;
 
 import development.com.collection.range.*;
+import development.com.collection.range.Range.BoundType;
 import development.hierarchical_split.HierarchicalSplit;
 
 /**
@@ -124,6 +127,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	public void addConstraint(Constraint constraint) {
 		assert constraints != null : "Trying to add constraint to " + name + " when " + name + ".constraints = null\n";
 		constraints.add(constraint);
+		this.processBounds(constraint);
 	}
 	
 	@Override
@@ -221,12 +225,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 							}
 						}
 						
-						RandomSpec randomSpec 			= definition.randomspec();
-						assert randomSpec != null : "No randomspec at leaves of the hierarchy!\n";
-						float randomSpecHigh	= (Float) randomSpec.range().upperBound().toFlt().data();
-						float randomSpecLow		= (Float) randomSpec.range().lowerBound().toFlt().data();
-						
-						Datum value = pickValue(datum.type(), randomSpecLow, randomSpecHigh, constraint);
+						Datum value = this.getBounds(definition).generateRandom();
 						this.addProperty(property, value);
 					}
 				}
@@ -285,7 +284,129 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		}
 	}
 
+	
+	private void processBounds(Constraint constraint) {
+		Hierarchy myLevel		= Hierarchy.parse(this.getClass());
+		
+		String property 		= constraint.condition().property().name();
+
+		Collection<PropertyDef> definitions	= this.root().definitions();
+		PropertyDef definition	= null;
+		for(PropertyDef def : definitions) {
+			if(def.level().equals(myLevel) && def.property().name().equals(property)) {
+				definition = def;
+				break;	//FIXME: Should we break here?
+			}
+		}
+		
+		Range propertyRange 	= this.getBounds(definition);
+		
+//		TODO: Should we be handling 'where' clauses here?
+		Datum value				= constraint.condition().value();
+		DatumType type 			= value.type();
+		
+		if(!(type == DatumType.INT || type == DatumType.FLOAT))
+			throw new IllegalStateException("Pre-processing bounds: Cannot handle constraint value type :" + type);
+		
+//		assert propertyRange.contains(value) : "Pre-processing bounds: Range " + propertyRange + " does not contain " + value;
+		switch(constraint.condition().operator()) {
+		case EQ:
+			assert propertyRange.contains(value) : "Pre-processing bounds: Range " + propertyRange + " does not contain " + value;
+			switch(type) {
+			case FLOAT:
+				propertyRange = FloatRange.closed(value, value);
+				break;
+			case INT:
+				propertyRange = IntegerRange.closed(value, value);
+				break;
+			}
+			break;
+		case GE:
+			if(value.compareTo(propertyRange.lowerBound(), TokenCmpOp.LE) == 0)
+				break;
+			switch(type) {
+			case FLOAT:
+				propertyRange.setLowerBound(value.toFlt());
+				break;
+			case INT:
+				propertyRange.setLowerBound(value.toInt());
+				break;
+			}
+			propertyRange.setLowerBoundType(BoundType.CLOSED);
+			break;
+		case GT:
+			if(value.compareTo(propertyRange.lowerBound(), TokenCmpOp.LT) == 0)
+				break;
+			switch(type) {
+			case FLOAT:
+				propertyRange.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
+				propertyRange.setLowerBoundType(BoundType.CLOSED);
+				break;
+			case INT:
+				propertyRange.setLowerBound(value.add(new Datum.Int(1)));
+				propertyRange.setLowerBoundType(BoundType.CLOSED);
+				break;
+			}
+			break;
+		case LE:
+			if(value.compareTo(propertyRange.upperBound(), TokenCmpOp.GE) == 0)
+				break;
+			switch(type) {
+			case FLOAT:
+				propertyRange.setUpperBound(value.toFlt());
+				break;
+			case INT:
+				propertyRange.setUpperBound(value.toInt());
+				break;
+			}
+			propertyRange.setUpperBoundType(BoundType.CLOSED);
+			break;
+		case LT:
+			if(value.compareTo(propertyRange.upperBound(), TokenCmpOp.GT) == 0)
+				break;
+			switch(type) {
+			case FLOAT:
+				propertyRange.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
+				propertyRange.setUpperBoundType(BoundType.CLOSED);
+				break;
+			case INT:
+				propertyRange.setUpperBound(value.subtract(new Datum.Int(1)));
+				propertyRange.setUpperBoundType(BoundType.CLOSED);
+				break;
+			}
+			break;
+		case NOTEQ:
+//			TODO: This cannot be implemented when bounds is a single Range
+			break;
+		}
+		this.bounds.put(property, propertyRange);
+	}
+	
+	public void processBounds() {
+		if(this.children() != null) {
+			for(IWorldTree child : this.children()) {
+				child.processBounds();
+			}
+		}
+		
+		Hierarchy myLevel = Hierarchy.parse(this.getClass());
+		
+		if(this.bounds == null) {
+//			We have never called preProcessBounds before..Process user-defined constraints
+			this.bounds = new HashMap<String, Range>(0);
+			Collection<Constraint> constraints 	= this.root().constraints();
+			
+			for(Constraint c : constraints) {
+				if(c.level().equals(myLevel))
+					processBounds(c);
+			}
+		}
+	}
+	
 	public Range getBounds(PropertyDef parentDefinition) {
+		if(this.bounds == null)
+			processBounds();
+		
 		Hierarchy myLevel = Hierarchy.parse(this.getClass());
 		
 		IWorldTree root = this.root();
@@ -372,9 +493,6 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				break;
 			}
 			
-//			We need to save bounds..allocate if null
-			if(this.bounds == null)
-				this.bounds = new HashMap<String, Range>(0);
 			switch(type) {
 			case FLOAT:
 				this.bounds.put(property, resultRange);
@@ -393,7 +511,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 //			TODO
 			break;
 		case RANDOM:
-			return definition.randomspec().range();
+			return definition.randomspec().range().clone();
 		default:
 			throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
 		}
