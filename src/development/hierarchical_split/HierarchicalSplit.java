@@ -25,6 +25,7 @@ import development.com.collection.range.Range.BoundType;
 public class HierarchicalSplit {
 
 	public static Map<IWorldTree, Datum> split(IWorldTree node, Constraint constraint, PropertyDef definition) {
+		constraint 					= processConstraint(constraint);
 		Map<IWorldTree, Range> childRanges = new HashMap<IWorldTree, Range>();
 		Result queryResult 			= ResolutionEngine.evaluate(node, definition.query());
 		String columnName			= null;
@@ -83,6 +84,59 @@ public class HierarchicalSplit {
 		return nodeList.get(0);
 	}
 	
+	/**
+	 * This method is a hack. It is used to change constraints of type 
+	 * 'ASSERT prop [< | >] val'
+	 * into
+	 * 'ASSERT prop [<= | >=] val1'
+	 * @param constraint {@code Constraint} to be changed
+	 * @return modified {@code Constraint} 
+	 */
+	public static Constraint processConstraint(Constraint constraint) {
+		Constraint newConstraint = new Constraint(constraint.type(), constraint.level(), constraint.query(), constraint.condition());
+		
+		Datum value = newConstraint.condition().value();
+		switch(newConstraint.condition().operator()) {
+		case GT:
+			newConstraint.condition().setOperator(">=");
+			switch(newConstraint.condition().value().type()) {
+			case FLOAT:
+				newConstraint.condition().setValue(value.add(new Datum.Flt(Float.MIN_VALUE)));
+				break;
+			case INT:
+				newConstraint.condition().setValue(value.add(new Datum.Int(1)));
+				break;
+			case BOOL:
+			case STRING:
+			default:
+				throw new IllegalStateException("processConstraint: Cannot handle type :" + value.type());
+			}
+			break;
+		case LT:
+			newConstraint.condition().setOperator("<=");
+			switch(newConstraint.condition().value().type()) {
+			case FLOAT:
+				newConstraint.condition().setValue(value.subtract(new Datum.Flt(Float.MIN_VALUE)));
+				break;
+			case INT:
+				newConstraint.condition().setValue(value.subtract(new Datum.Int(1)));
+				break;
+			case BOOL:
+			case STRING:
+			default:
+				throw new IllegalStateException("processConstraint: Cannot handle type :" + value.type());
+			}
+			break;
+		case EQ:
+		case GE:
+		case NOTEQ:
+		case LE:
+		default:
+			break;
+		
+		}
+		return newConstraint;
+	}
 	
 	private static class Node {
 		private Node parent;
