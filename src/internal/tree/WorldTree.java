@@ -50,7 +50,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	private Collection<Constraint> constraints;
 	private Collection<PropertyDef> definitions;
 	private Map<String, Datum> properties;
-	private Map<String, Range> bounds;
+	private Map<String, RangeSet> bounds;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		this.parent 		= parent;
@@ -250,7 +250,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			}
 		}
 		
-		Range propertyRange 	= this.getBounds(definition);
+		RangeSet propertyRanges		= this.getBounds(definition);
+		RangeSet newPropertyRanges 	= new RangeSet();
 		
 //		TODO: Should we be handling 'where' clauses here?
 		Datum value				= constraint.condition().value();
@@ -259,78 +260,113 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		if(!(type == DatumType.INT || type == DatumType.FLOAT))
 			throw new IllegalStateException("Pre-processing bounds: Cannot handle constraint value type :" + type);
 		
-//		assert propertyRange.contains(value) : "Pre-processing bounds: Range " + propertyRange + " does not contain " + value;
 		switch(constraint.condition().operator()) {
 		case EQ:
-			assert propertyRange.contains(value) : "Pre-processing bounds: Range " + propertyRange + " does not contain " + value;
-			switch(type) {
-			case FLOAT:
-				propertyRange = FloatRange.closed(value, value);
-				break;
-			case INT:
-				propertyRange = IntegerRange.closed(value, value);
-				break;
+			assert propertyRanges.contains(value) : "Pre-processing bounds: Range " + propertyRanges + " does not contain " + value;
+			for(Range range : propertyRanges) {
+				if(range.contains(value))
+					newPropertyRanges.add(range);
+			}
+			for(Range range : newPropertyRanges) {
+				switch(type) {
+				case FLOAT:
+					range = FloatRange.closed(value, value);
+					break;
+				case INT:
+					range = IntegerRange.closed(value, value);
+					break;
+				}
 			}
 			break;
 		case GE:
-			if(value.compareTo(propertyRange.lowerBound(), TokenCmpOp.LE) == 0)
-				break;
-			switch(type) {
-			case FLOAT:
-				propertyRange.setLowerBound(value.toFlt());
-				break;
-			case INT:
-				propertyRange.setLowerBound(value.toInt());
-				break;
+			for(Range range : propertyRanges) {
+				if(value.compareTo(range.lowerBound(), TokenCmpOp.LE) == 0)
+					continue;
+				switch(type) {
+				case FLOAT:
+					range.setLowerBound(value.toFlt());
+					break;
+				case INT:
+					range.setLowerBound(value.toInt());
+					break;
+				}
+				range.setLowerBoundType(BoundType.CLOSED);
 			}
-			propertyRange.setLowerBoundType(BoundType.CLOSED);
+			newPropertyRanges = propertyRanges;
 			break;
 		case GT:
-			if(value.compareTo(propertyRange.lowerBound(), TokenCmpOp.LT) == 0)
-				break;
-			switch(type) {
-			case FLOAT:
-				propertyRange.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
-				propertyRange.setLowerBoundType(BoundType.CLOSED);
-				break;
-			case INT:
-				propertyRange.setLowerBound(value.add(new Datum.Int(1)));
-				propertyRange.setLowerBoundType(BoundType.CLOSED);
-				break;
+			for(Range range : propertyRanges) {
+				if(value.compareTo(range.lowerBound(), TokenCmpOp.LT) == 0)
+					continue;
+				switch(type) {
+				case FLOAT:
+					range.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
+					range.setLowerBoundType(BoundType.CLOSED);
+					break;
+				case INT:
+					range.setLowerBound(value.add(new Datum.Int(1)));
+					range.setLowerBoundType(BoundType.CLOSED);
+					break;
+				}
 			}
+			newPropertyRanges = propertyRanges;
 			break;
 		case LE:
-			if(value.compareTo(propertyRange.upperBound(), TokenCmpOp.GE) == 0)
-				break;
-			switch(type) {
-			case FLOAT:
-				propertyRange.setUpperBound(value.toFlt());
-				break;
-			case INT:
-				propertyRange.setUpperBound(value.toInt());
-				break;
+			for(Range range : propertyRanges) {
+				if(value.compareTo(range.upperBound(), TokenCmpOp.GE) == 0)
+					continue;
+				switch(type) {
+				case FLOAT:
+					range.setUpperBound(value.toFlt());
+					break;
+				case INT:
+					range.setUpperBound(value.toInt());
+					break;
+				}
+				range.setUpperBoundType(BoundType.CLOSED);
 			}
-			propertyRange.setUpperBoundType(BoundType.CLOSED);
+			newPropertyRanges = propertyRanges;
 			break;
 		case LT:
-			if(value.compareTo(propertyRange.upperBound(), TokenCmpOp.GT) == 0)
-				break;
-			switch(type) {
-			case FLOAT:
-				propertyRange.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
-				propertyRange.setUpperBoundType(BoundType.CLOSED);
-				break;
-			case INT:
-				propertyRange.setUpperBound(value.subtract(new Datum.Int(1)));
-				propertyRange.setUpperBoundType(BoundType.CLOSED);
-				break;
+			for(Range range : propertyRanges) {
+				if(value.compareTo(range.upperBound(), TokenCmpOp.GT) == 0)
+					continue;
+				switch(type) {
+				case FLOAT:
+					range.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
+					range.setUpperBoundType(BoundType.CLOSED);
+					break;
+				case INT:
+					range.setUpperBound(value.subtract(new Datum.Int(1)));
+					range.setUpperBoundType(BoundType.CLOSED);
+					break;
+				}
 			}
+			newPropertyRanges = propertyRanges;
 			break;
 		case NOTEQ:
-//			TODO: This cannot be implemented when bounds is a single Range
+			for(Range range : propertyRanges) {
+				Range range1 = range.clone();
+				switch(type) {
+				case FLOAT:
+					range.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
+					range.setUpperBoundType(BoundType.CLOSED);
+					range1.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
+					range1.setLowerBoundType(BoundType.CLOSED);
+					break;
+				case INT:
+					range.setUpperBound(value.subtract(new Datum.Int(1)));
+					range.setUpperBoundType(BoundType.CLOSED);
+					range1.setLowerBound(value.add(new Datum.Int(1)));
+					range1.setLowerBoundType(BoundType.CLOSED);
+					break;
+				}
+				propertyRanges.add(range1);
+			}
+			newPropertyRanges = propertyRanges;
 			break;
 		}
-		this.bounds.put(property, propertyRange);
+		this.bounds.put(property, newPropertyRanges);
 	}
 	
 	public void processBounds() {
@@ -344,7 +380,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		
 		if(this.bounds == null) {
 //			We have never called preProcessBounds before..Process user-defined constraints
-			this.bounds = new HashMap<String, Range>(0);
+			this.bounds = new HashMap<String, RangeSet>(0);
 			Collection<Constraint> constraints 	= this.root().constraints();
 			
 			for(Constraint c : constraints) {
@@ -354,7 +390,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		}
 	}
 	
-	public Range getBounds(PropertyDef parentDefinition) {
+	public RangeSet getBounds(PropertyDef parentDefinition) {
 		if(this.bounds == null)
 			processBounds();
 		
