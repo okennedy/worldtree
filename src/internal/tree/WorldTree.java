@@ -413,11 +413,11 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		if(bounds != null && bounds.get(property) != null)
 			return bounds.get(property);
 		
-		List<Range> bounds = new ArrayList<Range>();
+		List<RangeSet> bounds = new ArrayList<RangeSet>();
 		if(this.children() != null) {
 			for(IWorldTree child : this.children()) {
-				Range bound = child.getBounds(definition);
-				bounds.add(bound);
+				RangeSet ranges = child.getBounds(definition);
+				bounds.add(ranges);
 			}
 		}
 				
@@ -425,82 +425,95 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		float min = Float.MAX_VALUE;
 		float max = Float.MIN_VALUE;
 		
-		Range resultRange = null;
-		switch(definition.type()) {
-		case AGGREGATE:
-			Datum.DatumType type = bounds.get(0).lowerBound().type();
-			switch(definition.aggregateExpression().type()) {
-			case COUNT:
-				resultRange = IntegerRange.closed(0, this.children().size());
-				return resultRange;
-			case MAX:
-//				TODO: Determine whether min = minVal when maxVal > max
-				for(Range range : bounds) {
-					float maxVal = (Float) range.upperBound().toFlt().data();
-					if(maxVal > max) {
-						max = maxVal;
-						resultRange = range;
+		RangeSet resultRanges = new RangeSet();
+		
+		for(RangeSet rangeSet1 : bounds) {
+			for(RangeSet rangeSet2 : bounds) {
+				if(rangeSet1 == rangeSet2)
+					continue;
+				switch(definition.type()) {
+				case AGGREGATE:
+					Datum.DatumType type = rangeSet1.get(0).lowerBound().type();
+					switch(definition.aggregateExpression().type()) {
+					case COUNT:
+						for(Range range1 : rangeSet1) {
+							for(Range range2 : rangeSet2) {
+								Range resultRange = range1.add(range2);
+								resultRanges.add(resultRange);
+							}
+						}
+						return resultRanges;
+					case MAX:
+						
+//						TODO: Determine whether min = minVal when maxVal > max
+						for(Range range : bounds) {
+							float maxVal = (Float) range.upperBound().toFlt().data();
+							if(maxVal > max) {
+								max = maxVal;
+								resultRange = range;
+							}
+						}
+						break;
+					case MIN:
+//						TODO: Determine whether max = maxVal when minVal < min
+						for(Range range : bounds) {
+							float minVal = (Float) range.lowerBound().toFlt().data();
+							if(minVal < min) {
+								min = minVal;
+								resultRange = range;
+							}
+						}
+						break;
+					case SUM:
+						min = 0;
+						max = 0;
+						resultRange = null;
+						
+						switch(type) {
+						case FLOAT:
+							resultRange = FloatRange.closed(0, 0);
+							break;
+						case INT:
+							resultRange = IntegerRange.closed(0, 0);
+							break;
+						default:
+							System.err.println("Warning: Trying to sum INT/FLOAT with type :" + type);
+							break;
+						}
+						
+//						We assume that all bounds are of the same 'type'
+						for(Range range : bounds) {
+							resultRange = resultRange.add(range);
+						}
+						max = (Float) resultRange.upperBound().toFlt().data();
+						min = (Float) resultRange.lowerBound().toFlt().data();
+						
+						break;
 					}
-				}
-				break;
-			case MIN:
-//				TODO: Determine whether max = maxVal when minVal < min
-				for(Range range : bounds) {
-					float minVal = (Float) range.lowerBound().toFlt().data();
-					if(minVal < min) {
-						min = minVal;
-						resultRange = range;
+					
+					switch(type) {
+					case FLOAT:
+						this.bounds.put(property, resultRange);
+						return this.bounds.get(property);
+					case INT:
+						this.bounds.put(property, resultRange);
+						return this.bounds.get(property);
+					default:
+						throw new IllegalStateException("Default case in allocating type is :" + type);
+					
 					}
-				}
-				break;
-			case SUM:
-				min = 0;
-				max = 0;
-				resultRange = null;
-				
-				switch(type) {
-				case FLOAT:
-					resultRange = FloatRange.closed(0, 0);
+				case BASIC:
+//					TODO
 					break;
-				case INT:
-					resultRange = IntegerRange.closed(0, 0);
+				case INHERIT:
+//					TODO
 					break;
+				case RANDOM:
+					return definition.randomspec().range().clone();
 				default:
-					System.err.println("Warning: Trying to sum INT/FLOAT with type :" + type);
-					break;
+					throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
 				}
-				
-//				We assume that all bounds are of the same 'type'
-				for(Range range : bounds) {
-					resultRange = resultRange.add(range);
-				}
-				max = (Float) resultRange.upperBound().toFlt().data();
-				min = (Float) resultRange.lowerBound().toFlt().data();
-				
-				break;
 			}
-			
-			switch(type) {
-			case FLOAT:
-				this.bounds.put(property, resultRange);
-				return this.bounds.get(property);
-			case INT:
-				this.bounds.put(property, resultRange);
-				return this.bounds.get(property);
-			default:
-				throw new IllegalStateException("Default case in allocating type is :" + type);
-			
-			}
-		case BASIC:
-//			TODO
-			break;
-		case INHERIT:
-//			TODO
-			break;
-		case RANDOM:
-			return definition.randomspec().range().clone();
-		default:
-			throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
 		}
 		return null;
 	}
