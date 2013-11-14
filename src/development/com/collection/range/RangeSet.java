@@ -16,6 +16,15 @@ public class RangeSet extends TreeSet<Range> {
 		super(new setComparator());
 	}
 	
+	public Range get(int index) {
+		if(index >= this.size())
+			throw new IndexOutOfBoundsException("RangeSet: Index: " + index + " Size: " + this.size());
+		Iterator<Range> iter = this.iterator();
+		for(int i = 0; i < index; i++)
+			iter.next();
+		return iter.next();
+	}
+	
 	public boolean contains(Datum value) {
 		Iterator<Range> iter = this.iterator();
 		while(iter.hasNext()) {
