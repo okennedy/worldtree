@@ -465,42 +465,26 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 						}
 						break;
 					case SUM:
-						min = 0;
-						max = 0;
-						resultRange = null;
-						
-						switch(type) {
-						case FLOAT:
-							resultRange = FloatRange.closed(0, 0);
-							break;
-						case INT:
-							resultRange = IntegerRange.closed(0, 0);
-							break;
-						default:
-							System.err.println("Warning: Trying to sum INT/FLOAT with type :" + type);
-							break;
+//						TODO: Handle float-int interaction - either here or natively in range classes
+						for(Range range1 : rangeSet1) {
+							for(Range range2 : rangeSet2) {
+//								We assume that all bounds are of the same 'type'
+								Range resultRange = range1.clone();
+								resultRange 	= resultRange.add(range2);
+								resultRanges.add(resultRange);
+							}
 						}
-						
-//						We assume that all bounds are of the same 'type'
-						for(Range range : bounds) {
-							resultRange = resultRange.add(range);
-						}
-						max = (Float) resultRange.upperBound().toFlt().data();
-						min = (Float) resultRange.lowerBound().toFlt().data();
-						
-						break;
 					}
 					
 					switch(type) {
 					case FLOAT:
-						this.bounds.put(property, resultRange);
+						this.bounds.put(property, resultRanges);
 						return this.bounds.get(property);
 					case INT:
-						this.bounds.put(property, resultRange);
+						this.bounds.put(property, resultRanges);
 						return this.bounds.get(property);
 					default:
 						throw new IllegalStateException("Default case in allocating type is :" + type);
-					
 					}
 				case BASIC:
 //					TODO
@@ -509,7 +493,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 //					TODO
 					break;
 				case RANDOM:
-					return definition.randomspec().range().clone();
+					resultRanges.add(definition.randomspec().range().clone());
+					return resultRanges;
 				default:
 					throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
 				}
