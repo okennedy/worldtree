@@ -21,12 +21,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import development.com.collection.range.IntegerRange;
 import development.com.collection.range.Range;
 import development.com.collection.range.Range.BoundType;
+import development.com.collection.range.RangeSet;
 
 public class HierarchicalSplit {
 
 	public static Map<IWorldTree, Datum> split(IWorldTree node, Constraint constraint, PropertyDef definition) {
 		constraint 					= processConstraint(constraint);
-		Map<IWorldTree, Range> childRanges = new HashMap<IWorldTree, Range>();
+		Map<IWorldTree, RangeSet> childRanges = new HashMap<IWorldTree, RangeSet>();
 		Result queryResult 			= ResolutionEngine.evaluate(node, definition.query());
 		String columnName			= null;
 		if(definition.aggregateExpression().expr() != null) {
@@ -41,8 +42,8 @@ public class HierarchicalSplit {
 		
 		List<IWorldTree> children 	= queryResult.get(columnName);
 		for(IWorldTree child : children) {
-			Range bound = child.getBounds(definition);
-			childRanges.put(child, bound);
+			RangeSet bounds = child.getBounds(definition);
+			childRanges.put(child, bounds);
 		}
 		
 		Map<IWorldTree, Datum> result = new HashMap<IWorldTree, Datum>();
@@ -54,14 +55,14 @@ public class HierarchicalSplit {
 		return result;
 	}
 
-	private static Node buildTree(Map<IWorldTree, Range> childRanges, PropertyDef definition) {
+	private static Node buildTree(Map<IWorldTree, RangeSet> childRanges, PropertyDef definition) {
 		List<Node> nodeList		= new LinkedList<Node>();
 		
-		for(Map.Entry<IWorldTree, Range> entry : childRanges.entrySet()) {
+		for(Map.Entry<IWorldTree, RangeSet> entry : childRanges.entrySet()) {
 			IWorldTree child	= entry.getKey();
-			Range range			= entry.getValue();
+			RangeSet ranges		= entry.getValue();
 			Node node 			= new Node(null);
-			node.setObject(child, range);
+			node.setObject(child, ranges);
 			nodeList.add(node);
 		}
 		
@@ -143,7 +144,7 @@ public class HierarchicalSplit {
 		private Node lhs;
 		private Node rhs;
 		private IWorldTree object;
-		private Range range;
+		private RangeSet ranges;
 		private PropertyDef definition;
 		
 		public Node(Node parent) {
@@ -151,7 +152,7 @@ public class HierarchicalSplit {
 			this.lhs		= null;
 			this.rhs		= null;
 			this.object		= null;
-			this.range		= null;
+			this.ranges		= null;
 			this.definition	= null;
 		}
 
@@ -159,13 +160,13 @@ public class HierarchicalSplit {
 			this.definition	= definition;
 		}
 
-		public void setObject(IWorldTree object, Range range) {
+		public void setObject(IWorldTree object, RangeSet ranges) {
 			this.object	= object;
-			this.range	= range;
+			this.ranges	= ranges;
 		}
 		
-		public void setRange(Range range) {
-			this.range	= range;
+		public void setRanges(RangeSet ranges) {
+			this.ranges	= ranges;
 		}
 		
 		private void setLHS(Node node) {
@@ -204,21 +205,35 @@ public class HierarchicalSplit {
 		}
 
 		
-		public Range range() {
+		public RangeSet ranges() {
 			if(lhs == null)
-				return range;
+				return ranges;
 			else if(rhs == null)
-				return lhs.range();
+				return lhs.ranges();
 			else {
 				switch(definition().type()) {
 				case AGGREGATE:
 					switch(definition().aggregateExpression().type()) {
 					case COUNT:
 					case SUM:
-						return this.lhs.range().add(this.rhs.range());	//FIXME: Potentially wrong
+						RangeSet resultRanges = new RangeSet();
+						for(Range range1 : this.lhs.ranges()) {
+							for(Range range2 : this.rhs.ranges()) {
+								Range resultRange = range1.add(range2);
+								resultRanges.add(resultRange);
+							}
+						}
+						return resultRanges;
 					case MAX:
 					case MIN:
-						return this.lhs.range().span(this.rhs.range());
+						resultRanges = new RangeSet();
+						for(Range range1 : this.lhs.ranges()) {
+							for(Range range2 : this.rhs.ranges()) {
+								Range resultRange = range1.span(range2);
+								resultRanges.add(resultRange);
+							}
+						}
+						return resultRanges;
 					}
 					break;
 				default:
@@ -238,12 +253,12 @@ public class HierarchicalSplit {
 			case AGGREGATE:
 				Range intersection 	= null;
 				if(object != null)
-					intersection	= this.range().clone();
+					intersection	= this.ranges().clone();
 				else {
 					if(lhs != null)
-						intersection	= lhs.range().clone();
+						intersection	= lhs.ranges().clone();
 					if(rhs != null)
-						intersection	= intersection.intersection(rhs.range());
+						intersection	= intersection.intersection(rhs.ranges());
 				}
 				switch(definition().aggregateExpression().type()) {
 				case COUNT:
@@ -289,8 +304,8 @@ public class HierarchicalSplit {
 					break;
 				case SUM:
 					if(object == null) {
-						Range lhsRange 	= this.lhs.range().clone();
-						Range rhsRange	= this.rhs.range().clone();
+						Range lhsRange 	= this.lhs.ranges().clone();
+						Range rhsRange	= this.rhs.ranges().clone();
 						Range span		= lhsRange.span(rhsRange);
 						Range sum		= lhsRange.add(rhsRange);
 						Range smaller	= null;

@@ -20,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import development.com.collection.range.Range;
+import development.com.collection.range.RangeSet;
 
 import static internal.Helper.*;
 
@@ -59,11 +60,11 @@ public class TestClass {
 		}
 		
 		
-		Map<IWorldTree, Range> childRanges = new HashMap<IWorldTree, Range>();
+		Map<IWorldTree, RangeSet> childRanges = new HashMap<IWorldTree, RangeSet>();
 		
 		for(IWorldTree child : map.children()) {
-			Range bound = child.getBounds(definition);
-			childRanges.put(child, bound);
+			RangeSet bounds = child.getBounds(definition);
+			childRanges.put(child, bounds);
 		}
 		Map<IWorldTree, Datum> split = HierarchicalSplit.split(map, constraint, definition);
 		

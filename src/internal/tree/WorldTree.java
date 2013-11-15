@@ -444,23 +444,27 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 						}
 						return resultRanges;
 					case MAX:
-						
 //						TODO: Determine whether min = minVal when maxVal > max
-						for(Range range : bounds) {
-							float maxVal = (Float) range.upperBound().toFlt().data();
-							if(maxVal > max) {
-								max = maxVal;
-								resultRange = range;
+						for(Range range1 : rangeSet1) {
+							for(Range range2 : rangeSet2) {
+								Range resultRange = range1.span(range2);
+								resultRanges.add(resultRange);	//FIXME: Assumes that the ranges overlap..fix this!
 							}
 						}
 						break;
 					case MIN:
-//						TODO: Determine whether max = maxVal when minVal < min
-						for(Range range : bounds) {
-							float minVal = (Float) range.lowerBound().toFlt().data();
-							if(minVal < min) {
-								min = minVal;
-								resultRange = range;
+////						TODO: Determine whether max = maxVal when minVal < min
+//						for(Range range : bounds) {
+//							float minVal = (Float) range.lowerBound().toFlt().data();
+//							if(minVal < min) {
+//								min = minVal;
+//								resultRange = range;
+//							}
+//						}
+						for(Range range1 : rangeSet1) {
+							for(Range range2 : rangeSet2) {
+								Range resultRange = range1.span(range2);
+								resultRanges.add(resultRange);	//FIXME: Assumes that the ranges overlap..fix this!
 							}
 						}
 						break;
