@@ -47,15 +47,32 @@ public class RangeSet extends TreeSet<Range> {
 		return range.generateRandom();
 	}
 	
+	public RangeSet clone() {
+		RangeSet result = new RangeSet();
+		for(Range range : this) {
+			result.add(range.clone());
+		}
+		return result;
+	}
+	
+	public RangeSet sum(RangeSet set) {
+		RangeSet result = new RangeSet();
+		for(Range range1 : this) {
+			for(Range range2 : set) {
+				result.add(range1.add(range2));
+			}
+		}
+		return result;
+	}
 	private static class setComparator implements Comparator<Range> {
 
 		@Override
 		public int compare(Range o1, Range o2) {
 			if (o1.lowerBound().compareTo(o2.lowerBound(), TokenCmpOp.LT) == 0) {
-				return o1.upperBound().compareTo(o2.upperBound(), TokenCmpOp.LT);
+				return (Integer) o1.upperBound().subtract(o2.upperBound()).toInt().data();
 			}
 			else
-				return o1.lowerBound().compareTo(o2.lowerBound(), TokenCmpOp.LT);
+				return (Integer) o1.lowerBound().subtract(o2.lowerBound()).toInt().data();
 		}
 	}
 }
