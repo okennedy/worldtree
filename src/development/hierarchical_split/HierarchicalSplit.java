@@ -211,12 +211,12 @@ public class HierarchicalSplit {
 			else if(rhs == null)
 				return lhs.ranges();
 			else {
+				RangeSet resultRanges = new RangeSet();
 				switch(definition().type()) {
 				case AGGREGATE:
 					switch(definition().aggregateExpression().type()) {
 					case COUNT:
 					case SUM:
-						RangeSet resultRanges = new RangeSet();
 						for(Range range1 : this.lhs.ranges()) {
 							for(Range range2 : this.rhs.ranges()) {
 								Range resultRange = range1.add(range2);
@@ -225,21 +225,44 @@ public class HierarchicalSplit {
 						}
 						return resultRanges;
 					case MAX:
-					case MIN:
-						resultRanges = new RangeSet();
+//						TODO: Determine whether min = minVal when maxVal > max
 						for(Range range1 : this.lhs.ranges()) {
 							for(Range range2 : this.rhs.ranges()) {
-								Range resultRange = range1.span(range2);
-								resultRanges.add(resultRange);
+								Datum lowerBound 	= range1.lowerBound();
+								Datum upperBound	= range1.upperBound();
+								if(range1.lowerBound().compareTo(range2.lowerBound(), TokenCmpOp.LT) == 0)
+									lowerBound 	= range2.lowerBound();
+								
+								if(range1.upperBound().compareTo(range2.upperBound(), TokenCmpOp.LT) == 0)	//TODO: Validate this..
+									upperBound	= range2.upperBound();
+								Range resultRange = range1.clone();
+								resultRange.setLowerBound(lowerBound);
+								resultRange.setUpperBound(upperBound);
+								resultRanges.add(resultRange);	//FIXME: Assumes that the ranges overlap..fix this!
 							}
 						}
 						return resultRanges;
+					case MIN:
+////					TODO: Determine whether max = maxVal when minVal < min
+						for(Range range1 : this.lhs.ranges()) {
+							for(Range range2 : this.rhs.ranges()) {
+								Datum lowerBound 	= range1.lowerBound();
+								Datum upperBound	= range1.upperBound();
+								if(range1.lowerBound().compareTo(range2.lowerBound(), TokenCmpOp.GT) == 0)
+									lowerBound 	= range2.lowerBound();
+								
+								if(range1.upperBound().compareTo(range2.upperBound(), TokenCmpOp.GT) == 0)	//TODO: Validate this..
+									upperBound	= range2.upperBound();
+								Range resultRange = range1.clone();
+								resultRange.setLowerBound(lowerBound);
+								resultRange.setUpperBound(upperBound);
+								resultRanges.add(resultRange);	//FIXME: Assumes that the ranges overlap..fix this!
+							}
+						}
+						return resultRanges;
+					default:
+						throw new IllegalStateException("Tree can't have a node with 2 objects somewhere below, but not be an aggregate!");
 					}
-					break;
-				default:
-					System.err.println("How can the tree have a node with 2 objects somewhere below, but not be an aggregate?");
-					break;
-				
 				}
 			}
 			throw new IllegalStateException("Shouldn't be trying to return null");
@@ -251,111 +274,28 @@ public class HierarchicalSplit {
 			
 			switch(definition().type()) {
 			case AGGREGATE:
-				Range intersection 	= null;
-				if(object != null)
-					intersection	= this.ranges().clone();
-				else {
-					if(lhs != null)
-						intersection	= lhs.ranges().clone();
-					if(rhs != null)
-						intersection	= intersection.intersection(rhs.ranges());
-				}
 				switch(definition().aggregateExpression().type()) {
 				case COUNT:
-					if(rhs == null)
-						lhsValue = requiredValue;
-					else {
-						intersection 	= IntegerRange.closed(0, (Integer) requiredValue.toInt().data());
-						lhsValue 		= intersection.generateRandom();
-						rhsValue		= requiredValue.subtract(lhsValue);
-					}
+//					TODO
 					break;
 				case MAX:
-					if(rhs == null)
-						lhsValue	= requiredValue;
-					else {
-						if(Math.random() > 0.5) {
-							lhsValue	= requiredValue;
-							intersection.setUpperBound(requiredValue);
-							rhsValue	= intersection.generateRandom();
-						}
-						else {
-							rhsValue	= requiredValue;
-							intersection.setUpperBound(requiredValue);
-							lhsValue	= intersection.generateRandom();
-						}
-					}
+//					TODO
 					break;
 				case MIN:
-					if(rhs == null)
-						lhsValue	= requiredValue;
-					else {
-						if(Math.random() > 0.5) {
-							lhsValue	= requiredValue;
-							intersection.setLowerBound(requiredValue);
-							rhsValue	= intersection.generateRandom();
-						}
-						else {
-							rhsValue	= requiredValue;
-							intersection.setLowerBound(requiredValue);
-							lhsValue	= intersection.generateRandom();
-						}
-					}
+//					TODO
 					break;
 				case SUM:
-					if(object == null) {
-						Range lhsRange 	= this.lhs.ranges().clone();
-						Range rhsRange	= this.rhs.ranges().clone();
-						Range span		= lhsRange.span(rhsRange);
-						Range sum		= lhsRange.add(rhsRange);
-						Range smaller	= null;
-						Range greater	= null;
-						assert sum.contains(requiredValue) : "Constraint cannot be satisfied!\n";
-						
-						if(lhsRange.upperBound().compareTo(rhsRange.upperBound(), TokenCmpOp.GT) == 0) {
-							smaller = rhsRange;
-							greater	= lhsRange;
-						}
-						else {
-							smaller = lhsRange;
-							greater	= rhsRange;
-						}
-						
-						if(!span.contains(requiredValue)) {
-							if(greater.upperBound().add(smaller.lowerBound()).compareTo(requiredValue, TokenCmpOp.GE) == 0) {
-							}
-							else {
-								Datum smallerLowerBound	= requiredValue.subtract(greater.upperBound());
-								smaller.setLowerBound(smallerLowerBound);
-							
-								Datum smallerUpperBound	= smaller.upperBound();
-//								Datum upperBound		= requiredValue.subtract(greater.lowerBound());
-//								if(upperBound.compareTo(smallerUpperBound, TokenCmpOp.LT) == 0)
-//									smallerUpperBound	= upperBound;
-//								smaller.setUpperBound(smallerUpperBound);
-							}
-						}
-						if(requiredValue.subtract(greater.lowerBound()).compareTo(smaller.upperBound(), TokenCmpOp.LT) == 0)
-						{
-							Datum smallerUpperBound	= smaller.upperBound();
-							Datum decrement			= smaller.upperBound().subtract(requiredValue.subtract(greater.lowerBound()));
-//							FIXME: We currently assume that the ranges overlap
-							smallerUpperBound		= smallerUpperBound.subtract(decrement);
-							smaller.setUpperBound(smallerUpperBound);
-						}
-						Datum randomValue	= smaller.generateRandom();
-						Datum fixedValue	= requiredValue.subtract(randomValue);
-						if(smaller == lhsRange) {
-							lhsValue 		= randomValue;
-							rhsValue		= fixedValue;
-						}
-						else {
-							lhsValue		= fixedValue;
-							rhsValue		= randomValue;
-						}
+					RangeSet ranges = this.ranges();
+					RangeSet validRanges = new RangeSet();
+					for(Range range : ranges) {
+						if(range.contains(requiredValue))
+							validRanges.add(range);
 					}
+					lhsValue = validRanges.generateRandom();
+					rhsValue = requiredValue.subtract(lhsValue);
+					assert validRanges.contains(rhsValue) : "validRanges does not contain rhsValue :" + rhsValue + "  - " + validRanges;
+					break;
 				}
-				break;
 			case BASIC:
 //				TODO
 				break;
@@ -371,21 +311,11 @@ public class HierarchicalSplit {
 				if(definition().type().equals(PropertyDef.Type.AGGREGATE)) {
 					switch(definition().aggregateExpression().type()) {
 					case COUNT:
-						Range objectRange 	= object.getBounds(this.definition());
-						int children		= object.children().size();
-						Datum lowerBound	= objectRange.lowerBound().multiply(new Datum.Int(children));
-						Datum upperBound	= objectRange.upperBound().multiply(new Datum.Int(children));
-						objectRange.setUpperBound(upperBound);
-						objectRange.setLowerBound(lowerBound);
-						
-						Datum value = objectRange.generateRandom();
-						values.put(object, value);
-						break;
 					case MAX:
 					case MIN:
 					case SUM:
-						objectRange = object.getBounds(this.definition());
-						assert objectRange.contains(requiredValue) : "Trying to set " + requiredValue + "\nwhen range is :" + objectRange;
+						RangeSet bounds = object.getBounds(this.definition());
+						assert bounds.contains(requiredValue) : "Trying to set " + requiredValue + "\nwhen bounds are :" + bounds;
 						values.put(object, requiredValue);
 						break;
 					}

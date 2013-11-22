@@ -312,6 +312,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			newPropertyRanges = propertyRanges;
 			break;
 		case LE:
+//			FIXME: Fails assertion on Range..check lower bound as well!
 			for(Range range : propertyRanges) {
 				if(value.compareTo(range.upperBound(), TokenCmpOp.GE) == 0)
 					continue;
@@ -427,82 +428,58 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		
 		RangeSet resultRanges = new RangeSet();
 		
-		for(RangeSet rangeSet1 : bounds) {
-			for(RangeSet rangeSet2 : bounds) {
-				if(rangeSet1 == rangeSet2)
-					continue;
-				switch(definition.type()) {
-				case AGGREGATE:
-					Datum.DatumType type = rangeSet1.get(0).lowerBound().type();
-					switch(definition.aggregateExpression().type()) {
-					case COUNT:
-						for(Range range1 : rangeSet1) {
-							for(Range range2 : rangeSet2) {
-								Range resultRange = range1.add(range2);
-								resultRanges.add(resultRange);
-							}
-						}
-						return resultRanges;
-					case MAX:
-//						TODO: Determine whether min = minVal when maxVal > max
-						for(Range range1 : rangeSet1) {
-							for(Range range2 : rangeSet2) {
-								Range resultRange = range1.span(range2);
-								resultRanges.add(resultRange);	//FIXME: Assumes that the ranges overlap..fix this!
-							}
-						}
-						break;
-					case MIN:
-////						TODO: Determine whether max = maxVal when minVal < min
-//						for(Range range : bounds) {
-//							float minVal = (Float) range.lowerBound().toFlt().data();
-//							if(minVal < min) {
-//								min = minVal;
-//								resultRange = range;
-//							}
-//						}
-						for(Range range1 : rangeSet1) {
-							for(Range range2 : rangeSet2) {
-								Range resultRange = range1.span(range2);
-								resultRanges.add(resultRange);	//FIXME: Assumes that the ranges overlap..fix this!
-							}
-						}
-						break;
-					case SUM:
-//						TODO: Handle float-int interaction - either here or natively in range classes
-						for(Range range1 : rangeSet1) {
-							for(Range range2 : rangeSet2) {
-//								We assume that all bounds are of the same 'type'
-								Range resultRange = range1.clone();
-								resultRange 	= resultRange.add(range2);
-								resultRanges.add(resultRange);
-							}
-						}
+		switch(definition.type()) {
+		case AGGREGATE:
+			Datum.DatumType type = bounds.get(0).get(0).lowerBound().type();
+			
+			switch(definition.aggregateExpression().type()) {
+			case COUNT:
+//				TODO: Validate this
+				Range resultRange = IntegerRange.closed(0, bounds.size());
+				resultRanges.add(resultRange);
+				return resultRanges;
+
+			case MAX:
+//				TODO: Determine whether min = minVal when maxVal > max
+				break;
+			
+			case MIN:
+//				TODO: Determine whether max = maxVal when minVal < min
+				break;
+			case SUM:
+//				TODO: Handle float-int interaction - either here or natively in range classes
+				for(RangeSet baseSet : bounds) {
+					RangeSet result = baseSet.clone();
+					for(RangeSet secondarySet : bounds) {
+						if(baseSet == secondarySet)
+							continue;
+						result = result.sum(secondarySet);
 					}
-					
-					switch(type) {
-					case FLOAT:
-						this.bounds.put(property, resultRanges);
-						return this.bounds.get(property);
-					case INT:
-						this.bounds.put(property, resultRanges);
-						return this.bounds.get(property);
-					default:
-						throw new IllegalStateException("Default case in allocating type is :" + type);
-					}
-				case BASIC:
-//					TODO
-					break;
-				case INHERIT:
-//					TODO
-					break;
-				case RANDOM:
-					resultRanges.add(definition.randomspec().range().clone());
-					return resultRanges;
-				default:
-					throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
+					resultRanges.addAll(result);
 				}
 			}
+					
+			switch(type) {
+			case FLOAT:
+				this.bounds.put(property, resultRanges);
+				return this.bounds.get(property);
+			case INT:
+				this.bounds.put(property, resultRanges);
+				return this.bounds.get(property);
+			default:
+				throw new IllegalStateException("Default case in allocating type is :" + type);
+			}
+			case BASIC:
+//				TODO
+				break;
+			case INHERIT:
+//				TODO
+				break;
+			case RANDOM:
+				resultRanges.add(definition.randomspec().range().clone());
+				return resultRanges;
+			default:
+			throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
 		}
 		return null;
 	}
