@@ -280,70 +280,79 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			break;
 		case GE:
 			for(Range range : propertyRanges) {
-				if(value.compareTo(range.lowerBound(), TokenCmpOp.LE) == 0)
+				Range newRange = range.clone();
+				if(value.compareTo(range.upperBound(), TokenCmpOp.LT) == 0)
 					continue;
-				switch(type) {
-				case FLOAT:
-					range.setLowerBound(value.toFlt());
-					break;
-				case INT:
-					range.setLowerBound(value.toInt());
-					break;
+				else if(value.compareTo(range.lowerBound(), TokenCmpOp.GT) == 0) {	//FIXME: Should this be GT?
+					switch(type) {
+					case FLOAT:
+						newRange.setLowerBound(value.toFlt());
+						break;
+					case INT:
+						newRange.setLowerBound(value.toFlt());
+						break;
+					}
 				}
-				range.setLowerBoundType(BoundType.CLOSED);
+				newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
+				newPropertyRanges.add(newRange);
 			}
-			newPropertyRanges = propertyRanges;
 			break;
 		case GT:
 			for(Range range : propertyRanges) {
-				if(value.compareTo(range.lowerBound(), TokenCmpOp.LT) == 0)
+				Range newRange = range.clone();
+				if(value.compareTo(range.upperBound(), TokenCmpOp.LE) == 0)
 					continue;
-				switch(type) {
-				case FLOAT:
-					range.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
-					range.setLowerBoundType(BoundType.CLOSED);
-					break;
-				case INT:
-					range.setLowerBound(value.add(new Datum.Int(1)));
-					range.setLowerBoundType(BoundType.CLOSED);
-					break;
+				else if(value.compareTo(range.lowerBound(), TokenCmpOp.GT) == 0) {	//FIXME: Should this be LT?
+					switch(type) {
+					case FLOAT:
+						newRange.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
+						break;
+					case INT:
+						newRange.setLowerBound(value.toFlt().add(new Datum.Int(1)));
+						break;
+					}
 				}
+				newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
+				newPropertyRanges.add(newRange);
 			}
-			newPropertyRanges = propertyRanges;
 			break;
 		case LE:
-//			FIXME: Fails assertion on Range..check lower bound as well!
 			for(Range range : propertyRanges) {
-				if(value.compareTo(range.upperBound(), TokenCmpOp.GE) == 0)
+				Range newRange = range.clone();
+				if(value.compareTo(range.lowerBound(), TokenCmpOp.LT) == 0)
 					continue;
-				switch(type) {
-				case FLOAT:
-					range.setUpperBound(value.toFlt());
-					break;
-				case INT:
-					range.setUpperBound(value.toInt());
-					break;
+				else if(value.compareTo(range.upperBound(), TokenCmpOp.LT) == 0) {
+					switch(type) {
+					case FLOAT:
+						newRange.setUpperBound(value.toFlt());
+						break;
+					case INT:
+						newRange.setUpperBound(value.toInt());
+						break;
+					}
 				}
-				range.setUpperBoundType(BoundType.CLOSED);
+				newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
+				newPropertyRanges.add(newRange);
 			}
-			newPropertyRanges = propertyRanges;
 			break;
 		case LT:
 			for(Range range : propertyRanges) {
-				if(value.compareTo(range.upperBound(), TokenCmpOp.GT) == 0)
+				Range newRange = range.clone();
+				if(value.compareTo(range.lowerBound(), TokenCmpOp.LE) == 0)
 					continue;
-				switch(type) {
-				case FLOAT:
-					range.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
-					range.setUpperBoundType(BoundType.CLOSED);
-					break;
-				case INT:
-					range.setUpperBound(value.subtract(new Datum.Int(1)));
-					range.setUpperBoundType(BoundType.CLOSED);
-					break;
+				else if(value.compareTo(range.upperBound(), TokenCmpOp.LT) == 0) {	//FIXME: Should this be LT?
+					switch(type) {
+					case FLOAT:
+						newRange.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
+						break;
+					case INT:
+						newRange.setUpperBound(value.toInt().subtract(new Datum.Int(1)));
+						break;
+					}
 				}
+				newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
+				newPropertyRanges.add(newRange);
 			}
-			newPropertyRanges = propertyRanges;
 			break;
 		case NOTEQ:
 			for(Range range : propertyRanges) {
