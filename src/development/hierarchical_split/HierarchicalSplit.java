@@ -271,43 +271,51 @@ public class HierarchicalSplit {
 		public void split(Map<IWorldTree, Datum> values, Datum requiredValue) {
 			Datum lhsValue 	= null;
 			Datum rhsValue	= null;
-			
-			switch(definition().type()) {
-			case AGGREGATE:
-				switch(definition().aggregateExpression().type()) {
-				case COUNT:
-//					TODO
-					break;
-				case MAX:
-//					TODO
-					break;
-				case MIN:
-//					TODO
-					break;
-				case SUM:
-					RangeSet ranges = this.ranges();
-					RangeSet validRanges = new RangeSet();
-					for(Range range : ranges) {
-						if(range.contains(requiredValue))
-							validRanges.add(range);
+			if(object == null) {
+				switch(definition().type()) {
+				case AGGREGATE:
+					switch(definition().aggregateExpression().type()) {
+					case COUNT:
+//						TODO
+						break;
+					case MAX:
+//						TODO
+						break;
+					case MIN:
+//						TODO
+						break;
+					case SUM:
+						RangeSet lhsRanges = this.lhs.ranges();
+						RangeSet rhsRanges = this.rhs.ranges();
+						RangeSet validRanges = new RangeSet();
+						for(Range range : lhsRanges) {
+							if(range.contains(requiredValue)) {
+								Range newRange = range.clone();
+								if(newRange.upperBound().compareTo(requiredValue, TokenCmpOp.GT) == 0)
+									newRange.setUpperBound(requiredValue);	//FIXME: Seems to implicitly require 0..
+								validRanges.add(newRange);
+							}
+						}
+						assert validRanges.size() >= 1 : "There seems to be no valid range!\n";
+						lhsValue = validRanges.generateRandom();
+						rhsValue = requiredValue.subtract(lhsValue);
+						if(this.rhs != null)
+							assert rhsRanges.contains(rhsValue) : "ranges does not contain rhsValue :" + rhsValue + "  - " + ranges;	//TODO: Verify whether this should be validRanges
+						break;
 					}
-					lhsValue = validRanges.generateRandom();
-					rhsValue = requiredValue.subtract(lhsValue);
-					assert validRanges.contains(rhsValue) : "validRanges does not contain rhsValue :" + rhsValue + "  - " + validRanges;
+				case BASIC:
+//					TODO
+					break;
+				case INHERIT:
+//					TODO
+					break;
+				case RANDOM:
+//					TODO
 					break;
 				}
-			case BASIC:
-//				TODO
-				break;
-			case INHERIT:
-//				TODO
-				break;
-			case RANDOM:
-//				TODO
-				break;
 			}
 			
-			if(object != null) {
+			else {
 				if(definition().type().equals(PropertyDef.Type.AGGREGATE)) {
 					switch(definition().aggregateExpression().type()) {
 					case COUNT:
