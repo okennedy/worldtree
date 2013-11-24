@@ -288,12 +288,34 @@ public class HierarchicalSplit {
 						RangeSet lhsRanges = this.lhs.ranges();
 						RangeSet rhsRanges = this.rhs.ranges();
 						RangeSet validRanges = new RangeSet();
-						for(Range range : lhsRanges) {
-							if(range.contains(requiredValue)) {
-								Range newRange = range.clone();
-								if(newRange.upperBound().compareTo(requiredValue, TokenCmpOp.GT) == 0)
-									newRange.setUpperBound(requiredValue);	//FIXME: Seems to implicitly require 0..
-								validRanges.add(newRange);
+						
+						for(Range lhsRange : lhsRanges) {
+							Datum lhsLowerBound	= lhsRange.lowerBound();
+							Datum lhsUpperBound	= lhsRange.upperBound();
+							for(Range rhsRange : rhsRanges) {
+								Range lhsRangeClone = lhsRange.clone();
+									
+								Datum rhsLowerBound = rhsRange.lowerBound();
+								Datum rhsUpperBound = rhsRange.upperBound();
+									
+								Datum lowerBoundSum	= lhsLowerBound.add(rhsLowerBound);
+								Datum upperBoundSum	= lhsUpperBound.add(rhsUpperBound);
+								if(requiredValue.compareTo(lowerBoundSum, TokenCmpOp.GE) == 0 && requiredValue.compareTo(upperBoundSum, TokenCmpOp.LE) == 0) {	//FIXME: GE, LE only handles closed ranges
+									if(rhsUpperBound.compareTo(requiredValue, TokenCmpOp.GT) == 0) {
+										rhsUpperBound = requiredValue;
+									}
+									if(lhsLowerBound.add(rhsUpperBound).compareTo(requiredValue, TokenCmpOp.LT) == 0) {
+										Datum newLhsLowerBound		= requiredValue.subtract(rhsUpperBound);
+										assert lhsRange.contains(newLhsLowerBound) : "lhsRange " + lhsRange + " does not contain newLhsLowerBound - " + newLhsLowerBound;
+										lhsRangeClone.setLowerBound(newLhsLowerBound);
+									}
+									if(lhsUpperBound.add(rhsLowerBound).compareTo(requiredValue, TokenCmpOp.GT) == 0) {
+										Datum newLhsUpperBound		= requiredValue.subtract(rhsLowerBound);
+										assert lhsRange.contains(newLhsUpperBound) : "lhsRange " + lhsRange + " does not contain newLhsUpperBound - " + newLhsUpperBound;
+										lhsRangeClone.setUpperBound(newLhsUpperBound);
+									}
+									validRanges.add(lhsRangeClone);
+								}
 							}
 						}
 						assert validRanges.size() >= 1 : "There seems to be no valid range!\n";
