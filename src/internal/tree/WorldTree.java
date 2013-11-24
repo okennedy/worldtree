@@ -279,77 +279,81 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		case GE:
 			for(Range range : propertyRanges) {
 				Range newRange = range.clone();
-				if(value.compareTo(range.upperBound(), TokenCmpOp.LT) == 0)
-					continue;
-				else if(value.compareTo(range.lowerBound(), TokenCmpOp.GT) == 0) {	//FIXME: Should this be GT?
-					switch(type) {
-					case FLOAT:
-						newRange.setLowerBound(value.toFlt());
-						break;
-					case INT:
-						newRange.setLowerBound(value.toFlt());
-						break;
+				if(range.contains(value)) {
+					if(value.compareTo(range.lowerBound(), TokenCmpOp.GT) == 0) {
+						switch(type) {
+						case FLOAT:
+							newRange.setLowerBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
+							newRange.setLowerBoundType(BoundType.OPEN);		//FIXME: Should this be there?
+							break;
+						case INT:
+							newRange.setLowerBound(value.toInt());
+							newRange.setLowerBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
+							break;
+						}
 					}
 				}
-				newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
 				newPropertyRanges.add(newRange);
 			}
 			break;
 		case GT:
 			for(Range range : propertyRanges) {
-				Range newRange = range.clone();
-				if(value.compareTo(range.upperBound(), TokenCmpOp.LE) == 0)
-					continue;
-				else if(value.compareTo(range.lowerBound(), TokenCmpOp.GT) == 0) {	//FIXME: Should this be LT?
-					switch(type) {
-					case FLOAT:
-						newRange.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
-						break;
-					case INT:
-						newRange.setLowerBound(value.toFlt().add(new Datum.Int(1)));
-						break;
+				if(range.contains(value)) {
+					Range newRange = range.clone();
+					if(value.compareTo(range.lowerBound(), TokenCmpOp.GE) == 0) {
+						switch(type) {
+						case FLOAT:
+							newRange.setLowerBound(value.toFlt());
+							newRange.setLowerBoundType(BoundType.OPEN);		//FIXME: Should this be there?
+							break;
+						case INT:
+							newRange.setLowerBound(value.toInt().add(new Datum.Int(1)));
+							newRange.setLowerBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
+							break;
+						}
 					}
+					newPropertyRanges.add(newRange);
 				}
-				newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
-				newPropertyRanges.add(newRange);
 			}
 			break;
 		case LE:
 			for(Range range : propertyRanges) {
-				Range newRange = range.clone();
-				if(value.compareTo(range.lowerBound(), TokenCmpOp.LT) == 0)
-					continue;
-				else if(value.compareTo(range.upperBound(), TokenCmpOp.LT) == 0) {
-					switch(type) {
-					case FLOAT:
-						newRange.setUpperBound(value.toFlt());
-						break;
-					case INT:
-						newRange.setUpperBound(value.toInt());
-						break;
+				if(range.contains(value)) {
+					Range newRange = range.clone();
+					if(value.compareTo(range.upperBound(), TokenCmpOp.LT) == 0) {
+						switch(type) {
+						case FLOAT:
+							newRange.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
+							newRange.setUpperBoundType(BoundType.OPEN);		//FIXME: Should this be there?
+							break;
+						case INT:
+							newRange.setUpperBound(value.toInt());
+							newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
+							break;
+						}
 					}
+					newPropertyRanges.add(newRange);
 				}
-				newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
-				newPropertyRanges.add(newRange);
 			}
 			break;
 		case LT:
 			for(Range range : propertyRanges) {
-				Range newRange = range.clone();
-				if(value.compareTo(range.lowerBound(), TokenCmpOp.LE) == 0)
-					continue;
-				else if(value.compareTo(range.upperBound(), TokenCmpOp.LT) == 0) {	//FIXME: Should this be LT?
-					switch(type) {
-					case FLOAT:
-						newRange.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
-						break;
-					case INT:
-						newRange.setUpperBound(value.toInt().subtract(new Datum.Int(1)));
-						break;
+				if(range.contains(value)) {
+					Range newRange = range.clone();
+					if(value.compareTo(range.upperBound(), TokenCmpOp.LE) == 0) {
+						switch(type) {
+						case FLOAT:
+							newRange.setUpperBound(value.toFlt());
+							newRange.setUpperBoundType(BoundType.OPEN);		//FIXME: Should this be there?
+							break;
+						case INT:
+							newRange.setUpperBound(value.toInt().subtract(new Datum.Int(1)));
+							newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
+							break;
+						}
 					}
+					newPropertyRanges.add(newRange);
 				}
-				newRange.setUpperBoundType(BoundType.CLOSED);	//FIXME: Should this be there?
-				newPropertyRanges.add(newRange);
 			}
 			break;
 		case NOTEQ:
