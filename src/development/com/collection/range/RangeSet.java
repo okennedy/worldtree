@@ -64,6 +64,7 @@ public class RangeSet extends TreeSet<Range> {
 		}
 		return result;
 	}
+	
 	private static class setComparator implements Comparator<Range> {
 
 		@Override
