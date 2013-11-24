@@ -263,17 +263,16 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		case EQ:
 			assert propertyRanges.contains(value) : "Pre-processing bounds: Range " + propertyRanges + " does not contain " + value;
 			for(Range range : propertyRanges) {
-				if(range.contains(value))
+				if(range.contains(value)) {
+					switch(type) {
+					case FLOAT:
+						range = FloatRange.closed(value, value);
+						break;
+					case INT:
+						range = IntegerRange.closed(value, value);
+						break;
+					}
 					newPropertyRanges.add(range);
-			}
-			for(Range range : newPropertyRanges) {
-				switch(type) {
-				case FLOAT:
-					range = FloatRange.closed(value, value);
-					break;
-				case INT:
-					range = IntegerRange.closed(value, value);
-					break;
 				}
 			}
 			break;
