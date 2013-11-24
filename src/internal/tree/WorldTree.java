@@ -211,7 +211,6 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 					Datum value 			= childConstraintValues.get(child);
 					
 					Hierarchy childLevel 	= Hierarchy.parse(child.getClass());
-					
 					Constraint childConstraint = null;
 					{
 						IPattern pattern		= new BasePattern(new Reference("this"), null, null);
