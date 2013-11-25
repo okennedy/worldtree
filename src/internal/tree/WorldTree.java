@@ -358,24 +358,56 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			break;
 		case NOTEQ:
 			for(Range range : propertyRanges) {
-				Range range1 = range.clone();
-				switch(type) {
-				case FLOAT:
-					range.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
-					range.setUpperBoundType(BoundType.CLOSED);
-					range1.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
-					range1.setLowerBoundType(BoundType.CLOSED);
-					break;
-				case INT:
-					range.setUpperBound(value.subtract(new Datum.Int(1)));
-					range.setUpperBoundType(BoundType.CLOSED);
-					range1.setLowerBound(value.add(new Datum.Int(1)));
-					range1.setLowerBoundType(BoundType.CLOSED);
-					break;
+				Range rangeClone1 = range.clone();
+				if(range.contains(value)) {
+//					If this is a range [x - x] where the constraint says != x, then ignore this range
+					if(range.upperBound().compareTo(range.lowerBound(), TokenCmpOp.EQ) == 0)
+						continue;
+					Range rangeClone2	= range.clone();
+					if(range.lowerBound().compareTo(value, TokenCmpOp.EQ) == 0) {
+						switch(type) {
+						case FLOAT:
+							rangeClone1.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
+							rangeClone1.setLowerBoundType(BoundType.CLOSED);
+							break;
+						case INT:
+							rangeClone1.setLowerBound(value.add(new Datum.Int(1)));
+							rangeClone1.setLowerBoundType(BoundType.CLOSED);
+							break;
+						}
+					}
+					else if(range.upperBound().compareTo(value, TokenCmpOp.EQ) == 0) {
+						switch(type) {
+						case FLOAT:
+							rangeClone1.setUpperBoundType(BoundType.OPEN);
+							break;
+						case INT:
+							rangeClone1.setUpperBound(value.subtract(new Datum.Int(1)));
+							rangeClone1.setUpperBoundType(BoundType.CLOSED);
+							break;
+						}
+					}
+					else {
+						switch(type) {
+						case FLOAT:
+							rangeClone2.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
+							rangeClone2.setUpperBoundType(BoundType.CLOSED);
+							rangeClone1.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
+							rangeClone1.setLowerBoundType(BoundType.CLOSED);
+							newPropertyRanges.add(rangeClone2);
+							break;
+						case INT:
+							rangeClone2.setUpperBound(value.subtract(new Datum.Int(1)));
+							rangeClone2.setUpperBoundType(BoundType.CLOSED);
+							rangeClone1.setLowerBound(value.add(new Datum.Int(1)));
+							rangeClone1.setLowerBoundType(BoundType.CLOSED);
+							newPropertyRanges.add(rangeClone2);
+							break;
+						}
+					}
 				}
-				propertyRanges.add(range1);
+				newPropertyRanges.add(rangeClone1);
 			}
-			newPropertyRanges = propertyRanges;
 			break;
 		}
 		this.bounds.put(property, newPropertyRanges);
