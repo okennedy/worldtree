@@ -226,21 +226,10 @@ public class HierarchicalSplit {
 						return resultRanges;
 					case MAX:
 //						TODO: Determine whether min = minVal when maxVal > max
-						for(Range range1 : this.lhs.ranges()) {
-							for(Range range2 : this.rhs.ranges()) {
-								Datum lowerBound 	= range1.lowerBound();
-								Datum upperBound	= range1.upperBound();
-								if(range1.lowerBound().compareTo(range2.lowerBound(), TokenCmpOp.LT) == 0)
-									lowerBound 	= range2.lowerBound();
-								
-								if(range1.upperBound().compareTo(range2.upperBound(), TokenCmpOp.LT) == 0)	//TODO: Validate this..
-									upperBound	= range2.upperBound();
-								Range resultRange = range1.clone();
-								resultRange.setLowerBound(lowerBound);
-								resultRange.setUpperBound(upperBound);
-								resultRanges.add(resultRange);	//FIXME: Assumes that the ranges overlap..fix this!
-							}
-						}
+						for(Range lhsRange : this.lhs.ranges())
+							resultRanges.add(lhsRange);
+						for(Range rhsRange : this.rhs.ranges())
+							resultRanges.add(rhsRange);
 						return resultRanges;
 					case MIN:
 ////					TODO: Determine whether max = maxVal when minVal < min
@@ -272,22 +261,62 @@ public class HierarchicalSplit {
 			Datum lhsValue 	= null;
 			Datum rhsValue	= null;
 			if(object == null) {
+				RangeSet lhsRanges		= this.lhs.ranges();
+				RangeSet rhsRanges		= this.rhs.ranges();
+				RangeSet validRanges	= new RangeSet();
+				
 				switch(definition().type()) {
 				case AGGREGATE:
 					switch(definition().aggregateExpression().type()) {
-					case COUNT:
-//						TODO
-						break;
 					case MAX:
-//						TODO
+						if(Math.random() >= 0.5) {
+							for(Range lhsRange : lhsRanges) {
+								if(lhsRange.contains(requiredValue))
+									validRanges.add(lhsRange);
+							}
+							
+							RangeSet validRhsRanges = new RangeSet();
+							for(Range rhsRange : rhsRanges) {
+								if(rhsRange.contains(requiredValue)) {
+									if(requiredValue.compareTo(rhsRange.upperBound(), TokenCmpOp.GT) == 0) {
+										rhsRange = rhsRange.clone();
+										rhsRange.setUpperBound(requiredValue);
+									}
+									validRhsRanges.add(rhsRange);
+								}
+							}
+							lhsValue = validRanges.generateRandom();
+							rhsValue = validRhsRanges.generateRandom();
+						}
+						else {
+							for(Range rhsRange : rhsRanges) {
+								if(rhsRange.contains(requiredValue))
+									validRanges.add(rhsRange);
+							}
+							
+							RangeSet validLhsRanges = new RangeSet();
+							for(Range lhsRange : lhsRanges) {
+								if(lhsRange.contains(requiredValue)) {
+									if(requiredValue.compareTo(lhsRange.upperBound(), TokenCmpOp.GT) == 0)
+										lhsRange.setUpperBound(requiredValue);
+									validLhsRanges.add(lhsRange);
+								}
+								else if(lhsRange.upperBound().compareTo(requiredValue, TokenCmpOp.LE) == 0) {
+									validLhsRanges.add(lhsRange);
+								}
+							}
+							rhsValue = validRanges.generateRandom();
+							lhsValue = validLhsRanges.generateRandom();
+						}
 						break;
 					case MIN:
 //						TODO
 						break;
+					case COUNT:
 					case SUM:
-						RangeSet lhsRanges = this.lhs.ranges();
-						RangeSet rhsRanges = this.rhs.ranges();
-						RangeSet validRanges = new RangeSet();
+						lhsRanges 	= this.lhs.ranges();
+						rhsRanges 	= this.rhs.ranges();
+						validRanges	= new RangeSet();
 						
 						for(Range lhsRange : lhsRanges) {
 							Datum lhsLowerBound	= lhsRange.lowerBound();
