@@ -4,16 +4,38 @@ import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class RangeSet extends TreeSet<Range> {
+	private TreeMap<String, Range> rangeMap;
+	private TreeMap<String, Integer> rangeCountMap;
 	private static final long serialVersionUID = 1L;
 
 
 	public RangeSet() {
 		super(new setComparator());
+		rangeMap		= new TreeMap<String, Range>();
+		rangeCountMap 	= new TreeMap<String, Integer>();
+	}
+	
+	@Override
+	public boolean add(Range range) {
+		boolean result = super.add(range);
+		
+		if(result) {
+			rangeMap.put(range.toString(), range);
+			rangeCountMap.put(range.toString(), 1);
+		}
+		else {
+			int value = rangeCountMap.get(range.toString());
+			rangeCountMap.put(range.toString(), value + 1);
+		}
+		return result;
 	}
 	
 	public Range get(int index) {
@@ -36,15 +58,23 @@ public class RangeSet extends TreeSet<Range> {
 	}
 	
 	public Datum generateRandom() {
-		int size 	= this.size();
-		int index	= (new Random()).nextInt(size);
+		int sumOfWeights = 0;
+		for(Map.Entry<String, Integer> entry : rangeCountMap.entrySet())
+			sumOfWeights += entry.getValue();
 		
-		Iterator<Range> iter = this.iterator();
-		for(int i = 0; i < index; i++)
-			iter.next();
+		int random	= (new Random()).nextInt(sumOfWeights);
+		int index	= random;
 		
-		Range range = iter.next();
-		return range.generateRandom();
+		Range randomRange = null;
+		for(Map.Entry<String, Integer> entry : rangeCountMap.entrySet()) {
+			if(index == 0 || (index - entry.getValue()) <= 0) {
+				randomRange = rangeMap.get(entry.getKey());
+				break;
+			}
+			else
+				index -= entry.getValue();
+		}
+		return randomRange.generateRandom();
 	}
 	
 	public RangeSet clone() {
@@ -69,11 +99,33 @@ public class RangeSet extends TreeSet<Range> {
 
 		@Override
 		public int compare(Range o1, Range o2) {
-			if (o1.lowerBound().compareTo(o2.lowerBound(), TokenCmpOp.LT) == 0) {
-				return (Integer) o1.upperBound().subtract(o2.upperBound()).toInt().data();
+			if(o1.lowerBound().compareTo(o2.lowerBound(), TokenCmpOp.EQ) == 0) {
+				if(!o1.lowerBoundType().equals(o2.lowerBoundType())) {
+					switch(o1.lowerBoundType()) {
+					case CLOSED:
+						return -1;
+					case OPEN:
+						return 1;
+					}
+				}
+				else {
+					if(o1.upperBound().compareTo(o2.upperBound(), TokenCmpOp.EQ) == 0) {
+						if(!o1.upperBoundType().equals(o2.upperBoundType())) {
+							switch(o1.upperBoundType()) {
+							case CLOSED:
+								return 1;
+							case OPEN:
+								return -1;
+							}
+						}
+						else
+							return 0;
+					}
+					else
+						return (Integer) o1.upperBound().subtract(o2.upperBound()).toInt().data();
+				}
 			}
-			else
-				return (Integer) o1.lowerBound().subtract(o2.lowerBound()).toInt().data();
+			return (Integer) o1.lowerBound().subtract(o2.lowerBound()).toInt().data();
 		}
 	}
 }
