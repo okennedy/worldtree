@@ -8,8 +8,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import development.com.collection.range.Range.BoundType;
 
 public class RangeSet extends TreeSet<Range> {
 	private TreeMap<String, Range> rangeMap;
@@ -24,17 +27,45 @@ public class RangeSet extends TreeSet<Range> {
 	}
 	
 	@Override
-	public boolean add(Range range) {
-		boolean result = super.add(range);
+	public boolean add(Range newRange) {
+		boolean merged 	= false;
+		boolean result	= false;
 		
-		if(result) {
-			rangeMap.put(range.toString(), range);
-			rangeCountMap.put(range.toString(), 1);
+		Range upperRange	= newRange.clone();
+		upperRange.setLowerBoundType(BoundType.CLOSED);
+		upperRange.setUpperBoundType(BoundType.CLOSED);
+		upperRange.setLowerBound(upperRange.upperBound());
+		
+		Set<Range> headSet = this.headSet(upperRange, true);
+		
+		for(Range range : headSet) {
+			if(range.contains(newRange.lowerBound()) && range.contains(newRange.upperBound())) {
+				merged = true;
+				break;
+			}
+			else {
+				Range intersection = range.intersection(newRange);
+				if(intersection != null) {
+//					if(intersection.contains(range.lowerBound())) {
+////						newRange finishes outside
+//						range.setUpperBound(newRange.upperBound());
+//						range.setUpperBoundType(newRange.upperBoundType());
+//					}
+//					else if(intersection.contains(range.upperBound())) {
+////						newRange starts outside
+//						range.setLowerBound(newRange.lowerBound());
+//						range.setLowerBoundType(newRange.lowerBoundType());
+//					}
+					this.remove(range);
+					range = range.span(newRange);
+					this.add(range);
+					merged = true;
+				}
+			}
 		}
-		else {
-			int value = rangeCountMap.get(range.toString());
-			rangeCountMap.put(range.toString(), value + 1);
-		}
+		if(!merged)
+			result = super.add(newRange);
+		
 		return result;
 	}
 	
