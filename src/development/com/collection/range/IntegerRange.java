@@ -2,7 +2,6 @@ package development.com.collection.range;
 
 import internal.parser.containers.Datum;
 import internal.parser.containers.Datum.DatumType;
-import internal.parser.containers.Datum.Int;
 
 public class IntegerRange extends Range {
 	
@@ -12,6 +11,10 @@ public class IntegerRange extends Range {
 	
 	protected IntegerRange(int lowerBound, BoundType lowerBoundType, int upperBound, BoundType upperBoundType) {
 		super(new Datum.Int(lowerBound), lowerBoundType, new Datum.Int(upperBound), upperBoundType);
+	}
+	
+	protected IntegerRange(Datum lowerBound, BoundType lowerBoundType, Datum upperBound, BoundType upperBoundType) {
+		super(lowerBound.clone(), lowerBoundType, upperBound.clone(), upperBoundType);
 	}
 	
 	public static IntegerRange open(int lowerBound, int upperBound) {
@@ -54,24 +57,36 @@ public class IntegerRange extends Range {
 	}
 	
 	
-	public IntegerRange intersection(Range range) {
-		int lowerBoundData			= (Integer) this.lowerBound().data();
-		int upperBoundData			= (Integer) this.upperBound().data();
-		int rangeLowerBoundData		= (Integer) range.lowerBound().data();
-		int rangeUpperBoundData		= (Integer) range.upperBound().data();
+	public Range intersection(Range range) {
+//		R1 contains R2
+		if(range.contains(this.lowerBound()) && range.contains(this.upperBound()))
+			return this.clone();
+//		R2 contains R1
+		else if(this.contains(range.lowerBound()) && this.contains(range.upperBound()))
+			return range.clone();
 		
-		int lowerBound 				= lowerBoundData > rangeLowerBoundData ? lowerBoundData : rangeLowerBoundData;
-		int upperBound 				= upperBoundData < rangeUpperBoundData ? upperBoundData : rangeUpperBoundData;
-		
-		BoundType lowerBoundType	= BoundType.CLOSED;
-		BoundType upperBoundType	= BoundType.CLOSED;
-		
-		if(this.lowerBoundType() == BoundType.OPEN || range.lowerBoundType() == BoundType.OPEN)
-			lowerBoundType = BoundType.OPEN;
-		if(this.upperBoundType() == BoundType.OPEN || range.upperBoundType() == BoundType.OPEN)
-			upperBoundType = BoundType.OPEN;
-		
-		return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+//		Either no overlap or partial overlap
+		else {
+			if(this.contains(range.lowerBound())) {
+				Datum lowerBound 			= range.lowerBound();
+				BoundType lowerBoundType	= range.lowerBoundType();
+				
+				Datum upperBound			= this.upperBound();
+				BoundType upperBoundType	= this.upperBoundType();
+				
+				return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+			}
+			else if(this.contains(range.upperBound())) {
+				Datum lowerBound			= this.lowerBound();
+				BoundType lowerBoundType	= this.lowerBoundType();
+				
+				Datum upperBound			= range.upperBound();
+				BoundType upperBoundType	= range.upperBoundType();
+				
+				return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+			}
+		}
+		return null;
 	}
 	
 	@Override
