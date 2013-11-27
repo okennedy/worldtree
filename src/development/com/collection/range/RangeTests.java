@@ -2,6 +2,8 @@ package development.com.collection.range;
 
 import static org.junit.Assert.*;
 
+import java.util.Set;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -92,5 +94,28 @@ public class RangeTests {
 		
 		if(!failed)
 			result.append("Succeeded!\n");
+	}
+	
+	@Test
+	public void RangeSetMerge() {
+		RangeSet set = new RangeSet();
+		set.add(IntegerRange.closed(0, 2));
+		set.add(IntegerRange.closed(4, 12));
+		set.add(IntegerRange.closed(20, 28));
+		set.add(IntegerRange.closed(20, 32));
+		set.add(IntegerRange.closed(42, 46));
+		
+//		Case 1: R2 lies inside R1 - return R1
+		Range includedRange 	= IntegerRange.open(4, 12);
+		set.add(includedRange);
+		
+//		Case 2: R1 lies inside R2 - return R2
+		Range includedRange1	= IntegerRange.openClosed(3, 12);
+		set.add(includedRange1);
+		
+//		Case 3: Partial overlap - return span
+		Range overlapRange		= IntegerRange.open(5, 44);
+		set.add(overlapRange);
+		System.out.println();
 	}
 }
