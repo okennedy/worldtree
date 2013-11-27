@@ -48,6 +48,7 @@ public abstract class Datum {
 	public abstract Datum multiply(Datum datum);
 	public abstract Datum divide(Datum datum);
 	public abstract Datum modulo(Datum datum);
+	public abstract Datum clone();
 	
 	public Datum toInt() {
 		Datum datum = null;
@@ -302,6 +303,11 @@ public abstract class Datum {
 				throw new IllegalStateException("Should not be here!");
 			}
 		}
+
+		@Override
+		public Datum clone() {
+			return new Datum.Int((Integer)this.data);
+		}
 	}
 	
 	
@@ -418,6 +424,11 @@ public abstract class Datum {
 				throw new IllegalStateException("Should not be here!");
 			}
 		}
+
+		@Override
+		public Datum clone() {
+			return new Datum.Flt((Float)this.data);
+		}
 		
 	}
 	
@@ -462,6 +473,11 @@ public abstract class Datum {
 		public Datum modulo(Datum datum) {
 			throw new IllegalStateException("Cannot modulo types " + this.type + " and " + datum.type);
 		}
+
+		@Override
+		public Datum clone() {
+			return new Datum.Str((String)this.data);
+		}
 	}
 	
 	
@@ -505,6 +521,11 @@ public abstract class Datum {
 		@Override
 		public Datum modulo(Datum datum) {
 			throw new IllegalStateException("Cannot modulo types " + this.type + " and " + datum.type);
+		}
+
+		@Override
+		public Datum clone() {
+			return new Datum.Bool((Boolean) this.data);
 		}
 	}
 
