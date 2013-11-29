@@ -54,7 +54,7 @@ public abstract class Datum {
 		Datum datum = null;
 		
 		if(type.equals(DatumType.INT)) {
-			datum	= new Datum.Int(new Integer((Integer) this.data));
+			datum	= this;
 		}
 		
 		else if(type.equals(DatumType.FLOAT)) {
@@ -76,7 +76,7 @@ public abstract class Datum {
 		}
 		
 		else if(type.equals(DatumType.FLOAT)) {
-			datum	= new Datum.Flt(new Float((Float) this.data));
+			datum	= this;
 		}
 		
 		else if(type.equals(DatumType.STRING)) {
@@ -98,7 +98,7 @@ public abstract class Datum {
 		}
 		
 		else if(type.equals(DatumType.STRING)) {
-			datum	= new Datum.Str(new String((String) this.data));
+			datum	= this;
 		}
 		
 		datum.type	= DatumType.STRING;
