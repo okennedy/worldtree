@@ -3,9 +3,11 @@ package development.com.collection.range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -15,15 +17,11 @@ import java.util.TreeSet;
 import development.com.collection.range.Range.BoundType;
 
 public class RangeSet extends TreeSet<Range> {
-	private TreeMap<String, Range> rangeMap;
-	private TreeMap<String, Integer> rangeCountMap;
 	private static final long serialVersionUID = 1L;
 
 
 	public RangeSet() {
 		super(new setComparator());
-		rangeMap		= new TreeMap<String, Range>();
-		rangeCountMap 	= new TreeMap<String, Integer>();
 	}
 	
 	@Override
@@ -36,9 +34,12 @@ public class RangeSet extends TreeSet<Range> {
 		upperRange.setUpperBoundType(BoundType.CLOSED);
 		upperRange.setLowerBound(upperRange.upperBound());
 		
-		Set<Range> headSet = this.headSet(upperRange, true);
+		Set<Range> headSet 		= this.headSet(upperRange, true);
+		Iterator<Range> setIter	= headSet.iterator();
 		
-		for(Range range : headSet) {
+		Range resultRange = null;
+		while(setIter.hasNext()) {
+			Range range = setIter.next();
 			if(range.contains(newRange.lowerBound()) && range.contains(newRange.upperBound())) {
 				merged = true;
 				break;
@@ -46,26 +47,21 @@ public class RangeSet extends TreeSet<Range> {
 			else {
 				Range intersection = range.intersection(newRange);
 				if(intersection != null) {
-//					if(intersection.contains(range.lowerBound())) {
-////						newRange finishes outside
-//						range.setUpperBound(newRange.upperBound());
-//						range.setUpperBoundType(newRange.upperBoundType());
-//					}
-//					else if(intersection.contains(range.upperBound())) {
-////						newRange starts outside
-//						range.setLowerBound(newRange.lowerBound());
-//						range.setLowerBoundType(newRange.lowerBoundType());
-//					}
-					this.remove(range);
-					range = range.span(newRange);
-					this.add(range);
+					setIter.remove();
+					if(resultRange == null)
+						resultRange = range.span(newRange);
+					else
+						resultRange = range.span(resultRange);
 					merged = true;
 				}
 			}
 		}
 		if(!merged)
 			result = super.add(newRange);
-		
+		else {
+			if(resultRange != null)
+				this.add(resultRange);
+		}
 		return result;
 	}
 	
@@ -89,22 +85,13 @@ public class RangeSet extends TreeSet<Range> {
 	}
 	
 	public Datum generateRandom() {
-		int sumOfWeights = 0;
-		for(Map.Entry<String, Integer> entry : rangeCountMap.entrySet())
-			sumOfWeights += entry.getValue();
-		
-		int random	= (new Random()).nextInt(sumOfWeights);
-		int index	= random;
+		int index	= (new Random()).nextInt(this.size());
 		
 		Range randomRange = null;
-		for(Map.Entry<String, Integer> entry : rangeCountMap.entrySet()) {
-			if(index == 0 || (index - entry.getValue()) <= 0) {
-				randomRange = rangeMap.get(entry.getKey());
-				break;
-			}
-			else
-				index -= entry.getValue();
-		}
+		Iterator<Range> iter = this.iterator();
+		for(int i = 0; i < index; i++)
+			iter.next();
+		randomRange = iter.next();
 		return randomRange.generateRandom();
 	}
 	
