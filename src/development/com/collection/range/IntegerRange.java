@@ -67,22 +67,23 @@ public class IntegerRange extends Range {
 		
 //		Either no overlap or partial overlap
 		else {
+			Datum lowerBound 			= null;
+			BoundType lowerBoundType	= null;
+			Datum upperBound			= null;
+			BoundType upperBoundType	= null;
+			
 			if(this.contains(range.lowerBound())) {
-				Datum lowerBound 			= range.lowerBound();
-				BoundType lowerBoundType	= range.lowerBoundType();
-				
-				Datum upperBound			= this.upperBound();
-				BoundType upperBoundType	= this.upperBoundType();
-				
+				lowerBound 		= range.lowerBound();
+				lowerBoundType	= range.lowerBoundType();
+				upperBound		= this.upperBound();
+				upperBoundType	= this.upperBoundType();
 				return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
 			}
 			else if(this.contains(range.upperBound())) {
-				Datum lowerBound			= this.lowerBound();
-				BoundType lowerBoundType	= this.lowerBoundType();
-				
-				Datum upperBound			= range.upperBound();
-				BoundType upperBoundType	= range.upperBoundType();
-				
+				lowerBound		= this.lowerBound();
+				lowerBoundType	= this.lowerBoundType();
+				upperBound		= range.upperBound();
+				upperBoundType	= range.upperBoundType();
 				return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
 			}
 		}
@@ -109,16 +110,19 @@ public class IntegerRange extends Range {
 	
 	@Override
 	public boolean contains(Datum datum) {
-		Integer value = null;
-		
+		Integer valueInt 	= null;
+		int value;
 		int lowerBoundData	= (Integer) lowerBound().data();
 		int upperBoundData	= (Integer) upperBound().data();
 		
 		try {
-			value 			= (Integer) datum.data();
+			valueInt		= (Integer) datum.data();
 		} catch(Exception e) {
 			throw new IllegalArgumentException("IntegerRange cannot contain an object of type '" + datum.type() + "'");
 		}
+		value = valueInt.intValue();
+		if(value > lowerBoundData && value < upperBoundData)
+			return true;
 		switch(lowerBoundType()) {
 		case CLOSED:
 			if(value == lowerBoundData)
@@ -139,11 +143,7 @@ public class IntegerRange extends Range {
 				return false;
 			break;
 		}
-		
-		if(value > lowerBoundData && value < upperBoundData)
-			return true;
-		else
-			return false;
+		return false;
 	}
 
 	@Override
@@ -220,6 +220,6 @@ public class IntegerRange extends Range {
 
 	@Override
 	public Range clone() {
-		return new IntegerRange((Integer) lowerBound().data(), lowerBoundType(), (Integer) upperBound().data(), upperBoundType());
+		return new IntegerRange(lowerBound(), lowerBoundType(), upperBound(), upperBoundType());
 	}
 }

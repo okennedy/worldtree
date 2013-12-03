@@ -1,5 +1,6 @@
 package development.com.collection.range;
 
+import development.com.collection.range.Range.BoundType;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Datum.DatumType;
 
@@ -66,22 +67,23 @@ public class FloatRange extends Range {
 		
 //		Either no overlap or partial overlap
 		else {
+			Datum lowerBound 			= null;
+			BoundType lowerBoundType	= null;
+			Datum upperBound			= null;
+			BoundType upperBoundType	= null;
+			
 			if(this.contains(range.lowerBound())) {
-				Datum lowerBound 			= range.lowerBound();
-				BoundType lowerBoundType	= range.lowerBoundType();
-				
-				Datum upperBound			= this.upperBound();
-				BoundType upperBoundType	= this.upperBoundType();
-				
+				lowerBound 		= range.lowerBound();
+				lowerBoundType	= range.lowerBoundType();
+				upperBound		= this.upperBound();
+				upperBoundType	= this.upperBoundType();
 				return new FloatRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
 			}
 			else if(this.contains(range.upperBound())) {
-				Datum lowerBound			= this.lowerBound();
-				BoundType lowerBoundType	= this.lowerBoundType();
-				
-				Datum upperBound			= range.upperBound();
-				BoundType upperBoundType	= range.upperBoundType();
-				
+				lowerBound		= this.lowerBound();
+				lowerBoundType	= this.lowerBoundType();
+				upperBound		= range.upperBound();
+				upperBoundType	= range.upperBoundType();
 				return new FloatRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
 			}
 		}
@@ -101,16 +103,17 @@ public class FloatRange extends Range {
 	
 	@Override
 	public boolean contains(Datum datum) {
-		Float value = null;
-		
+		Float valueFlt = null;
+		float value;
 		float lowerBoundData	= (Float) lowerBound().data();
 		float upperBoundData	= (Float) upperBound().data();
 		
 		try {
-			value 			= (Float) datum.data();
+			valueFlt			= (Float) datum.data();
 		} catch(Exception e) {
 			throw new IllegalArgumentException("FloatRange cannot contain an object of type '" + datum.type() + "'");
 		}
+		value = valueFlt.floatValue();
 		switch(lowerBoundType()) {
 		case CLOSED:
 			if(value == lowerBoundData)
@@ -217,6 +220,6 @@ public class FloatRange extends Range {
 	
 	@Override
 	public Range clone() {
-		return new FloatRange((Float) lowerBound().data(), lowerBoundType(), (Float) upperBound().data(), upperBoundType());
+		return new FloatRange(lowerBound(), lowerBoundType(), upperBound(), upperBoundType());
 	}
 }
