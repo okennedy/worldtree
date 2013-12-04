@@ -52,57 +52,63 @@ public abstract class Datum {
 	
 	public Datum toInt() {
 		Datum datum = null;
-		
-		if(type.equals(DatumType.INT)) {
-			datum	= this;
+		int value = 0;
+		switch(type) {
+		case FLOAT:
+			value 	= ((Float) this.data).intValue();
+			break;
+		case INT:
+			datum 	= this;
+			break;
+		case STRING:
+			value	= Integer.parseInt("" + this.data);
+			break;
+		case BOOL:
+		default:
+			throw new IllegalStateException("Cannot convert from " + type + " to " + DatumType.INT);
 		}
-		
-		else if(type.equals(DatumType.FLOAT)) {
-			datum	= new Datum.Int(new Integer((Integer.parseInt(Float.toString((Float) this.data)))));
-		}
-		
-		else if(type.equals(DatumType.STRING)) {
-			datum	= new Datum.Int(new Integer(Integer.parseInt((String) this.data)));
-		}
-		datum.type	= DatumType.INT;
+		if(datum == null)
+			datum = new Datum.Int(value);
 		return datum;
 	}
 	
 	public Datum toFlt() {
 		Datum datum = null;
-		
-		if(type.equals(DatumType.INT)) {
-			datum	= new Datum.Flt(new Float((Integer) this.data));
-		}
-		
-		else if(type.equals(DatumType.FLOAT)) {
+		float value = 0;
+		switch(type) {
+		case FLOAT:
 			datum	= this;
+			break;
+		case INT:
+		case STRING:
+			value	= Float.parseFloat("" + this.data);
+			break;
+		case BOOL:
+		default:
+			throw new IllegalStateException("Cannot convert from " + type + " to " + DatumType.FLOAT);
 		}
-		
-		else if(type.equals(DatumType.STRING)) {
-			datum	= new Datum.Flt(new Float(Float.parseFloat((String) this.data)));
-		}
-		datum.type	= DatumType.FLOAT;
+		if(datum == null)
+			datum = new Datum.Flt(value);
 		return datum;
 	}
 	
 	public Datum toStr() {
 		Datum datum = null;
-		
-		if(type.equals(DatumType.INT)) {
-			datum	= new Datum.Str(Integer.toString((Integer)this.data));
-		}
-		
-		else if(type.equals(DatumType.FLOAT)) {
-			datum	= new Datum.Str(Float.toString((Float) this.data));
-		}
-		
-		else if(type.equals(DatumType.STRING)) {
+		String value = null;
+		switch(type) {
+		case STRING:
 			datum	= this;
+			break;
+		case FLOAT:
+		case INT:
+		case BOOL:
+			value	= "" + this.data;
+			break;
+		default:
+			throw new IllegalStateException("Cannot convert from " + type + " to " + DatumType.FLOAT);
 		}
-		
-		datum.type	= DatumType.STRING;
-		
+		if(datum == null)
+			datum = new Datum.Str(value);
 		return datum;
 	}
 	
@@ -127,7 +133,38 @@ public abstract class Datum {
 				throw new IllegalArgumentException("Cannot compare " + type + " and " + datum.type + " using " + operator);
 			}
 		}
-		case INT:
+		case INT: {
+			int val1 	= (Integer) data;
+			float val2 	= (Float) datum.toFlt().data;
+			switch(operator) {
+			case EQ:
+				if(val1 == val2)
+					return 0;
+				break;
+			case GE:
+				if(val1 >= val2)
+					return 0;
+				break;
+			case GT:
+				if(val1 > val2)
+					return 0;
+				break;
+			case LE:
+				if(val1 <= val2)
+					return 0;
+				break;
+			case LT:
+				if(val1 < val2)
+					return 0;
+				break;
+			case NOTEQ:
+				if(val1 != val2)
+					return 0;
+				break;
+			}
+			break;
+		}
+			
 		case FLOAT: {
 			float val1 = (Float) toFlt().data;
 			float val2 = (Float) datum.toFlt().data;
@@ -226,7 +263,7 @@ public abstract class Datum {
 		public Datum add(Datum datum) {
 			assert (datum.type.equals(DatumType.INT) || datum.type.equals(DatumType.FLOAT)) : "Cannot add Datum types " + this.type + " , " + datum.type;
 			
-			int data 			= (Integer) this.data;
+			int data = (Integer) this.data;
 			switch(datum.type) {
 			case FLOAT:
 				return new Datum.Flt(data + (Float) datum.data);
