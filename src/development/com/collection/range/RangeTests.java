@@ -32,12 +32,13 @@ public class RangeTests {
 		RangeSet set = new RangeSet();
 		for(int i = 0; i < 5; i++) {
 			for(int j = 0; j < 5; j++) {
-				Range range = IntegerRange.closed(i, j);
-				if(i == j)
+				if(i == j) {
+					Range range = IntegerRange.closed(i, j);
 					set.add(range);
+				}
 			}
 		}
-		if(set.size() != 5) 
+		if(set.size() != 5)
 			result.append("Failed!\n\t\tRangeSetInsertion failed! Expected 5 elements..found only " + set.size() + "\n\n");
 		else
 			result.append("Succeeded!\n");
@@ -49,8 +50,10 @@ public class RangeTests {
 		RangeSet set = new RangeSet();
 		for(int i = 0; i < 5; i++) {
 			for(int j = 0; j < 5; j++) {
-				Range range = IntegerRange.closed(i, j);
-				set.add(range);
+				if(i <= j) {
+					Range range = IntegerRange.closed(i, j);
+					set.add(range);
+				}
 			}
 		}
 		
