@@ -34,7 +34,7 @@ public class RangeSet extends TreeSet<Range> {
 		upperRange.setUpperBoundType(BoundType.CLOSED);
 		upperRange.setLowerBound(upperRange.upperBound());
 		
-		Set<Range> headSet 		= this.headSet(upperRange, true);
+		Set<Range> headSet		= this.headSet(upperRange, true).descendingSet();
 		Iterator<Range> setIter	= headSet.iterator();
 		
 		Range resultRange = null;
@@ -54,6 +54,8 @@ public class RangeSet extends TreeSet<Range> {
 						resultRange = range.span(resultRange);
 					merged = true;
 				}
+				else
+					break;
 			}
 		}
 		if(!merged)
