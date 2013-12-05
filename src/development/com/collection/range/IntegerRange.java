@@ -9,12 +9,13 @@ public class IntegerRange extends Range {
 		super();
 	}
 	
+	/* ---------------------------------- CONSTRUCTORS ---------------------------------- */
 	protected IntegerRange(int lowerBound, BoundType lowerBoundType, int upperBound, BoundType upperBoundType) {
 		super(new Datum.Int(lowerBound), lowerBoundType, new Datum.Int(upperBound), upperBoundType);
 	}
 	
 	protected IntegerRange(Datum lowerBound, BoundType lowerBoundType, Datum upperBound, BoundType upperBoundType) {
-		super(lowerBound.clone(), lowerBoundType, upperBound.clone(), upperBoundType);
+		super(lowerBound, lowerBoundType, upperBound, upperBoundType);
 	}
 	
 	public static IntegerRange open(int lowerBound, int upperBound) {
@@ -23,7 +24,7 @@ public class IntegerRange extends Range {
 	
 	public static IntegerRange open(Datum lowerBound, Datum upperBound) {
 		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
-		return new IntegerRange((Integer) lowerBound.data(), BoundType.OPEN, (Integer) upperBound.data(), BoundType.OPEN);
+		return new IntegerRange(lowerBound, BoundType.OPEN, upperBound, BoundType.OPEN);
 	}
 	
 	
@@ -33,7 +34,7 @@ public class IntegerRange extends Range {
 	
 	public static IntegerRange closed(Datum lowerBound, Datum upperBound) {
 		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
-		return new IntegerRange((Integer) lowerBound.data(), BoundType.CLOSED, (Integer) upperBound.data(), BoundType.CLOSED);
+		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
 	}
 	
 	
@@ -43,7 +44,7 @@ public class IntegerRange extends Range {
 	
 	public static IntegerRange openClosed(Datum lowerBound, Datum upperBound) {
 		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
-		return new IntegerRange((Integer) lowerBound.data(), BoundType.OPEN, (Integer) upperBound.data(), BoundType.CLOSED);
+		return new IntegerRange(lowerBound, BoundType.OPEN, upperBound, BoundType.CLOSED);
 	}
 	
 	
@@ -53,8 +54,9 @@ public class IntegerRange extends Range {
 	
 	public static IntegerRange closedOpen(Datum lowerBound, Datum upperBound) {
 		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
-		return new IntegerRange((Integer) lowerBound.data(), BoundType.CLOSED, (Integer) upperBound.data(), BoundType.OPEN);
+		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.OPEN);
 	}
+	/* ---------------------------------- CONSTRUCTORS ---------------------------------- */
 	
 	
 	public Range intersection(Range range) {
