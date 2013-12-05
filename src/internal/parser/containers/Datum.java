@@ -80,6 +80,8 @@ public abstract class Datum {
 			datum	= this;
 			break;
 		case INT:
+			value	= ((Integer) this.data).floatValue();
+			break;
 		case STRING:
 			value	= Float.parseFloat("" + this.data);
 			break;
@@ -162,11 +164,11 @@ public abstract class Datum {
 					return 0;
 				break;
 			}
-			break;
+			return (int) (val1 - val2);
 		}
 			
 		case FLOAT: {
-			float val1 = (Float) toFlt().data;
+			float val1 = (Float) data;
 			float val2 = (Float) datum.toFlt().data;
 			switch(operator) {
 			case EQ:
@@ -194,7 +196,7 @@ public abstract class Datum {
 					return 0;
 				break;
 			}
-			break;
+			return (int) ((int) val1 - val2);
 		}
 		case STRING: {
 			String val1 = (String) data;
