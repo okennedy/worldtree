@@ -217,12 +217,7 @@ public class HierarchicalSplit {
 					switch(definition().aggregateExpression().type()) {
 					case COUNT:
 					case SUM:
-						for(Range range1 : this.lhs.ranges()) {
-							for(Range range2 : this.rhs.ranges()) {
-								Range resultRange = range1.add(range2);
-								resultRanges.add(resultRange);
-							}
-						}
+						resultRanges = this.lhs.ranges().sum(this.rhs.ranges());
 						return resultRanges;
 					case MAX:
 //						TODO: Determine whether min = minVal when maxVal > max
