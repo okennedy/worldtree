@@ -14,24 +14,8 @@ public abstract class Datum {
 //		Stops empty constructor initialization
 	}
 	
-	private Datum(Integer data) {
+	private Datum(Object data) {
 		this.data 	= data;
-		this.type 	= DatumType.INT;
-	}
-	
-	private Datum(Float data) {
-		this.data	= data;
-		this.type	= DatumType.FLOAT;
-	}
-	
-	private Datum(String data) {
-		this.data	= data;
-		this.type	= DatumType.STRING;
-	}
-	
-	private Datum(Boolean data) {
-		this.data	= data;
-		this.type	= DatumType.BOOL;
 	}
 	
 	public Object data() {
@@ -51,14 +35,13 @@ public abstract class Datum {
 	public abstract Datum clone();
 	
 	public Datum toInt() {
+		if(this.type == DatumType.INT)
+			return this;
 		Datum datum = null;
 		int value = 0;
 		switch(type) {
 		case FLOAT:
 			value 	= ((Float) this.data).intValue();
-			break;
-		case INT:
-			datum 	= this;
 			break;
 		case STRING:
 			value	= Integer.parseInt("" + this.data);
@@ -73,12 +56,11 @@ public abstract class Datum {
 	}
 	
 	public Datum toFlt() {
+		if(this.type == DatumType.FLOAT)
+			return this;
 		Datum datum = null;
 		float value = 0;
 		switch(type) {
-		case FLOAT:
-			datum	= this;
-			break;
 		case INT:
 			value	= ((Integer) this.data).floatValue();
 			break;
@@ -95,12 +77,11 @@ public abstract class Datum {
 	}
 	
 	public Datum toStr() {
+		if(this.type == DatumType.STRING)
+			return this;
 		Datum datum = null;
 		String value = null;
 		switch(type) {
-		case STRING:
-			datum	= this;
-			break;
 		case FLOAT:
 		case INT:
 		case BOOL:
@@ -136,8 +117,8 @@ public abstract class Datum {
 			}
 		}
 		case INT: {
-			int val1 	= (Integer) data;
-			float val2 	= (Float) datum.toFlt().data;
+			int val1 	= ((Integer) data).intValue();
+			int val2 	= ((Integer) datum.toInt().data).intValue();	//FIXME: This should ideally be float..but float takes lot of time
 			switch(operator) {
 			case EQ:
 				if(val1 == val2)
@@ -164,12 +145,12 @@ public abstract class Datum {
 					return 0;
 				break;
 			}
-			return (int) (val1 - val2);
+			return val1 - val2;
 		}
 			
 		case FLOAT: {
-			float val1 = (Float) data;
-			float val2 = (Float) datum.toFlt().data;
+			float val1 = ((Float) data).floatValue();
+			float val2 = ((Float) datum.toFlt().data).floatValue();
 			switch(operator) {
 			case EQ:
 				if(val1 == val2)
@@ -227,6 +208,7 @@ public abstract class Datum {
 	public static class Int extends Datum {
 		public Int(Integer data) {
 			super(data);
+			this.type = DatumType.INT;
 		}
 		
 		@Override
@@ -354,6 +336,7 @@ public abstract class Datum {
 	public static class Flt extends Datum {
 		public Flt(Float data) {
 			super(data);
+			this.type = DatumType.FLOAT;
 		}
 		
 		@Override
@@ -476,6 +459,7 @@ public abstract class Datum {
 	public static class Str extends Datum {
 		public Str(String data) {
 			super(data);
+			this.type = DatumType.STRING;
 		}
 		
 		@Override
@@ -524,6 +508,7 @@ public abstract class Datum {
 	public static class Bool extends Datum {
 		public Bool(Boolean data) {
 			super(data);
+			this.type = DatumType.BOOL;
 		}
 		
 		@Override
