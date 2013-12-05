@@ -18,10 +18,11 @@ import development.com.collection.range.Range.BoundType;
 
 public class RangeSet extends TreeSet<Range> {
 	private static final long serialVersionUID = 1L;
+	private static SetComparator comparator = new SetComparator();
 
 
 	public RangeSet() {
-		super(new setComparator());
+		super(comparator);
 	}
 	
 	@Override
@@ -115,7 +116,7 @@ public class RangeSet extends TreeSet<Range> {
 		return result;
 	}
 	
-	private static class setComparator implements Comparator<Range> {
+	private static class SetComparator implements Comparator<Range> {
 
 		@Override
 		public int compare(Range o1, Range o2) {
