@@ -7,6 +7,7 @@ import java.util.Map;
 
 import development.com.collection.range.Range;
 import development.com.collection.range.RangeSet;
+import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.property.PropertyDef;
@@ -156,6 +157,8 @@ public interface IWorldTree {
 		public void materializeConstraints();
 
 		public void fill();
+		
+		public Collection<IWorldTree> getNodesByLevel(Hierarchy level);
 	}
 	
 	public interface IRoom extends IWorldTree {

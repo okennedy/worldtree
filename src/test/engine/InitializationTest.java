@@ -4,11 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.Random;
 import java.util.Scanner;
 
 import static internal.Helper.*;
-
 import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.TokenCmpOp;
@@ -27,6 +27,7 @@ import internal.parser.containers.query.IQuery;
 import internal.parser.resolve.ResolutionEngine;
 import internal.parser.resolve.Result;
 import internal.piece.PieceFactory;
+import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
 
@@ -53,13 +54,13 @@ public class InitializationTest {
 	public void materializationTest() {
 		factory = new WorldTreeFactory("init.properties", "world.definitions");
 
-		int maxTreasure = 32;
+		int maxTreasure = 4000;
 		int runs = 100;
 		
 		for(int testIndex = 0; testIndex < runs; testIndex++) {
 			Constraint constraint = null;
+			int treasure			= new Random().nextInt(maxTreasure);
 			{
-				int treasure			= new Random().nextInt(maxTreasure);
 				Datum value				= new Datum.Int(treasure);
 				IPattern pattern		= new BasePattern(new Reference("this"), null, null);
 				Property childProperty	= new Property(new Reference("this"), "treasure");
@@ -69,14 +70,28 @@ public class InitializationTest {
 			}
 			map = factory.newMap("InitTestMap", null);
 			
-			map.addConstraint(constraint);
-			
 			map.initRooms();
 			map.initRegions();
 			map.initTiles();
+			
+			map.addConstraint(constraint);
 		
 			map.materializeConstraints();
 			write(map);
+			
+			Collection<IWorldTree> tiles = map.getNodesByLevel(Hierarchy.Tile);
+			int sum = 0;
+			
+//			Check values
+			for(IWorldTree tile : tiles) {
+				Datum value = tile.properties().get("treasure");
+				if(value != null) {
+					sum = sum + ((Integer) value.toInt().data());
+				}
+			}
+			assert sum == treasure : "Map constraint was not satisfied!\n"
+					+ "Expected :" + treasure + "\n"
+					+ "Obtained :" + sum;
 			System.out.println("Finished run :" + testIndex);
 		}
 	}

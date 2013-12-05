@@ -214,7 +214,7 @@ public class WorldTreeFactory implements Serializable {
 			return null;
 		}
 		
-		private Collection<IWorldTree> getNodesByLevel(Hierarchy level) {
+		public Collection<IWorldTree> getNodesByLevel(Hierarchy level) {
 			Collection<IWorldTree> result 	= new Vector<IWorldTree>();
 			
 			List<IWorldTree> nodeList = new Vector<IWorldTree>();
