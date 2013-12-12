@@ -108,9 +108,13 @@ public class RangeSet extends TreeSet<Range> {
 	
 	public RangeSet sum(RangeSet set) {
 		RangeSet result = new RangeSet();
-		for(Range range1 : this) {
-			for(Range range2 : set) {
-				result.add(range1.add(range2));
+		if(this.size() == 0)
+			result.addAll(set);
+		else {
+			for(Range range1 : this) {
+				for(Range range2 : set) {
+					result.add(range1.add(range2));
+				}
 			}
 		}
 		return result;

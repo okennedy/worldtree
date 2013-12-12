@@ -480,7 +480,6 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 //				TODO: Validate this
 				Range resultRange = IntegerRange.closed(0, bounds.size());
 				resultRanges.add(resultRange);
-				return resultRanges;
 
 			case MAX:
 //				TODO: Determine whether min = minVal when maxVal > max
@@ -491,14 +490,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				break;
 			case SUM:
 //				TODO: Handle float-int interaction - either here or natively in range classes
-				for(RangeSet baseSet : bounds) {
-					RangeSet result = baseSet.clone();
-					for(RangeSet secondarySet : bounds) {
-						if(baseSet == secondarySet)
-							continue;
-						result = result.sum(secondarySet);
-					}
-					resultRanges.addAll(result);
+				for(RangeSet set : bounds) {
+					resultRanges = resultRanges.sum(set);
 				}
 			}
 					

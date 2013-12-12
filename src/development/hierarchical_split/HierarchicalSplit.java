@@ -62,14 +62,15 @@ public class HierarchicalSplit {
 			IWorldTree child	= entry.getKey();
 			RangeSet ranges		= entry.getValue();
 			Node node 			= new Node(null);
+			node.setDefinition(definition);
 			node.setObject(child, ranges);
 			nodeList.add(node);
 		}
 		
 		while(nodeList.size() > 1) {
 			Node node 		= new Node(null);
-			
 			Node listHead	= nodeList.get(0);
+			node.setDefinition(definition);
 			node.insert(listHead);
 			nodeList.remove(0);
 			
@@ -80,8 +81,6 @@ public class HierarchicalSplit {
 			}
 			nodeList.add(node);
 		}
-		Node root = nodeList.get(0);
-		root.setDefinition(definition);
 		return nodeList.get(0);
 	}
 	
@@ -191,65 +190,40 @@ public class HierarchicalSplit {
 		}
 		
 		public PropertyDef definition() {
-			if(this.parent == null)
+//			if(this.parent == null)
 				return this.definition;
-			else
-				return this.root().definition;
+//			else
+//				return this.root().definition;
 		}
 		
 		public void insert(Node node) {
-			if(this.lhs == null)
+			if(this.lhs == null) {
 				this.setLHS(node);
-			else if(this.rhs == null)
+				this.setRanges(this.lhs.ranges());
+			}
+			else if(this.rhs == null) {
 				this.setRHS(node);
-		}
-
-		
-		public RangeSet ranges() {
-			if(lhs == null)
-				return ranges;
-			else if(rhs == null)
-				return lhs.ranges();
-			else {
-				RangeSet resultRanges = new RangeSet();
 				switch(definition().type()) {
 				case AGGREGATE:
 					switch(definition().aggregateExpression().type()) {
 					case COUNT:
 					case SUM:
-						resultRanges = this.lhs.ranges().sum(this.rhs.ranges());
-						return resultRanges;
+						this.ranges = this.ranges().sum(this.rhs.ranges());
+						break;
 					case MAX:
-//						TODO: Determine whether min = minVal when maxVal > max
-						for(Range lhsRange : this.lhs.ranges())
-							resultRanges.add(lhsRange);
-						for(Range rhsRange : this.rhs.ranges())
-							resultRanges.add(rhsRange);
-						return resultRanges;
 					case MIN:
-////					TODO: Determine whether max = maxVal when minVal < min
-						for(Range range1 : this.lhs.ranges()) {
-							for(Range range2 : this.rhs.ranges()) {
-								Datum lowerBound 	= range1.lowerBound();
-								Datum upperBound	= range1.upperBound();
-								if(range1.lowerBound().compareTo(range2.lowerBound(), TokenCmpOp.GT) == 0)
-									lowerBound 	= range2.lowerBound();
-								
-								if(range1.upperBound().compareTo(range2.upperBound(), TokenCmpOp.GT) == 0)	//TODO: Validate this..
-									upperBound	= range2.upperBound();
-								Range resultRange = range1.clone();
-								resultRange.setLowerBound(lowerBound);
-								resultRange.setUpperBound(upperBound);
-								resultRanges.add(resultRange);	//FIXME: Assumes that the ranges overlap..fix this!
-							}
-						}
-						return resultRanges;
+//						TODO: Write proper logic for this
+						throw new IllegalStateException("Unimplemented logic!\n");
 					default:
 						throw new IllegalStateException("Tree can't have a node with 2 objects somewhere below, but not be an aggregate!");
 					}
 				}
 			}
-			throw new IllegalStateException("Shouldn't be trying to return null");
+		}
+
+		
+		public RangeSet ranges() {
+			return this.ranges;
 		}
 		
 		public void split(Map<IWorldTree, Datum> values, Datum requiredValue) {
