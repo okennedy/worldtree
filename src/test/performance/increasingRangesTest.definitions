@@ -9,4 +9,4 @@ DEFINE ROOM R.treasure as AGGREGATE SUM(REG.treasure)
 DEFINE REGION R.treasure as AGGREGATE SUM(T.treasure)
 	in TILE T;
 	
-DEFINE TILE T.treasure as RANDOM UNIFORM INT FROM 0 to 50;
+DEFINE TILE T.treasure as RANDOM UNIFORM INT FROM 0 to 100;

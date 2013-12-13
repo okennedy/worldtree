@@ -475,7 +475,7 @@ public class PerformanceTests {
 	@Test
 	public void increasingRangesTest() {
 		int dimensionalLimit = 100000;
-		int divisionLimit	 = 30;
+		int divisionLimit	 = 50;
 		File outputDir 			= setupOutputDir("increasingRangesTest/limit_" + dimensionalLimit);
 		File definitionsFile	= new File("src/test/performance/increasingRangesTest.definitions");
 		assert definitionsFile.exists() : "Definitions file does not exist for increasingRangesTest\n";
@@ -505,7 +505,7 @@ public class PerformanceTests {
 				BufferedWriter writer		= new BufferedWriter(new FileWriter(currentDefinitionsFile, true));
 				
 				List<Integer> values = new LinkedList<Integer>();
-				for(int i = 0; i < 50; i++)
+				for(int i = 0; i < 100; i++)
 					values.add(i);
 				
 				Random rnd	= new Random();
