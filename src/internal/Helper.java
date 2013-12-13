@@ -7,8 +7,13 @@ import internal.tree.IWorldTree;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -279,6 +284,53 @@ public class Helper {
 				System.err.println(e.getMessage());
 			}
 			return null;
+		}
+	}
+	
+	public static void fileCopy(File source, File destination, boolean replace, boolean verify) {
+		if(!replace) {
+			if(destination.exists())
+				throw new IllegalStateException("Cannot perform fileCopy! Destination file already exists\n");
+		}
+		else {
+			if(destination.exists())
+				destination.delete();
+		}
+		try {
+			OutputStream output 	= new FileOutputStream(destination);
+			InputStream input 		= new FileInputStream(source);
+			byte[] array = new byte[1024 * 1024];
+			while(input.read(array) > 0)
+				output.write(array);
+			
+			input.close();
+			output.close();
+		} catch (FileNotFoundException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+		}
+		assert source.length() == destination.length();
+		if(verify) {
+			long length = source.length();
+			try {
+				InputStream src		= new FileInputStream(source);
+				InputStream dest	= new FileInputStream(destination);
+				int byte1, byte2;
+				
+				for(int byteIndex = 0; byteIndex < length; byteIndex++) {
+					byte1 	= src.read();
+					byte2	= dest.read();
+					assert byte1 == byte2 : "File copy failed! source and destination do not match!\n";
+				}
+				
+				src.close();
+				dest.close();
+			} catch(IOException e) {
+				System.err.println(e.getMessage());
+			}
 		}
 	}
 }
