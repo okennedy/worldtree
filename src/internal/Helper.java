@@ -299,9 +299,10 @@ public class Helper {
 		try {
 			OutputStream output 	= new FileOutputStream(destination);
 			InputStream input 		= new FileInputStream(source);
-			byte[] array = new byte[1024 * 1024];
-			while(input.read(array) > 0)
-				output.write(array);
+			byte[] bytes = new byte[1024 * 1024];
+			int length = -1;
+			while((length = input.read(bytes)) > -1)
+				output.write(bytes, 0, length);
 			
 			input.close();
 			output.close();
