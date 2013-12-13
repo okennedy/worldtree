@@ -4,16 +4,12 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
-import java.util.TreeMap;
-
 import internal.Helper;
 import internal.parser.containers.Constraint;
 import internal.piece.PieceFactory;
@@ -476,6 +472,103 @@ public class PerformanceTests {
 		}
 	}
 
+	@Test
+	public void increasingRangesTest() {
+		int dimensionalLimit = 100000;
+		int divisionLimit	 = 30;
+		File outputDir 			= setupOutputDir("increasingRangesTest/limit_" + dimensionalLimit);
+		File definitionsFile	= new File("src/test/performance/increasingRangesTest.definitions");
+		assert definitionsFile.exists() : "Definitions file does not exist for increasingRangesTest\n";
+		File propertiesFile	= new File(outputDir.getAbsolutePath() + "/IncreasingRangesTest.properties");
+		try {
+			int yDim = dimensionalLimit / (4 * 1000);
+			Properties properties 	= new Properties();
+			properties.put("Room.count", "2");
+			properties.put("Region.count", "2");
+			properties.put("Region0.size", "1000" + "x" + yDim);
+			properties.put("Region1.size", "1000" + "x" + yDim);
+			Statistics timingStats	= new Statistics();
+			Statistics memoryStats	= new Statistics();
+			Statistics maxMemStats	= new Statistics();
+			
+			properties.store(new FileWriter(propertiesFile), "");
+			
+			for(int divisions = 0; divisions <= divisionLimit; divisions++) {
+				long iterationStartTime	= System.nanoTime();
+				System.out.println("Iteration    :" + divisions);
+				
+				MemUsageMonitor memUsageMonitor = new MemUsageMonitor(10, true);
+				memUsageMonitor.start();
+
+				File currentDefinitionsFile	= new File(outputDir.getAbsolutePath() + "/" + divisions + ".definitions");
+				Helper.fileCopy(definitionsFile, currentDefinitionsFile, false, true);
+				BufferedWriter writer		= new BufferedWriter(new FileWriter(currentDefinitionsFile, true));
+				
+				List<Integer> values = new LinkedList<Integer>();
+				for(int i = 0; i < 50; i++)
+					values.add(i);
+				
+				Random rnd	= new Random();
+				for(int i = 0; i <= divisions; i++) {
+					int index = rnd.nextInt(values.size());
+					int value = values.get(index);
+					writer.newLine();
+					writer.append("FOR ALL TILE T ASSERT T.treasure != " + value);
+					values.remove(index);
+				}				
+				writer.close();
+				WorldTreeFactory factory = new WorldTreeFactory(propertiesFile.getAbsolutePath(), currentDefinitionsFile.getAbsolutePath());
+				
+				long startTime 	= System.nanoTime();
+				
+				IMap map = factory.newMap("testMap", null);
+				
+
+				map.initRooms();
+				map.initRegions();
+				map.initTiles();
+				map.materializeConstraints();
+				map.fill();
+				
+				long endTime	= System.nanoTime();
+				
+				System.gc();
+				Thread.sleep(5);
+				
+				memUsageMonitor.interrupt();
+				memUsageMonitor.join();
+				
+				if(!maxMemStats.containsKey(divisions))
+					maxMemStats.put(divisions, new ArrayList<Long>());
+				maxMemStats.get(divisions).add(memUsageMonitor.getMax().bytes());
+				
+				if(!timingStats.containsKey(divisions))
+					timingStats.put(divisions, new ArrayList<Long>());
+				timingStats.get(divisions).add(endTime - startTime);
+
+				MemUnit usage	= MemUnit.getUsedMemory();
+				if(!memoryStats.containsKey(divisions))
+					memoryStats.put(divisions, new ArrayList<Long>());
+				memoryStats.get(divisions).add(usage.bytes());
+				
+				factory = null;
+				map		= null;
+				long iterationEndTime	= System.nanoTime();
+				
+				System.out.println("Time Taken   :" + String.format("%.4f", (iterationEndTime - iterationStartTime) / 1e9) + "seconds\n");
+			}
+					
+			timingStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/timing_data")), "Area - Time Taken");
+			memoryStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/memory_data")), "Area - Memory Footprint");
+			maxMemStats.store(new FileWriter(new File(outputDir.getAbsolutePath() + "/max_mem_data")), "Area - Max Memory Footprint");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	private void storeAverages(Statistics stats, Properties property) {
 		for(Map.Entry<Integer, List<Long>> entry : stats.entrySet()) {
 			long average = 0;
