@@ -20,8 +20,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import test.MemUnit;
 import test.MemUsageMonitor;
-import test.memory.MemUnit;
 
 import static internal.Helper.*;
 

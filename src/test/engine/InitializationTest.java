@@ -54,7 +54,7 @@ public class InitializationTest {
 	public void materializationTest() {
 		factory = new WorldTreeFactory("init.properties", "world.definitions");
 
-		int maxTreasure = 4000;
+		int maxTreasure = 32;
 		int runs = 100;
 		
 		for(int testIndex = 0; testIndex < runs; testIndex++) {
@@ -73,7 +73,7 @@ public class InitializationTest {
 			map.initRooms();
 			map.initRegions();
 			map.initTiles();
-			
+			map.fill();
 			map.addConstraint(constraint);
 		
 			map.materializeConstraints();

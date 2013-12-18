@@ -21,8 +21,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import test.MemUnit;
 import test.MemUsageMonitor;
-import test.memory.MemUnit;
 
 public class QueryPerformance {
 	private static File outputDir = new File("output/PerformanceTests/QueryPerformance");
