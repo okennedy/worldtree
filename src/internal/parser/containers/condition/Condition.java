@@ -1,5 +1,6 @@
 package internal.parser.containers.condition;
 
+import development.com.collection.range.Range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 import internal.parser.containers.condition.BaseCondition.ConditionType;
@@ -55,6 +56,11 @@ public class Condition implements ICondition {
 	@Override
 	public void setValue(Datum value) {
 		baseCondition.setValue(value);
+	}
+	
+	@Override
+	public void setValueRange(Range range) {
+		baseCondition.setValueRange(range);
 	}
 	
 	@Override

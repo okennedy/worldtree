@@ -1,5 +1,6 @@
 package internal.parser.containers.condition;
 
+import development.com.collection.range.Range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 import internal.parser.containers.property.Property;
@@ -16,6 +17,7 @@ public class BaseCondition implements ICondition {
 	private Property property;
 	private TokenCmpOp cmpOp;
 	private Datum value;
+	private Range valueRange;
 	
 	public BaseCondition(boolean not, ConditionType type, Property property, TokenCmpOp op, Datum value) {
 		this.not		= not;
@@ -53,7 +55,12 @@ public class BaseCondition implements ICondition {
 
 	@Override
 	public Datum value() {
-		return value;
+		if(value != null)
+			return value;
+		else if(valueRange != null)
+			return valueRange.generateRandom();
+		else
+			throw new IllegalStateException("Value in condition '" + this.toString() + "' is null\n");
 	}
 	
 
@@ -85,6 +92,11 @@ public class BaseCondition implements ICondition {
 	@Override
 	public void setType(ConditionType type) {
 		this.type = type;
+	}
+	
+	@Override
+	public void setValueRange(Range range) {
+		this.valueRange = range;
 	}
 	
 	

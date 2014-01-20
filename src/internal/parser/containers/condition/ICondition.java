@@ -1,5 +1,6 @@
 package internal.parser.containers.condition;
 
+import development.com.collection.range.Range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IContainer;
@@ -77,6 +78,12 @@ public interface ICondition extends IContainer {
 	 * @param value {@code Datum} containing the value to set
 	 */
 	public void setValue(Datum value);
+	
+	/**
+	 * Set the {@code valueRange} field of this {@code ICondition}
+	 * @param value {@code Range} containing the range of values to set
+	 */
+	public void setValueRange(Range range);
 	
 	/**
 	 * Set the condition type of this {@code ICondition}
