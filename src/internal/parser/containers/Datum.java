@@ -145,7 +145,7 @@ public abstract class Datum {
 					return 0;
 				break;
 			}
-			return val1 - val2;
+			return -1;
 		}
 			
 		case FLOAT: {
@@ -177,7 +177,7 @@ public abstract class Datum {
 					return 0;
 				break;
 			}
-			return (int) ((int) val1 - val2);
+			return -1;
 		}
 		case STRING: {
 			String val1 = (String) data;
