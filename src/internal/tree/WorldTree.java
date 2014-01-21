@@ -293,13 +293,15 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 						}
 					}
 				}
+				else if(range.upperBound().compareTo(value, TokenCmpOp.LT) == 0)
+					continue;
 				newPropertyRanges.add(newRange);
 			}
 			break;
 		case GT:
 			for(Range range : propertyRanges) {
+				Range newRange = range.clone();
 				if(range.contains(value)) {
-					Range newRange = range.clone();
 					if(value.compareTo(range.lowerBound(), TokenCmpOp.GE) == 0) {
 						switch(type) {
 						case FLOAT:
@@ -312,14 +314,16 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 							break;
 						}
 					}
-					newPropertyRanges.add(newRange);
 				}
+				else if(range.upperBound().compareTo(value, TokenCmpOp.LE) == 0)
+					continue;
+				newPropertyRanges.add(newRange);
 			}
 			break;
 		case LE:
 			for(Range range : propertyRanges) {
+				Range newRange = range.clone();
 				if(range.contains(value)) {
-					Range newRange = range.clone();
 					if(value.compareTo(range.upperBound(), TokenCmpOp.LT) == 0) {
 						switch(type) {
 						case FLOAT:
@@ -332,14 +336,16 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 							break;
 						}
 					}
-					newPropertyRanges.add(newRange);
 				}
+				else if(range.lowerBound().compareTo(value, TokenCmpOp.GT) == 0)
+					continue;
+				newPropertyRanges.add(newRange);
 			}
 			break;
 		case LT:
 			for(Range range : propertyRanges) {
+				Range newRange = range.clone();
 				if(range.contains(value)) {
-					Range newRange = range.clone();
 					if(value.compareTo(range.upperBound(), TokenCmpOp.LE) == 0) {
 						switch(type) {
 						case FLOAT:
@@ -352,8 +358,10 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 							break;
 						}
 					}
-					newPropertyRanges.add(newRange);
 				}
+				else if(range.lowerBound().compareTo(value, TokenCmpOp.GT) == 0)
+					continue;
+				newPropertyRanges.add(newRange);
 			}
 			break;
 		case NOTEQ:
