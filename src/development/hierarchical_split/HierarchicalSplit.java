@@ -33,7 +33,7 @@ public class HierarchicalSplit {
 		if(definition.aggregateExpression().expr() != null) {
 			IExpr aggExpr = definition.aggregateExpression().expr();
 			if(aggExpr.property() != null)
-				columnName			= definition.aggregateExpression().expr().property().reference().toString();
+				columnName			= definition.aggregateExpression().expr().reference().toString();
 			else
 				columnName 			= definition.query().pattern().lhs().toString();
 		}

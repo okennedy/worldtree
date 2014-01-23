@@ -49,15 +49,15 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	private String name;
 	private Collection<Constraint> constraints;
 	private Collection<PropertyDef> definitions;
-	private Map<String, Datum> properties;
-	private Map<String, RangeSet> bounds;
+	private Map<Property, Datum> properties;
+	private Map<Property, RangeSet> bounds;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		this.parent 		= parent;
 		this.children 		= null;
 		this.name 			= name;
 		this.constraints 	= constraints;
-		this.properties		= new HashMap<String, Datum>(0);
+		this.properties		= new HashMap<Property, Datum>(0);
 		this.bounds			= null;
 		
 		if(parent != null) {
@@ -137,12 +137,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	}
 	
 	@Override
-	public void addProperty(String name, Datum value) {
-		properties.put(name, value);
+	public void addProperty(Property property, Datum value) {
+		properties.put(property, value);
 	}
 	
 	@Override
-	public Map<String, Datum> properties() {
+	public Map<Property, Datum> properties() {
 		return properties;
 	}
 	
@@ -165,12 +165,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 				for(Constraint constraint : constraints) {
 					if(constraint.type() == Constraint.Type.PROGRAM_GENERATED) {
 						ICondition constraintCondition = constraint.condition();
-						String property 		= constraintCondition.property().name();
+						Property property 		= constraintCondition.property();
 						Datum datum				= constraintCondition.value();
 						
 						PropertyDef definition	= null;
 						for(PropertyDef def : this.definitions()) {
-							if(def.property().name().equals(property) && def.level().equals(myLevel)) {
+							if(def.property().equals(property) && def.level().equals(myLevel)) {
 								definition = def;
 								break;
 							}
@@ -191,11 +191,11 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		
 		for(Constraint constraint : constraints) {
 			if(myLevel.equals(constraint.level())) {
-				String property = constraint.condition().property().name();
+				Property property = constraint.condition().property();
 				
 				PropertyDef definition = null;
 				for(PropertyDef def : definitions) {
-					if(def.property().name().equals(property) && (def.level().equals(myLevel))) {
+					if(def.property().equals(property) && (def.level().equals(myLevel))) {
 						definition = def;
 						break;
 					}
@@ -214,9 +214,10 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 					Constraint childConstraint = null;
 					{
 						IPattern pattern		= new BasePattern(new Reference("this"), null, null);
-						Property childProperty	= new Property(new Reference("this"), property);
+						Reference reference		= new Reference("this");
+						Property childProperty	= property;
 						TokenCmpOp operator		= constraint.condition().operator();
-						ICondition condition	= new BaseCondition(false, ConditionType.BASIC, childProperty, operator, value);
+						ICondition condition	= new BaseCondition(false, ConditionType.BASIC, reference, childProperty, operator, value);
 						IQuery query = new BaseQuery(childLevel, pattern, null);
 						childConstraint = new Constraint(Type.PROGRAM_GENERATED, childLevel, query, condition);
 					}
@@ -238,12 +239,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	private void processBounds(Constraint constraint) {
 		Hierarchy myLevel		= Hierarchy.parse(this.getClass());
 		
-		String property 		= constraint.condition().property().name();
+		Property property 		= constraint.condition().property();
 
 		Collection<PropertyDef> definitions	= this.root().definitions();
 		PropertyDef definition	= null;
 		for(PropertyDef def : definitions) {
-			if(def.level().equals(myLevel) && def.property().name().equals(property)) {
+			if(def.level().equals(myLevel) && def.property().equals(property)) {
 				definition = def;
 				break;	//FIXME: Should we break here?
 			}
@@ -432,7 +433,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		
 		if(this.bounds == null) {
 //			We have never called preProcessBounds before..Process user-defined constraints
-			this.bounds = new HashMap<String, RangeSet>(0);
+			this.bounds = new HashMap<Property, RangeSet>(0);
 			Collection<Constraint> constraints 	= this.root().constraints();
 			
 			for(Constraint c : constraints) {
@@ -450,13 +451,13 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		
 		IWorldTree root = this.root();
 		
-		String property = parentDefinition.property().name();
+		Property property = parentDefinition.property();
 		
 		Collection<PropertyDef> definitions	= root.definitions();
 		
 		PropertyDef definition = null;
 		for(PropertyDef def : definitions) {
-			if(def.property().name().equals(property) && (def.level().equals(myLevel))) {
+			if(def.property().equals(property) && (def.level().equals(myLevel))) {
 				definition = def;
 				break;
 			}

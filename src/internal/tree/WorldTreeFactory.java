@@ -352,7 +352,7 @@ public class WorldTreeFactory implements Serializable {
 			int startY = 0 + (int) (Math.random() * space.getYDimension());
 			Coordinates startCoords = new Coordinates(true, startX, startY);
 			ITile tile = initTile(startCoords, null);	//FIXME
-			tile.addProperty("start", new Datum.Bool(true));
+			tile.addProperty(Property.getProperty("start"), new Datum.Bool(true));
 			tile.addArtifact("S");
 			space.setByCoord(startCoords, tile);
 			space.setCurrentCoordinates(startCoords);
@@ -368,7 +368,7 @@ public class WorldTreeFactory implements Serializable {
 					endCoords = new Coordinates(true, endX, endY);
 			}
 			tile = initTile(endCoords, null);	//FIXME
-			tile.addProperty("end", new Datum.Bool(true));
+			tile.addProperty(Property.getProperty("end"), new Datum.Bool(true));
 			tile.addArtifact("E");
 			space.setByCoord(endCoords, tile);
 		}
@@ -657,11 +657,11 @@ public class WorldTreeFactory implements Serializable {
 				sb.append(s + "\n");
 			
 			artifacts.clear();
-			for(java.util.Map.Entry<String, Datum> entry : this.properties().entrySet()) {
-				String property = entry.getKey();
+			for(java.util.Map.Entry<Property, Datum> entry : this.properties().entrySet()) {
+				Property property = entry.getKey();
 				Datum value		= entry.getValue();
 				
-				artifacts.add(property.charAt(0) + "=" + value);
+				artifacts.add(property.toString().charAt(0) + "=" + value);
 			}
 			
 			for(String artifact : artifacts) {

@@ -2,6 +2,7 @@ package internal.parser.containers.expr;
 
 import internal.parser.TokenArithOp;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.property.Property;
 
@@ -22,6 +23,7 @@ public class Expr implements IExpr {
 	private TokenArithOp operator;
 	private IExpr baseExpr, subExpr;
 	private String maxminType;
+	private Reference reference;
 	private Property property;
 	private ICondition condition;
 	private ExprType exprType;
@@ -29,13 +31,14 @@ public class Expr implements IExpr {
 	
 
 	public Expr(ExprType exprType, Datum value, IExpr baseExpr, TokenArithOp operator, IExpr subExpr, String maxminType, 
-			Property property, ICondition condition, IExpr whenExpr, IExpr elseExpr) {
+			Reference reference, Property property, ICondition condition, IExpr whenExpr, IExpr elseExpr) {
 		this.exprType	= exprType;
 		this.value		= value;
 		this.baseExpr	= baseExpr;
 		this.operator	= operator;
 		this.subExpr	= subExpr;
 		this.maxminType	= maxminType;
+		this.reference	= reference;
 		this.property	= property;
 		this.condition	= condition;
 		this.whenExpr	= whenExpr;
@@ -43,28 +46,33 @@ public class Expr implements IExpr {
 	}
 	
 	public Expr(Datum value) {
-		this(ExprType.BASIC, value, null, null, null, null, null, null, null, null);
+		this(ExprType.BASIC, value, null, null, null, null, null, null, null, null, null);
 	}
 	
-	public Expr(Property property) {
-		this(ExprType.BASIC, null, null, null, null, null, property, null, null, null);
+	public Expr(Reference reference, Property property) {
+		this(ExprType.BASIC, null, null, null, null, null, reference, property, null, null, null);
 	}
 	
 	public Expr(IExpr baseExpr, TokenArithOp operator, IExpr subExpr) {
-		this(ExprType.ARITH, null, baseExpr, operator, subExpr, null, null, null, null, null);
+		this(ExprType.ARITH, null, baseExpr, operator, subExpr, null, null, null, null, null, null);
 	}
 	
 	public Expr(String maxminType, IExpr baseExpr, IExpr subExpr) {
-		this(ExprType.MAXMIN, null, baseExpr, null, subExpr, null, null, null, null, null);
+		this(ExprType.MAXMIN, null, baseExpr, null, subExpr, null, null, null, null, null, null);
 	}
 	
 	public Expr(ICondition condition, IExpr whenExpr, IExpr elseExpr) {
-		this(ExprType.WHEN, null, null, null, null, null, null, condition, whenExpr, elseExpr);
+		this(ExprType.WHEN, null, null, null, null, null, null, null, condition, whenExpr, elseExpr);
 	}
 
 	@Override
 	public ExprType type() {
 		return exprType;
+	}
+	
+	@Override
+	public Reference reference() {
+		return reference;
 	}
 	
 	@Override
@@ -117,7 +125,7 @@ public class Expr implements IExpr {
 			if(value != null)
 				result = new StringBuffer("EXPR(" + value + ")");
 			else
-				result = new StringBuffer("EXPR(" + property + ")");
+				result = new StringBuffer("EXPR(" + reference.debugString() + "." + property.debugString() + ")");
 			break;
 		case MAXMIN:
 			result = new StringBuffer("EXPR(" + maxminType + "(" + baseExpr.debugString());
@@ -144,7 +152,7 @@ public class Expr implements IExpr {
 			if(value != null)
 				result.append(value);
 			else
-				result.append(property);
+				result.append(reference + "." + property);
 			break;
 		case MAXMIN:
 			result.append(maxminType + " (" + baseExpr);

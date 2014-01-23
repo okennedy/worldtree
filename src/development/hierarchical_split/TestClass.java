@@ -54,7 +54,7 @@ public class TestClass {
 		}
 		
 		for(PropertyDef def : map.definitions()) {
-			if(def.property().name().equals(constraint.condition().property().name()) &&
+			if(def.property().equals(constraint.condition().property().name()) &&
 					def.level().equals(level))
 				definition	= def;
 		}

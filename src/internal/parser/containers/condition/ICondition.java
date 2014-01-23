@@ -4,6 +4,7 @@ import development.com.collection.range.Range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IContainer;
+import internal.parser.containers.Reference;
 import internal.parser.containers.condition.BaseCondition.ConditionType;
 import internal.parser.containers.property.Property;
 
@@ -13,6 +14,12 @@ public interface ICondition extends IContainer {
 	 * Obtain the value contained by the <b>not</b> field of this {@code ICondition}
 	 */
 	public Boolean notFlag();
+	
+	/**
+	 * Obtain the {@code Reference} on which this {@code ICondition} is based
+	 * @return {@code Reference}
+	 */
+	public Reference reference();
 	
 	/**
 	 * Obtain the {@code Property} on which this {@code ICondition} is based
@@ -54,11 +61,17 @@ public interface ICondition extends IContainer {
 	public void setNotFlag(Boolean flag);
 	
 	/**
+	 * Set the {@code Reference} on which this {@code ICondition} is based
+	 * @param reference {@code Reference} to be set
+	 */
+	public void setReference(Reference reference);
+
+	/**
 	 * Set the {@code Property} on which this {@code ICondition} is based
 	 * @param property {@code Property} to be set
 	 */
 	public void setProperty(Property property);
-	
+
 	/**
 	 * Set the sub-condition(if any)
 	 * @param subCondition {@code ICondition} to be set

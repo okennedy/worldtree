@@ -10,6 +10,7 @@ import development.com.collection.range.RangeSet;
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
+import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.piece.IPiece;
@@ -84,16 +85,16 @@ public interface IWorldTree {
 	
 	/**
 	 * Add a new property to this {@code IWorldTree}
-	 * @param name {@code String} containing the name of this property
-	 * @param value {@code Datum} containing the value of this property
+	 * @param name {@code Property}
+	 * @param value {@code Datum} containing the value of this {@code Property}
 	 */
-	public void addProperty(String name, Datum value);
+	public void addProperty(Property property, Datum value);
 	
 	/**
 	 * Obtain the properties of this {@code IWorldTree} instance
-	 * @return {@code Map<String, Datum>} containing the properties and their values of this {@code IWorldTree} instance
+	 * @return {@code Map<Property, Datum>} containing the properties and their values of this {@code IWorldTree} instance
 	 */
-	public Map<String, Datum> properties();
+	public Map<Property, Datum> properties();
 	
 	/**
 	 * Obtain root of this {@code IWorldTree} instance

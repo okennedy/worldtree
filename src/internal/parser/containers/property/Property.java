@@ -1,5 +1,6 @@
 package internal.parser.containers.property;
 
+import java.util.HashMap;
 import internal.parser.containers.IContainer;
 import internal.parser.containers.Reference;
 
@@ -10,31 +11,34 @@ import internal.parser.containers.Reference;
  *
  */
 public class Property implements IContainer {
-	private Reference reference;
+	private static final HashMap<String, Property> propertyMap = new HashMap<String, Property>();
+	
 	private String name;
 	
-	public Property(Reference reference, String name) {
-		this.reference	= reference;
-		this.name		= name;
+	protected Property() {
 	}
 	
+	private Property(String name) {
+		this.name		= name;
+	}
+
+	public static Property getProperty(String name) {
+		Property returnValue = propertyMap.get(name);
+		if (returnValue == null) {
+			returnValue = new Property(name);
+			propertyMap.put(name, returnValue);
+		}
+		return returnValue;
+	}
 	
 	@Override
 	public String toString() {
-		return reference.toString() + "." + name;
+		return name;
 	}
 	
 	@Override
 	public String debugString() {
-		return "PROPERTY(" + reference.debugString() + "." + name + ")"; 
-	}
-	
-	/**
-	 * Obtain the reference of this property
-	 * @return {@code Reference}
-	 */
-	public Reference reference() {
-		return reference;
+		return "PROPERTY(" + name + ")"; 
 	}
 	
 	/**
@@ -68,9 +72,9 @@ public class Property implements IContainer {
 		 * @return {@code InbuiltPropertyEnum} corresponding to the specified property <br>
 		 * @throws IllegalStateException if there is no such property
 		 */
-		public static InbuiltPropertyEnum check(String property) {
+		public static InbuiltPropertyEnum check(Property property) {
 			for(InbuiltPropertyEnum rel : values()) {
-				if(rel.property.equalsIgnoreCase(property))
+				if(rel.property.equalsIgnoreCase(property.toString()))
 					return rel;
 			}
 			return null;

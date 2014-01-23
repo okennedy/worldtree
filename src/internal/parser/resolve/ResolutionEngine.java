@@ -100,8 +100,8 @@ public class ResolutionEngine {
 						ICondition condition = query.condition();
 						while(condition != null) {
 							boolean inbuiltProperty	= false;
-							String columnName	= condition.property().reference().toString();
-							String property		= condition.property().name();
+							String columnName	= condition.reference().toString();
+							Property property	= condition.property();
 							if (Property.InbuiltPropertyEnum.check(property) != null)
 								inbuiltProperty = true;
 							Column column		= result.get(columnName);
@@ -110,7 +110,7 @@ public class ResolutionEngine {
 							Column columnCopy	= new Column(column.name(), column);
 							for(IWorldTree object : columnCopy) {
 								if(inbuiltProperty) {
-									Method method = instance.relationMap.get(property.toLowerCase());
+									Method method = instance.relationMap.get(property.toString().toLowerCase());
 									try {
 										boolean satisfies = (Boolean) method.invoke(null, object, condition.property());
 										if(!satisfies) {
@@ -177,46 +177,46 @@ public class ResolutionEngine {
 		
 		Reference childReference 	= definition.query().pattern().lhs();
 		Column childNodes			= result.get(childReference.toString());
-		String propertyName			= definition.property().name();
+		Property property			= definition.property();
 		
 		switch(definition.type()) {
 		case AGGREGATE:
 			switch(definition.aggregateExpression().type()) {
 			case COUNT:
-				node.addProperty(propertyName, new Datum.Int(childNodes.size()));
+				node.addProperty(property, new Datum.Int(childNodes.size()));
 				break;
 			case MAX:
 				float maxValue = 0;
 				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(propertyName);
+					Datum datum = childNode.properties().get(property);
 					if(datum != null) {
 						float value = (Float) datum.toFlt().data();
 						maxValue = maxValue > value ? maxValue : value;
 					}
 				}
-				node.addProperty(propertyName, new Datum.Flt(maxValue));	//FIXME: Should probably be same type as child datum(s)
+				node.addProperty(property, new Datum.Flt(maxValue));	//FIXME: Should probably be same type as child datum(s)
 				break;
 			case MIN:
 				float minValue = 0;
 				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(propertyName);
+					Datum datum = childNode.properties().get(property);
 					if(datum != null) {
 						float value = (Float) datum.toFlt().data();
 						minValue = minValue < value ? minValue : value;
 					}
 				}
-				node.addProperty(propertyName, new Datum.Flt(minValue));	//FIXME: Should probably be same type as child datum(s)
+				node.addProperty(property, new Datum.Flt(minValue));	//FIXME: Should probably be same type as child datum(s)
 				break;
 			case SUM:
 				float sum = 0;
 				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(propertyName);
+					Datum datum = childNode.properties().get(property);
 					if(datum != null) {
 						float value = (Float) datum.toFlt().data();
 						sum += value;
 					}
 				}
-				node.addProperty(propertyName, new Datum.Flt(sum));			//FIXME: Should probably be same type as child datum(s)
+				node.addProperty(property, new Datum.Flt(sum));			//FIXME: Should probably be same type as child datum(s)
 				break;
 			default:
 				break;
@@ -505,9 +505,8 @@ public class ResolutionEngine {
 		@Inbuilt
 		@Proxy(methods = "passableeast passablewest")
 		public static boolean passable(IWorldTree node, Property property) {
-			String propertyName = property.name();
 			
-			switch(Property.InbuiltPropertyEnum.check(propertyName)) {
+			switch(Property.InbuiltPropertyEnum.check(property)) {
 			case PASSABLE_EAST:
 				ITile tile = (ITile) node;
 				return tile.piece().hasInterface(TileInterfaceType.R);

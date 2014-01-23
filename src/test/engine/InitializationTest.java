@@ -62,9 +62,10 @@ public class InitializationTest {
 			int treasure			= new Random().nextInt(maxTreasure);
 			{
 				Datum value				= new Datum.Int(treasure);
-				IPattern pattern		= new BasePattern(new Reference("this"), null, null);
-				Property childProperty	= new Property(new Reference("this"), "treasure");
-				ICondition condition	= new BaseCondition(false, ConditionType.BASIC, childProperty, TokenCmpOp.EQ, value);
+				Reference reference		= new Reference("this");
+				IPattern pattern		= new BasePattern(reference, null, null);
+				Property childProperty	= Property.getProperty("treasure");
+				ICondition condition	= new BaseCondition(false, ConditionType.BASIC, reference, childProperty, TokenCmpOp.EQ, value);
 				IQuery query = new BaseQuery(Hierarchy.Map, pattern, null);
 				constraint = new Constraint(Type.PROGRAM_GENERATED, Hierarchy.Map, query, condition);
 			}
@@ -84,7 +85,7 @@ public class InitializationTest {
 			
 //			Check values
 			for(IWorldTree tile : tiles) {
-				Datum value = tile.properties().get("treasure");
+				Datum value = tile.properties().get(Property.getProperty("treasure"));
 				if(value != null) {
 					sum = sum + ((Integer) value.toInt().data());
 				}

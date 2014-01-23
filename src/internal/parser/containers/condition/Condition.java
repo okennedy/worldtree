@@ -3,6 +3,7 @@ package internal.parser.containers.condition;
 import development.com.collection.range.Range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Reference;
 import internal.parser.containers.condition.BaseCondition.ConditionType;
 import internal.parser.containers.property.Property;
 
@@ -18,7 +19,7 @@ public class Condition implements ICondition {
 	private ICondition subCondition;
 	
 	public Condition(boolean not, ICondition condition) {
-		this.baseCondition	= new BaseCondition(not, condition.type(), condition.property(), condition.operator(), condition.value());
+		this.baseCondition	= new BaseCondition(not, condition.type(), condition.reference(), condition.property(), condition.operator(), condition.value());
 		this.subCondition	= condition.subCondition();
 	}
 	
@@ -33,6 +34,11 @@ public class Condition implements ICondition {
 		return baseCondition.notFlag();
 	}
 
+	@Override
+	public Reference reference() {
+		return baseCondition.reference();
+	}
+	
 	@Override
 	public Property property() {
 		return baseCondition.property();
@@ -72,6 +78,11 @@ public class Condition implements ICondition {
 	@Override
 	public void setNotFlag(Boolean flag) {
 		baseCondition.setNotFlag(flag);
+	}
+
+	@Override
+	public void setReference(Reference reference) {
+		baseCondition.setReference(reference);
 	}
 
 	@Override
