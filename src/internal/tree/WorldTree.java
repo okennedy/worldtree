@@ -190,39 +190,39 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		Collection<PropertyDef> definitions	= root.definitions();
 		
 		for(Constraint constraint : constraints) {
-			if(myLevel.equals(constraint.level())) {
-				Property property = constraint.condition().property();
-				
-				PropertyDef definition = null;
-				for(PropertyDef def : definitions) {
-					if(def.property().equals(property) && (def.level().equals(myLevel))) {
-						definition = def;
-						break;
-					}
+			if(!myLevel.equals(constraint.level()))
+				continue;
+			Property property = constraint.condition().property();
+			
+			PropertyDef definition = null;
+			for(PropertyDef def : definitions) {
+				if(def.property().equals(property) && (def.level().equals(myLevel))) {
+					definition = def;
+					break;
 				}
-				if(definition == null)
-					throw new IllegalStateException("Property " + property + " has no definition!\n");
+			}
+			if(definition == null)
+				throw new IllegalStateException("Property " + property + " has no definition!\n");
+			
+			Map<IWorldTree, Datum> childConstraintValues = HierarchicalSplit.split(this, constraint, definition);
+			
+			
+			for(Map.Entry<IWorldTree, Datum> entry : childConstraintValues.entrySet()) {
+				IWorldTree child		= entry.getKey();
+				Datum value 			= childConstraintValues.get(child);
 				
-				Map<IWorldTree, Datum> childConstraintValues = HierarchicalSplit.split(this, constraint, definition);
-				
-				
-				for(Map.Entry<IWorldTree, Datum> entry : childConstraintValues.entrySet()) {
-					IWorldTree child		= entry.getKey();
-					Datum value 			= childConstraintValues.get(child);
-					
-					Hierarchy childLevel 	= Hierarchy.parse(child.getClass());
-					Constraint childConstraint = null;
-					{
-						IPattern pattern		= new BasePattern(new Reference("this"), null, null);
-						Reference reference		= new Reference("this");
-						Property childProperty	= property;
-						TokenCmpOp operator		= constraint.condition().operator();
-						ICondition condition	= new BaseCondition(false, ConditionType.BASIC, reference, childProperty, operator, value);
-						IQuery query = new BaseQuery(childLevel, pattern, null);
-						childConstraint = new Constraint(Type.PROGRAM_GENERATED, childLevel, query, condition);
-					}
-					child.addConstraint(childConstraint);
+				Hierarchy childLevel 	= Hierarchy.parse(child.getClass());
+				Constraint childConstraint = null;
+				{
+					IPattern pattern		= new BasePattern(new Reference("this"), null, null);
+					Reference reference		= new Reference("this");
+					Property childProperty	= property;
+					TokenCmpOp operator		= constraint.condition().operator();
+					ICondition condition	= new BaseCondition(false, ConditionType.BASIC, reference, childProperty, operator, value);
+					IQuery query = new BaseQuery(childLevel, pattern, null);
+					childConstraint = new Constraint(Type.PROGRAM_GENERATED, childLevel, query, condition);
 				}
+				child.addConstraint(childConstraint);
 			}
 		}
 		
