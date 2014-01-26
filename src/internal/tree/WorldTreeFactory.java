@@ -22,12 +22,9 @@ import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.StatementType;
-import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
-import internal.parser.containers.property.PropertyDef.RandomSpec;
-import internal.parser.resolve.ResolutionEngine;
-import internal.parser.resolve.Result;
+import internal.parser.resolve.constraint.ConstraintSolver;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
@@ -249,7 +246,7 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void materializeConstraints() {
-			this.pushDownConstraints();
+			ConstraintSolver.pushDownConstraints(this);
 		}
 	}
 	

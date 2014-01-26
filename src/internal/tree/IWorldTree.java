@@ -1,18 +1,15 @@
 package internal.tree;
 
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import development.com.collection.range.Range;
 import development.com.collection.range.RangeSet;
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
-import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.piece.IPiece;
 import internal.piece.TileInterfaceType;
 import internal.space.Space;
@@ -54,11 +51,6 @@ public interface IWorldTree {
 	 * @return {@code Collection<Constriant>}  
 	 */
 	public Collection<Constraint> constraints();
-	
-	/**
-	 * Push down the {@code Constraints} defined at this level to its children
-	 */
-	public void pushDownConstraints();
 	
 	/**
 	 * Obtain the definitions of this {@code IWorldTree} instance
@@ -116,18 +108,16 @@ public interface IWorldTree {
 	public void move(test.ui.Direction direction);
 	
 	/**
-	 * Pre-processing step to compute bounds.
-	 * This should occur before the first call to getBounds.
+	 * Return bounds of this {@code IWorldTree} instance
+	 * @return {@code Map<Property, RangeSet>} containing the ranges for each definition 
 	 */
-	public void processBounds();
+	public Map<Property, RangeSet> bounds();
 	
 	/**
-	 * Return bounds of the specified {@code PropertyDef} on this {@code IWorldTree} instance
-	 * @param parentDefinition {@code PropertyDef} definition whose bounds are required
-	 * @return {@code RangeSet} containing the minimum and maximum values for each definition 
-	 * that matches the parent definition
+	 * Set the bounds field
+	 * @param {@code Map<Property, RangeSet>} containing the bounds
 	 */
-	public RangeSet getBounds(PropertyDef parentDefinition);
+	public void setBounds(Map<Property, RangeSet> bounds);
 	
 	/**
 	 * Get set of strings used to represent this {@code IWorldTree} instance.

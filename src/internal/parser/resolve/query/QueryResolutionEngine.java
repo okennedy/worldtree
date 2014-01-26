@@ -1,4 +1,4 @@
-package internal.parser.resolve;
+package internal.parser.resolve.query;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -22,6 +22,8 @@ import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
+import internal.parser.resolve.Column;
+import internal.parser.resolve.Result;
 import internal.piece.TileInterfaceType;
 import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
@@ -32,11 +34,11 @@ import internal.tree.IWorldTree.ITile;
  * @author guru
  *
  */
-public class ResolutionEngine {
+public class QueryResolutionEngine {
 	private Map<String, Method> relationMap = new HashMap<String, Method>();
-	private static ResolutionEngine instance = null;
+	private static QueryResolutionEngine instance = null;
 	
-	protected ResolutionEngine() {
+	protected QueryResolutionEngine() {
 //		Prevent initialization of ResolutionEngine
 	}
 	
@@ -74,94 +76,101 @@ public class ResolutionEngine {
 			Class<?> level		= query.level().HierarchyClass();
 			IPattern pattern	= query.pattern();
 			
-			List<IWorldTree> objectList = getObjects(node, level);
-			
-			while(query != null) {
-				level		= query.level().HierarchyClass();
-				pattern		= query.pattern();
-				result		= new Result();
-				while(pattern != null) {
-					String rhsColumnName	= null;
-					if(pattern.rhs() == null) {
-//						FIXME
-						result.add(new Column(pattern.lhs().toString(), objectList));
-						return result;
-					}
-					else
-						rhsColumnName 		= pattern.rhs().toString();
-					Column rhsColumn		= result.get(rhsColumnName);
-					if(rhsColumn == null)
-						rhsColumn			= new Column(rhsColumnName, objectList);
-					
-					result = resolveQuery(node, level, pattern, result, rhsColumn);
-					
-//					Filter based on conditions
-					if(query.condition() != null) {
-						ICondition condition = query.condition();
-						while(condition != null) {
-							boolean inbuiltProperty	= false;
-							String columnName	= condition.reference().toString();
-							Property property	= condition.property();
-							if (Property.InbuiltPropertyEnum.check(property) != null)
-								inbuiltProperty = true;
-							Column column		= result.get(columnName);
-							if(column == null)
-								throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
-							Column columnCopy	= new Column(column.name(), column);
-							for(IWorldTree object : columnCopy) {
-								if(inbuiltProperty) {
-									Method method = instance.relationMap.get(property.toString().toLowerCase());
-									try {
-										boolean satisfies = (Boolean) method.invoke(null, object, condition.property());
-										if(!satisfies) {
+			if(node == null) {
+//				We're handling a constraint query
+				System.out.println();
+			}
+			else {
+				List<IWorldTree> objectList = getObjects(node, level);
+				
+				while(query != null) {
+					level		= query.level().HierarchyClass();
+					pattern		= query.pattern();
+					result		= new Result();
+					while(pattern != null) {
+						String rhsColumnName	= null;
+						if(pattern.rhs() == null) {
+//							FIXME
+							result.add(new Column(pattern.lhs().toString(), objectList));
+							return result;
+						}
+						else
+							rhsColumnName 		= pattern.rhs().toString();
+						Column rhsColumn		= result.get(rhsColumnName);
+						if(rhsColumn == null)
+							rhsColumn			= new Column(rhsColumnName, objectList);
+						
+						result = resolveQuery(node, level, pattern, result, rhsColumn);
+						
+//						Filter based on conditions
+						if(query.condition() != null) {
+							ICondition condition = query.condition();
+							while(condition != null) {
+								boolean inbuiltProperty	= false;
+								String columnName	= condition.reference().toString();
+								Property property	= condition.property();
+								if (Property.InbuiltPropertyEnum.check(property) != null)
+									inbuiltProperty = true;
+								Column column		= result.get(columnName);
+								if(column == null)
+									throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
+								Column columnCopy	= new Column(column.name(), column);
+								for(IWorldTree object : columnCopy) {
+									if(inbuiltProperty) {
+										Method method = instance.relationMap.get(property.toString().toLowerCase());
+										try {
+											boolean satisfies = (Boolean) method.invoke(null, object, condition.property());
+											if(!satisfies) {
+												int rowIndex = column.indexOf(object);
+												result.removeRow(rowIndex);
+											}
+										} catch (Exception e) {
+											e.printStackTrace();
+										}
+									}
+									else {
+										if(!object.properties().containsKey(property)) {
 											int rowIndex = column.indexOf(object);
 											result.removeRow(rowIndex);
 										}
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-								else {
-									if(!object.properties().containsKey(property)) {
-										int rowIndex = column.indexOf(object);
-										result.removeRow(rowIndex);
-									}
-									else {
-										Datum value 		= condition.value();
-										Datum objectValue	= object.properties().get(property);
-										if(objectValue.compareTo(value, condition.operator()) != 0) {
-											int rowIndex 	= column.indexOf(object);
-											result.removeRow(rowIndex);
+										else {
+											Datum value 		= condition.value();
+											Datum objectValue	= object.properties().get(property);
+											if(objectValue.compareTo(value, condition.operator()) != 0) {
+												int rowIndex 	= column.indexOf(object);
+												result.removeRow(rowIndex);
+											}
 										}
 									}
 								}
+								condition = condition.subCondition();
 							}
-							condition = condition.subCondition();
+						}
+						
+						pattern = pattern.subPattern();
+					}
+//					Check if we need to union
+					if(oldResult != null) {
+//						First check for semantics
+						assert result.size() == oldResult.size() : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
+						int index = 0;
+						while(index < result.size()) {	//We have already verified that both results have same number of columns
+							assert result.get(index).name().equals(oldResult.get(index).name()) : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
+							index++;
+						}
+						
+//						Now do the actual merge
+						List<IWorldTree> row = null;
+						for(index = 0; index < oldResult.get(0).size(); index++) {
+							row = oldResult.getRow(index);
+//							if(!result.contains(row))
+								result.add(row);
 						}
 					}
-					
-					pattern = pattern.subPattern();
+					query = query.subQuery();
+					oldResult = result;
 				}
-//				Check if we need to union
-				if(oldResult != null) {
-//					First check for semantics
-					assert result.size() == oldResult.size() : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
-					int index = 0;
-					while(index < result.size()) {	//We have already verified that both results have same number of columns
-						assert result.get(index).name.equals(oldResult.get(index).name) : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
-						index++;
-					}
-					
-//					Now do the actual merge
-					List<IWorldTree> row = null;
-					for(index = 0; index < oldResult.get(0).size(); index++) {
-						row = oldResult.getRow(index);
-//						if(!result.contains(row))
-							result.add(row);
-					}
-				}
-				query = query.subQuery();
-				oldResult = result;
+				break;
 			}
 			break;
 		}
@@ -313,7 +322,7 @@ public class ResolutionEngine {
 	 */
 	private static void init() {
 //		TODO: Figure out a nice way to add future methods similar to the way direction is being resolved
-		instance = new ResolutionEngine();
+		instance = new QueryResolutionEngine();
 		try {
 			for(Method m : InbuiltRelations.class.getMethods()) {
 				if(m.isAnnotationPresent(Proxy.class)) {
@@ -457,7 +466,7 @@ public class ResolutionEngine {
 						break;
 					case PLUS:
 					case STAR:
-						Column recursiveList 	= new Column(objectList.name);
+						Column recursiveList 	= new Column(objectList.name());
 						recursiveList.add(dNode);
 						Result recursiveResult 	= direction(pattern, result, recursiveList);
 						int rows = recursiveResult.get(0).size();

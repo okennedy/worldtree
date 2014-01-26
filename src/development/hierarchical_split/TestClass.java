@@ -7,6 +7,7 @@ import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
+import internal.parser.resolve.constraint.ConstraintSolver;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree;
 import internal.tree.WorldTreeFactory;
@@ -63,7 +64,7 @@ public class TestClass {
 		Map<IWorldTree, RangeSet> childRanges = new HashMap<IWorldTree, RangeSet>();
 		
 		for(IWorldTree child : map.children()) {
-			RangeSet bounds = child.getBounds(definition);
+			RangeSet bounds = ConstraintSolver.getBounds(child, definition);
 			childRanges.put(child, bounds);
 		}
 		Map<IWorldTree, Datum> split = HierarchicalSplit.split(map, constraint, definition);

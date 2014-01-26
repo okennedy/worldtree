@@ -6,8 +6,6 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Collection;
 import java.util.Random;
-import java.util.Scanner;
-
 import static internal.Helper.*;
 import internal.parser.ParseException;
 import internal.parser.Parser;
@@ -24,8 +22,8 @@ import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.query.BaseQuery;
 import internal.parser.containers.query.IQuery;
-import internal.parser.resolve.ResolutionEngine;
 import internal.parser.resolve.Result;
+import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.IMap;
@@ -127,7 +125,7 @@ public class InitializationTest {
 					Parser parser = new Parser(new StringReader(command.toString()));
 					IQuery query = (IQuery) parser.parse();
 					System.out.println(query.debugString());
-					Result result = ResolutionEngine.evaluate(map, query);
+					Result result = QueryResolutionEngine.evaluate(map, query);
 					System.out.println(result);
 					write("query", makeStringFromResult(query, result));
 					command.delete(0, command.length());

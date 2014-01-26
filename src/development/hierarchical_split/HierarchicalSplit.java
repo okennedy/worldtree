@@ -7,8 +7,9 @@ import internal.parser.containers.Datum.Int;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.property.PropertyDef.RandomSpec;
-import internal.parser.resolve.ResolutionEngine;
 import internal.parser.resolve.Result;
+import internal.parser.resolve.constraint.ConstraintSolver;
+import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.tree.IWorldTree;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class HierarchicalSplit {
 	public static Map<IWorldTree, Datum> split(IWorldTree node, Constraint constraint, PropertyDef definition) {
 		constraint 					= processConstraint(constraint);
 		Map<IWorldTree, RangeSet> childRanges = new HashMap<IWorldTree, RangeSet>();
-		Result queryResult 			= ResolutionEngine.evaluate(node, definition.query());
+		Result queryResult 			= QueryResolutionEngine.evaluate(node, definition.query());
 		String columnName			= null;
 		if(definition.aggregateExpression().expr() != null) {
 			IExpr aggExpr = definition.aggregateExpression().expr();
@@ -42,7 +43,7 @@ public class HierarchicalSplit {
 		
 		List<IWorldTree> children 	= queryResult.get(columnName);
 		for(IWorldTree child : children) {
-			RangeSet bounds = child.getBounds(definition);
+			RangeSet bounds = ConstraintSolver.getBounds(child, definition);
 			childRanges.put(child, bounds);
 		}
 		
@@ -342,7 +343,7 @@ public class HierarchicalSplit {
 					case MAX:
 					case MIN:
 					case SUM:
-						RangeSet bounds = object.getBounds(this.definition());
+						RangeSet bounds = ConstraintSolver.getBounds(object, this.definition());
 						assert bounds.contains(requiredValue) : "Trying to set " + requiredValue + "\nwhen bounds are :" + bounds;
 						values.put(object, requiredValue);
 						break;

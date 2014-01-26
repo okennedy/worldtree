@@ -55,6 +55,10 @@ public class BaseCondition implements ICondition {
 		return type;
 	}
 	
+	@Override
+	public UnionType unionType() {
+		return null;
+	}
 
 	@Override
 	public TokenCmpOp operator() {

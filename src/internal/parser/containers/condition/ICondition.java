@@ -52,6 +52,11 @@ public interface ICondition extends IContainer {
 	 */
 	public ConditionType type();
 	
+	/**
+	 * Obtain the condition union type of this {@code ICondition}
+	 * @return {@code UnionType}
+	 */
+	public UnionType unionType();
 	
 //	Setters
 	/**

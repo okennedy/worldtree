@@ -74,7 +74,11 @@ public class Condition implements ICondition {
 		return ConditionType.COMPLEX;
 	}
 	
-
+	@Override
+	public UnionType unionType() {
+		return unionType;
+	}
+	
 	@Override
 	public void setNotFlag(Boolean flag) {
 		baseCondition.setNotFlag(flag);
