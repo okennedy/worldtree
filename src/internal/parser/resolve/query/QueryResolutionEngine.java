@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.Reference;
@@ -65,6 +66,30 @@ public class QueryResolutionEngine {
 		Result oldResult = null;
 		switch(statement.getType()) {
 		case CONSTRAINT: {
+//			We're handling a constraint query
+			Constraint constraint = (Constraint) statement;
+			IQuery query = constraint.query();
+			ICondition condition = query.condition();
+			String columnName = query.pattern().lhs().toString();
+			result.add(new Column(columnName));
+			Column column = result.get(columnName);
+			column.add(node);
+			while(condition != null) {
+				Property property = condition.property();
+				if(!node.properties().containsKey(property)) {
+					if(column.contains(node))
+						column.remove(node);
+					return result;
+				}
+				else {
+					Datum conditionValue 	= condition.value();
+					Datum objectValue		= node.properties().get(property);
+					if(objectValue.compareTo(conditionValue, condition.operator()) != 0) {
+						if(column.contains(node))
+							column.remove(node);
+					}
+				}
+			}
 			break;
 		}
 		case PROPERTYDEF: {
@@ -75,102 +100,94 @@ public class QueryResolutionEngine {
 			IQuery query = (IQuery) statement;
 			Class<?> level		= query.level().HierarchyClass();
 			IPattern pattern	= query.pattern();
+			List<IWorldTree> objectList = getObjects(node, level);
 			
-			if(node == null) {
-//				We're handling a constraint query
-				System.out.println();
-			}
-			else {
-				List<IWorldTree> objectList = getObjects(node, level);
-				
-				while(query != null) {
-					level		= query.level().HierarchyClass();
-					pattern		= query.pattern();
-					result		= new Result();
-					while(pattern != null) {
-						String rhsColumnName	= null;
-						if(pattern.rhs() == null) {
-//							FIXME
-							result.add(new Column(pattern.lhs().toString(), objectList));
-							return result;
-						}
-						else
-							rhsColumnName 		= pattern.rhs().toString();
-						Column rhsColumn		= result.get(rhsColumnName);
-						if(rhsColumn == null)
-							rhsColumn			= new Column(rhsColumnName, objectList);
-						
-						result = resolveQuery(node, level, pattern, result, rhsColumn);
-						
-//						Filter based on conditions
-						if(query.condition() != null) {
-							ICondition condition = query.condition();
-							while(condition != null) {
-								boolean inbuiltProperty	= false;
-								String columnName	= condition.reference().toString();
-								Property property	= condition.property();
-								if (Property.InbuiltPropertyEnum.check(property) != null)
-									inbuiltProperty = true;
-								Column column		= result.get(columnName);
-								if(column == null)
-									throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
-								Column columnCopy	= new Column(column.name(), column);
-								for(IWorldTree object : columnCopy) {
-									if(inbuiltProperty) {
-										Method method = instance.relationMap.get(property.toString().toLowerCase());
-										try {
-											boolean satisfies = (Boolean) method.invoke(null, object, condition.property());
-											if(!satisfies) {
-												int rowIndex = column.indexOf(object);
-												result.removeRow(rowIndex);
-											}
-										} catch (Exception e) {
-											e.printStackTrace();
-										}
-									}
-									else {
-										if(!object.properties().containsKey(property)) {
+			while(query != null) {
+				level		= query.level().HierarchyClass();
+				pattern		= query.pattern();
+				result		= new Result();
+				while(pattern != null) {
+					String rhsColumnName	= null;
+					if(pattern.rhs() == null) {
+//						FIXME
+						result.add(new Column(pattern.lhs().toString(), objectList));
+						return result;
+					}
+					else
+						rhsColumnName 		= pattern.rhs().toString();
+					Column rhsColumn		= result.get(rhsColumnName);
+					if(rhsColumn == null)
+						rhsColumn			= new Column(rhsColumnName, objectList);
+					
+					result = resolveQuery(node, level, pattern, result, rhsColumn);
+					
+//					Filter based on conditions
+					if(query.condition() != null) {
+						ICondition condition = query.condition();
+						while(condition != null) {
+							boolean inbuiltProperty	= false;
+							String columnName	= condition.reference().toString();
+							Property property	= condition.property();
+							if (Property.InbuiltPropertyEnum.check(property) != null)
+								inbuiltProperty = true;
+							Column column		= result.get(columnName);
+							if(column == null)
+								throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
+							Column columnCopy	= new Column(column.name(), column);
+							for(IWorldTree object : columnCopy) {
+								if(inbuiltProperty) {
+									Method method = instance.relationMap.get(property.toString().toLowerCase());
+									try {
+										boolean satisfies = (Boolean) method.invoke(null, object, condition.property());
+										if(!satisfies) {
 											int rowIndex = column.indexOf(object);
 											result.removeRow(rowIndex);
 										}
-										else {
-											Datum value 		= condition.value();
-											Datum objectValue	= object.properties().get(property);
-											if(objectValue.compareTo(value, condition.operator()) != 0) {
-												int rowIndex 	= column.indexOf(object);
-												result.removeRow(rowIndex);
-											}
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+								}
+								else {
+									if(!object.properties().containsKey(property)) {
+										int rowIndex = column.indexOf(object);
+										result.removeRow(rowIndex);
+									}
+									else {
+										Datum value 		= condition.value();
+										Datum objectValue	= object.properties().get(property);
+										if(objectValue.compareTo(value, condition.operator()) != 0) {
+											int rowIndex 	= column.indexOf(object);
+											result.removeRow(rowIndex);
 										}
 									}
 								}
-								condition = condition.subCondition();
 							}
-						}
-						
-						pattern = pattern.subPattern();
-					}
-//					Check if we need to union
-					if(oldResult != null) {
-//						First check for semantics
-						assert result.size() == oldResult.size() : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
-						int index = 0;
-						while(index < result.size()) {	//We have already verified that both results have same number of columns
-							assert result.get(index).name().equals(oldResult.get(index).name()) : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
-							index++;
-						}
-						
-//						Now do the actual merge
-						List<IWorldTree> row = null;
-						for(index = 0; index < oldResult.get(0).size(); index++) {
-							row = oldResult.getRow(index);
-//							if(!result.contains(row))
-								result.add(row);
+							condition = condition.subCondition();
 						}
 					}
-					query = query.subQuery();
-					oldResult = result;
+					
+					pattern = pattern.subPattern();
 				}
-				break;
+//				Check if we need to union
+				if(oldResult != null) {
+//					First check for semantics
+					assert result.size() == oldResult.size() : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
+					int index = 0;
+					while(index < result.size()) {	//We have already verified that both results have same number of columns
+						assert result.get(index).name().equals(oldResult.get(index).name()) : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
+						index++;
+					}
+					
+//					Now do the actual merge
+					List<IWorldTree> row = null;
+					for(index = 0; index < oldResult.get(0).size(); index++) {
+						row = oldResult.getRow(index);
+//						if(!result.contains(row))
+							result.add(row);
+					}
+				}
+				query = query.subQuery();
+				oldResult = result;
 			}
 			break;
 		}
