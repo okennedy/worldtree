@@ -89,6 +89,7 @@ public class QueryResolutionEngine {
 							column.remove(node);
 					}
 				}
+				condition = condition.subCondition();
 			}
 			break;
 		}
