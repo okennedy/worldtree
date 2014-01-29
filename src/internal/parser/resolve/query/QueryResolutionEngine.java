@@ -530,7 +530,7 @@ public class QueryResolutionEngine {
 		 * 
 		 */
 		@Inbuilt
-		@Proxy(methods = "passableeast passablewest")
+		@Proxy(methods = "passableeast passablewest passablenorth passablesouth")
 		public static boolean passable(IWorldTree node, Property property) {
 			
 			switch(Property.InbuiltPropertyEnum.check(property)) {
@@ -540,9 +540,14 @@ public class QueryResolutionEngine {
 			case PASSABLE_WEST:
 				tile = (ITile) node;
 				return tile.piece().hasInterface(TileInterfaceType.L);
+			case PASSABLE_NORTH:
+				tile = (ITile) node;
+				return tile.piece().hasInterface(TileInterfaceType.U);
+			case PASSABLE_SOUTH:
+				tile = (ITile) node;
+				return tile.piece().hasInterface(TileInterfaceType.D);
 			default:
 				throw new IllegalStateException("Should not be reaching default case in switch!");
-			
 			}
 		}
 	}

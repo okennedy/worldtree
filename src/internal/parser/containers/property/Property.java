@@ -57,6 +57,8 @@ public class Property implements IContainer {
 	public enum InbuiltPropertyEnum {
 		PASSABLE_EAST("passableeast"),
 		PASSABLE_WEST("passablewest"),
+		PASSABLE_NORTH("passablenorth"),
+		PASSABLE_SOUTH("passablesouth"),
 		;
 		
 		private String property;
