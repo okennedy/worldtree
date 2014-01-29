@@ -22,8 +22,8 @@ import static internal.Helper.write;
 import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.containers.query.IQuery;
-import internal.parser.resolve.ResolutionEngine;
 import internal.parser.resolve.Result;
+import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
@@ -88,7 +88,7 @@ public class QueryTest {
 								continue;
 							parser.ReInit(new StringReader(line));
 							IQuery query = parser.query(null);
-							result = ResolutionEngine.evaluate(map, query);
+							result = QueryResolutionEngine.evaluate(map, query);
 						}
 					}
 					
@@ -189,7 +189,7 @@ public class QueryTest {
 			
 			parser.ReInit(new StringReader(cmd.toString()));
 			IQuery query 	= parser.query(null);
-			Result result 	= ResolutionEngine.evaluate(map, query);
+			Result result 	= QueryResolutionEngine.evaluate(map, query);
 			
 //			Now store this test
 			BufferedWriter out = new BufferedWriter(new FileWriter(testFile));

@@ -1,4 +1,4 @@
-package internal.parser.resolve;
+package internal.parser.resolve.query;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.Reference;
@@ -22,6 +23,8 @@ import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
+import internal.parser.resolve.Column;
+import internal.parser.resolve.Result;
 import internal.piece.TileInterfaceType;
 import internal.space.Space.Direction;
 import internal.tree.IWorldTree;
@@ -32,11 +35,11 @@ import internal.tree.IWorldTree.ITile;
  * @author guru
  *
  */
-public class ResolutionEngine {
+public class QueryResolutionEngine {
 	private Map<String, Method> relationMap = new HashMap<String, Method>();
-	private static ResolutionEngine instance = null;
+	private static QueryResolutionEngine instance = null;
 	
-	protected ResolutionEngine() {
+	protected QueryResolutionEngine() {
 //		Prevent initialization of ResolutionEngine
 	}
 	
@@ -63,6 +66,31 @@ public class ResolutionEngine {
 		Result oldResult = null;
 		switch(statement.getType()) {
 		case CONSTRAINT: {
+//			We're handling a constraint query
+			Constraint constraint = (Constraint) statement;
+			IQuery query = constraint.query();
+			ICondition condition = query.condition();
+			String columnName = query.pattern().lhs().toString();
+			result.add(new Column(columnName));
+			Column column = result.get(columnName);
+			column.add(node);
+			while(condition != null) {
+				Property property = condition.property();
+				if(!node.properties().containsKey(property)) {
+					if(column.contains(node))
+						column.remove(node);
+					return result;
+				}
+				else {
+					Datum conditionValue 	= condition.value();
+					Datum objectValue		= node.properties().get(property);
+					if(objectValue.compareTo(conditionValue, condition.operator()) != 0) {
+						if(column.contains(node))
+							column.remove(node);
+					}
+				}
+				condition = condition.subCondition();
+			}
 			break;
 		}
 		case PROPERTYDEF: {
@@ -73,7 +101,6 @@ public class ResolutionEngine {
 			IQuery query = (IQuery) statement;
 			Class<?> level		= query.level().HierarchyClass();
 			IPattern pattern	= query.pattern();
-			
 			List<IWorldTree> objectList = getObjects(node, level);
 			
 			while(query != null) {
@@ -100,8 +127,8 @@ public class ResolutionEngine {
 						ICondition condition = query.condition();
 						while(condition != null) {
 							boolean inbuiltProperty	= false;
-							String columnName	= condition.property().reference().toString();
-							String property		= condition.property().name();
+							String columnName	= condition.reference().toString();
+							Property property	= condition.property();
 							if (Property.InbuiltPropertyEnum.check(property) != null)
 								inbuiltProperty = true;
 							Column column		= result.get(columnName);
@@ -110,7 +137,7 @@ public class ResolutionEngine {
 							Column columnCopy	= new Column(column.name(), column);
 							for(IWorldTree object : columnCopy) {
 								if(inbuiltProperty) {
-									Method method = instance.relationMap.get(property.toLowerCase());
+									Method method = instance.relationMap.get(property.toString().toLowerCase());
 									try {
 										boolean satisfies = (Boolean) method.invoke(null, object, condition.property());
 										if(!satisfies) {
@@ -148,7 +175,7 @@ public class ResolutionEngine {
 					assert result.size() == oldResult.size() : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
 					int index = 0;
 					while(index < result.size()) {	//We have already verified that both results have same number of columns
-						assert result.get(index).name.equals(oldResult.get(index).name) : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
+						assert result.get(index).name().equals(oldResult.get(index).name()) : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
 						index++;
 					}
 					
@@ -177,46 +204,46 @@ public class ResolutionEngine {
 		
 		Reference childReference 	= definition.query().pattern().lhs();
 		Column childNodes			= result.get(childReference.toString());
-		String propertyName			= definition.property().name();
+		Property property			= definition.property();
 		
 		switch(definition.type()) {
 		case AGGREGATE:
 			switch(definition.aggregateExpression().type()) {
 			case COUNT:
-				node.addProperty(propertyName, new Datum.Int(childNodes.size()));
+				node.addProperty(property, new Datum.Int(childNodes.size()));
 				break;
 			case MAX:
 				float maxValue = 0;
 				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(propertyName);
+					Datum datum = childNode.properties().get(property);
 					if(datum != null) {
 						float value = (Float) datum.toFlt().data();
 						maxValue = maxValue > value ? maxValue : value;
 					}
 				}
-				node.addProperty(propertyName, new Datum.Flt(maxValue));	//FIXME: Should probably be same type as child datum(s)
+				node.addProperty(property, new Datum.Flt(maxValue));	//FIXME: Should probably be same type as child datum(s)
 				break;
 			case MIN:
 				float minValue = 0;
 				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(propertyName);
+					Datum datum = childNode.properties().get(property);
 					if(datum != null) {
 						float value = (Float) datum.toFlt().data();
 						minValue = minValue < value ? minValue : value;
 					}
 				}
-				node.addProperty(propertyName, new Datum.Flt(minValue));	//FIXME: Should probably be same type as child datum(s)
+				node.addProperty(property, new Datum.Flt(minValue));	//FIXME: Should probably be same type as child datum(s)
 				break;
 			case SUM:
 				float sum = 0;
 				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(propertyName);
+					Datum datum = childNode.properties().get(property);
 					if(datum != null) {
 						float value = (Float) datum.toFlt().data();
 						sum += value;
 					}
 				}
-				node.addProperty(propertyName, new Datum.Flt(sum));			//FIXME: Should probably be same type as child datum(s)
+				node.addProperty(property, new Datum.Flt(sum));			//FIXME: Should probably be same type as child datum(s)
 				break;
 			default:
 				break;
@@ -313,7 +340,7 @@ public class ResolutionEngine {
 	 */
 	private static void init() {
 //		TODO: Figure out a nice way to add future methods similar to the way direction is being resolved
-		instance = new ResolutionEngine();
+		instance = new QueryResolutionEngine();
 		try {
 			for(Method m : InbuiltRelations.class.getMethods()) {
 				if(m.isAnnotationPresent(Proxy.class)) {
@@ -457,7 +484,7 @@ public class ResolutionEngine {
 						break;
 					case PLUS:
 					case STAR:
-						Column recursiveList 	= new Column(objectList.name);
+						Column recursiveList 	= new Column(objectList.name());
 						recursiveList.add(dNode);
 						Result recursiveResult 	= direction(pattern, result, recursiveList);
 						int rows = recursiveResult.get(0).size();
@@ -503,20 +530,24 @@ public class ResolutionEngine {
 		 * 
 		 */
 		@Inbuilt
-		@Proxy(methods = "passableeast passablewest")
+		@Proxy(methods = "passableeast passablewest passablenorth passablesouth")
 		public static boolean passable(IWorldTree node, Property property) {
-			String propertyName = property.name();
 			
-			switch(Property.InbuiltPropertyEnum.check(propertyName)) {
+			switch(Property.InbuiltPropertyEnum.check(property)) {
 			case PASSABLE_EAST:
 				ITile tile = (ITile) node;
 				return tile.piece().hasInterface(TileInterfaceType.R);
 			case PASSABLE_WEST:
 				tile = (ITile) node;
 				return tile.piece().hasInterface(TileInterfaceType.L);
+			case PASSABLE_NORTH:
+				tile = (ITile) node;
+				return tile.piece().hasInterface(TileInterfaceType.U);
+			case PASSABLE_SOUTH:
+				tile = (ITile) node;
+				return tile.piece().hasInterface(TileInterfaceType.D);
 			default:
 				throw new IllegalStateException("Should not be reaching default case in switch!");
-			
 			}
 		}
 	}

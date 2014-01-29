@@ -1,7 +1,9 @@
 package internal.parser.containers.condition;
 
+import development.com.collection.range.Range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Reference;
 import internal.parser.containers.property.Property;
 
 /**
@@ -13,13 +15,16 @@ import internal.parser.containers.property.Property;
 public class BaseCondition implements ICondition {
 	private boolean not;
 	private ConditionType type;
+	private Reference reference;
 	private Property property;
 	private TokenCmpOp cmpOp;
 	private Datum value;
+	private Range valueRange;
 	
-	public BaseCondition(boolean not, ConditionType type, Property property, TokenCmpOp op, Datum value) {
+	public BaseCondition(boolean not, ConditionType type, Reference reference, Property property, TokenCmpOp op, Datum value) {
 		this.not		= not;
 		this.type		= type;
+		this.reference	= reference;
 		this.property	= property;
 		this.cmpOp		= op;
 		this.value		= value;
@@ -28,6 +33,11 @@ public class BaseCondition implements ICondition {
 	@Override
 	public Boolean notFlag() {
 		return not;
+	}
+	
+	@Override
+	public Reference reference() {
+		return reference;
 	}
 	
 	@Override
@@ -45,6 +55,10 @@ public class BaseCondition implements ICondition {
 		return type;
 	}
 	
+	@Override
+	public UnionType unionType() {
+		return null;
+	}
 
 	@Override
 	public TokenCmpOp operator() {
@@ -53,7 +67,12 @@ public class BaseCondition implements ICondition {
 
 	@Override
 	public Datum value() {
-		return value;
+		if(value != null)
+			return value;
+		else if(valueRange != null)
+			return valueRange.generateRandom();
+		else
+			throw new IllegalStateException("Value in condition '" + this.toString() + "' is null\n");
 	}
 	
 
@@ -62,6 +81,11 @@ public class BaseCondition implements ICondition {
 		this.not = flag;
 	}
 
+	@Override
+	public void setReference(Reference reference) {
+		this.reference = reference;
+	}
+	
 	@Override
 	public void setProperty(Property property) {
 		this.property = property;
@@ -87,6 +111,11 @@ public class BaseCondition implements ICondition {
 		this.type = type;
 	}
 	
+	@Override
+	public void setValueRange(Range range) {
+		this.valueRange = range;
+	}
+	
 	
 	@Override
 	public String toString() {
@@ -94,7 +123,7 @@ public class BaseCondition implements ICondition {
 		if(not)
 			result.append("NOT ");
 		
-		result.append(property.toString());
+		result.append(reference.toString() + "." + property.toString());
 		switch(type) {
 		case BASIC:
 			result.append(" " + cmpOp + " " + value);
@@ -117,7 +146,7 @@ public class BaseCondition implements ICondition {
 		if(not)
 			result.append("NOT ");
 		
-		result.append(property.debugString());
+		result.append(reference.debugString() + "." + property.debugString());
 		switch(type) {
 		case BASIC:
 			result.append(" " + cmpOp + " " + value);

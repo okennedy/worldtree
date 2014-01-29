@@ -22,12 +22,9 @@ import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.StatementType;
-import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
-import internal.parser.containers.property.PropertyDef.RandomSpec;
-import internal.parser.resolve.ResolutionEngine;
-import internal.parser.resolve.Result;
+import internal.parser.resolve.constraint.ConstraintSolver;
 import internal.piece.IPiece;
 import internal.piece.PieceFactory;
 import internal.piece.TileInterfaceType;
@@ -214,7 +211,7 @@ public class WorldTreeFactory implements Serializable {
 			return null;
 		}
 		
-		private Collection<IWorldTree> getNodesByLevel(Hierarchy level) {
+		public Collection<IWorldTree> getNodesByLevel(Hierarchy level) {
 			Collection<IWorldTree> result 	= new Vector<IWorldTree>();
 			
 			List<IWorldTree> nodeList = new Vector<IWorldTree>();
@@ -249,7 +246,7 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void materializeConstraints() {
-			this.pushDownConstraints();
+			ConstraintSolver.pushDownConstraints(this);
 		}
 	}
 	
@@ -352,7 +349,7 @@ public class WorldTreeFactory implements Serializable {
 			int startY = 0 + (int) (Math.random() * space.getYDimension());
 			Coordinates startCoords = new Coordinates(true, startX, startY);
 			ITile tile = initTile(startCoords, null);	//FIXME
-			tile.addProperty("start", new Datum.Bool(true));
+			tile.addProperty(Property.getProperty("start"), new Datum.Bool(true));
 			tile.addArtifact("S");
 			space.setByCoord(startCoords, tile);
 			space.setCurrentCoordinates(startCoords);
@@ -368,7 +365,7 @@ public class WorldTreeFactory implements Serializable {
 					endCoords = new Coordinates(true, endX, endY);
 			}
 			tile = initTile(endCoords, null);	//FIXME
-			tile.addProperty("end", new Datum.Bool(true));
+			tile.addProperty(Property.getProperty("end"), new Datum.Bool(true));
 			tile.addArtifact("E");
 			space.setByCoord(endCoords, tile);
 		}
@@ -657,11 +654,11 @@ public class WorldTreeFactory implements Serializable {
 				sb.append(s + "\n");
 			
 			artifacts.clear();
-			for(java.util.Map.Entry<String, Datum> entry : this.properties().entrySet()) {
-				String property = entry.getKey();
+			for(java.util.Map.Entry<Property, Datum> entry : this.properties().entrySet()) {
+				Property property = entry.getKey();
 				Datum value		= entry.getValue();
 				
-				artifacts.add(property.charAt(0) + "=" + value);
+				artifacts.add(property.toString().charAt(0) + "=" + value);
 			}
 			
 			for(String artifact : artifacts) {

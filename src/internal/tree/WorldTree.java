@@ -1,38 +1,19 @@
 package internal.tree;
 
 import internal.Helper.Hierarchy;
-import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
-import internal.parser.containers.Constraint.Type;
 import internal.parser.containers.Datum;
-import internal.parser.containers.Datum.DatumType;
-import internal.parser.containers.Datum.Flt;
-import internal.parser.containers.Datum.Int;
-import internal.parser.containers.Reference;
-import internal.parser.containers.condition.BaseCondition;
-import internal.parser.containers.condition.BaseCondition.ConditionType;
-import internal.parser.containers.condition.ICondition;
-import internal.parser.containers.pattern.BasePattern;
-import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
-import internal.parser.containers.property.PropertyDef.RandomSpec;
-import internal.parser.containers.property.PropertyDef.RandomSpec.RandomSpecType;
-import internal.parser.containers.query.BaseQuery;
-import internal.parser.containers.query.IQuery;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Stack;
 
 import development.com.collection.range.*;
-import development.com.collection.range.Range.BoundType;
-import development.hierarchical_split.HierarchicalSplit;
 
 /**
  * WorldTree is the abstract class that every object in the hierarchy extends.
@@ -49,15 +30,15 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	private String name;
 	private Collection<Constraint> constraints;
 	private Collection<PropertyDef> definitions;
-	private Map<String, Datum> properties;
-	private Map<String, RangeSet> bounds;
+	private Map<Property, Datum> properties;
+	private Map<Property, RangeSet> bounds;
 
 	protected WorldTree(String name, IWorldTree parent, Collection<Constraint> constraints) {
 		this.parent 		= parent;
 		this.children 		= null;
 		this.name 			= name;
 		this.constraints 	= constraints;
-		this.properties		= new HashMap<String, Datum>(0);
+		this.properties		= new HashMap<Property, Datum>(0);
 		this.bounds			= null;
 		
 		if(parent != null) {
@@ -127,7 +108,6 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	public void addConstraint(Constraint constraint) {
 		assert constraints != null : "Trying to add constraint to " + name + " when " + name + ".constraints = null\n";
 		constraints.add(constraint);
-		this.processBounds(constraint);
 	}
 	
 	@Override
@@ -137,12 +117,12 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	}
 	
 	@Override
-	public void addProperty(String name, Datum value) {
-		properties.put(name, value);
+	public void addProperty(Property property, Datum value) {
+		properties.put(property, value);
 	}
 	
 	@Override
-	public Map<String, Datum> properties() {
+	public Map<Property, Datum> properties() {
 		return properties;
 	}
 	
@@ -155,403 +135,13 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	protected void setDefinitions(Collection<PropertyDef> definitions) {
 		this.definitions = definitions;
 	}
-	
-	
-	private Datum pickValue(Datum.DatumType type, float lowerBound, float upperBound, Constraint constraint) {
-		ICondition constraintCondition	= constraint.condition();
-		Datum datum						= constraintCondition.value();
-		
-		float constraintValue	= (Float) datum.toFlt().data();
-		float value = 0;
-		switch(constraintCondition.operator()) {
-		case EQ:
-			value = (Float) datum.toFlt().data();
-			break;
-		case GE:
-			value = (float) (constraintValue + (float) (Math.random() * (upperBound - constraintValue)));
-			break;
-		case GT:
-			while(value <= constraintValue)
-				value = (float) (constraintValue + (float) (Math.random() * (upperBound - constraintValue)));
-			break;
-		case LE:
-			value = (float) (lowerBound + (float) (Math.random() * (constraintValue - lowerBound)));
-			break;
-		case LT:
-			value = constraintValue;
-			if(constraintValue == lowerBound) {
-//				FIXME: This is a hack. 
-//				HierarchicalSplit is not supposed to pick a value equal to lowerBound when Operator is '<'
-//				We cannot go lesser than the lowerBound...
-				break;
-			}
-			while(value >= constraintValue)
-				value = (float) (lowerBound + (float) (Math.random() * (constraintValue - lowerBound)));
-			break;
-		case NOTEQ:
-			value = constraintValue;
-			while(value == constraintValue)
-				value = (float) (lowerBound + (float) (Math.random() * (upperBound - lowerBound)));
-			break;
-		}
-		switch(type) {
-		case FLOAT:
-			return new Datum.Flt(value);
-		case INT:
-			return new Datum.Int((int) value);
-		default:
-			System.err.println("Warning: No code to initialize " + datum.type() + " at the leaves");
-			return null;
-		}
-	}
-	
-	public void pushDownConstraints() {
-//		FIXME: The following lines has been commented because of quadratic-ish behaviour
-//		if(this.children() == null || this.children().size() == 0) {
-			Hierarchy myLevel = Hierarchy.parse(this.getClass());
-			if(myLevel == Hierarchy.Tile) {
-				Collection<Constraint> constraints 	= this.constraints();
-				for(Constraint constraint : constraints) {
-					if(constraint.type() == Constraint.Type.PROGRAM_GENERATED) {
-						ICondition constraintCondition = constraint.condition();
-						String property 		= constraintCondition.property().name();
-						Datum datum				= constraintCondition.value();
-						
-						PropertyDef definition	= null;
-						for(PropertyDef def : this.definitions()) {
-							if(def.property().name().equals(property) && def.level().equals(myLevel)) {
-								definition = def;
-								break;
-							}
-						}
-						
-						Datum value = this.getBounds(definition).generateRandom();
-						this.addProperty(property, value);
-					}
-				}
-				return;
-			}
-			
-//		Only root contains all constraints
-		IWorldTree root = this.root();
 
-		Collection<Constraint> constraints 	= this.constraints();
-		Collection<PropertyDef> definitions	= root.definitions();
-		
-		for(Constraint constraint : constraints) {
-			if(myLevel.equals(constraint.level())) {
-				String property = constraint.condition().property().name();
-				
-				PropertyDef definition = null;
-				for(PropertyDef def : definitions) {
-					if(def.property().name().equals(property) && (def.level().equals(myLevel))) {
-						definition = def;
-						break;
-					}
-				}
-				if(definition == null)
-					throw new IllegalStateException("Property " + property + " has no definition!\n");
-				
-				Map<IWorldTree, Datum> childConstraintValues = HierarchicalSplit.split(this, constraint, definition);
-				
-				
-				for(Map.Entry<IWorldTree, Datum> entry : childConstraintValues.entrySet()) {
-					IWorldTree child		= entry.getKey();
-					Datum value 			= childConstraintValues.get(child);
-					
-					Hierarchy childLevel 	= Hierarchy.parse(child.getClass());
-					
-					Constraint childConstraint = null;
-					{
-						IPattern pattern		= new BasePattern(new Reference("this"), null, null);
-						Property childProperty	= new Property(new Reference("this"), property);
-						TokenCmpOp operator		= constraint.condition().operator();
-						ICondition condition	= new BaseCondition(false, ConditionType.BASIC, childProperty, operator, value);
-						IQuery query = new BaseQuery(childLevel, pattern, null);
-						childConstraint = new Constraint(Type.PROGRAM_GENERATED, childLevel, query, condition);
-					}
-					child.addConstraint(childConstraint);
-				}
-			}
-		}
-		
-//		Now push down the children
-//		this.children() should *NOT* be null at this point..check anyway
-		if(this.children() == null)
-			return;
-		for(IWorldTree child : this.children()) {
-			child.pushDownConstraints();
-		}
-	}
-
-	
-	private void processBounds(Constraint constraint) {
-		Hierarchy myLevel		= Hierarchy.parse(this.getClass());
-		
-		String property 		= constraint.condition().property().name();
-
-		Collection<PropertyDef> definitions	= this.root().definitions();
-		PropertyDef definition	= null;
-		for(PropertyDef def : definitions) {
-			if(def.level().equals(myLevel) && def.property().name().equals(property)) {
-				definition = def;
-				break;	//FIXME: Should we break here?
-			}
-		}
-		
-		RangeSet propertyRanges		= this.getBounds(definition);
-		RangeSet newPropertyRanges 	= new RangeSet();
-		
-//		TODO: Should we be handling 'where' clauses here?
-		Datum value				= constraint.condition().value();
-		DatumType type 			= value.type();
-		
-		if(!(type == DatumType.INT || type == DatumType.FLOAT))
-			throw new IllegalStateException("Pre-processing bounds: Cannot handle constraint value type :" + type);
-		
-		switch(constraint.condition().operator()) {
-		case EQ:
-			assert propertyRanges.contains(value) : "Pre-processing bounds: Range " + propertyRanges + " does not contain " + value;
-			for(Range r : propertyRanges) {
-				if(r.contains(value))
-					newPropertyRanges.add(r);
-			}
-			for(Range r : newPropertyRanges) {
-				switch(type) {
-				case FLOAT:
-					r = FloatRange.closed(value, value);
-					break;
-				case INT:
-					r = IntegerRange.closed(value, value);
-					break;
-				}
-			}
-			break;
-		case GE:
-			for(Range r : propertyRanges) {
-				if(value.compareTo(r.lowerBound(), TokenCmpOp.LE) == 0)
-					continue;
-				switch(type) {
-				case FLOAT:
-					r.setLowerBound(value.toFlt());
-					break;
-				case INT:
-					r.setLowerBound(value.toInt());
-					break;
-				}
-				r.setLowerBoundType(BoundType.CLOSED);
-			}
-			newPropertyRanges = propertyRanges;
-			break;
-		case GT:
-			for(Range r : propertyRanges) {
-				if(value.compareTo(r.lowerBound(), TokenCmpOp.LT) == 0)
-					continue;
-				switch(type) {
-				case FLOAT:
-					r.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
-					r.setLowerBoundType(BoundType.CLOSED);
-					break;
-				case INT:
-					r.setLowerBound(value.add(new Datum.Int(1)));
-					r.setLowerBoundType(BoundType.CLOSED);
-					break;
-				}
-			}
-			newPropertyRanges = propertyRanges;
-			break;
-		case LE:
-			for(Range r : propertyRanges) {
-				if(value.compareTo(r.upperBound(), TokenCmpOp.GE) == 0)
-					continue;
-				switch(type) {
-				case FLOAT:
-					r.setUpperBound(value.toFlt());
-					break;
-				case INT:
-					r.setUpperBound(value.toInt());
-					break;
-				}
-				r.setUpperBoundType(BoundType.CLOSED);
-			}
-			newPropertyRanges = propertyRanges;
-			break;
-		case LT:
-			for(Range r : propertyRanges) {
-				if(value.compareTo(r.upperBound(), TokenCmpOp.GT) == 0)
-					continue;
-				switch(type) {
-				case FLOAT:
-					r.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
-					r.setUpperBoundType(BoundType.CLOSED);
-					break;
-				case INT:
-					r.setUpperBound(value.subtract(new Datum.Int(1)));
-					r.setUpperBoundType(BoundType.CLOSED);
-					break;
-				}
-			}
-			newPropertyRanges = propertyRanges;
-			break;
-		case NOTEQ:
-			for(Range range : propertyRanges) {
-				Range range1 = range.clone();
-				switch(type) {
-				case FLOAT:
-					range.setUpperBound(value.toFlt().subtract(new Datum.Flt(Float.MIN_VALUE)));
-					range.setUpperBoundType(BoundType.CLOSED);
-					range1.setLowerBound(value.toFlt().add(new Datum.Flt(Float.MIN_VALUE)));
-					range1.setLowerBoundType(BoundType.CLOSED);
-					break;
-				case INT:
-					range.setUpperBound(value.subtract(new Datum.Int(1)));
-					range.setUpperBoundType(BoundType.CLOSED);
-					range1.setLowerBound(value.add(new Datum.Int(1)));
-					range1.setLowerBoundType(BoundType.CLOSED);
-					break;
-				}
-				propertyRanges.add(range1);
-			}
-			newPropertyRanges = propertyRanges;
-			break;
-		}
-		this.bounds.put(property, newPropertyRanges);
+	public Map<Property, RangeSet> bounds() {
+		return this.bounds;
 	}
 	
-	public void processBounds() {
-		if(this.children() != null) {
-			for(IWorldTree child : this.children()) {
-				child.processBounds();
-			}
-		}
-		
-		Hierarchy myLevel = Hierarchy.parse(this.getClass());
-		
-		if(this.bounds == null) {
-//			We have never called preProcessBounds before..Process user-defined constraints
-			this.bounds = new HashMap<String, RangeSet>(0);
-			Collection<Constraint> constraints 	= this.root().constraints();
-			
-			for(Constraint c : constraints) {
-				if(c.level().equals(myLevel))
-					processBounds(c);
-			}
-		}
-	}
-	
-	public RangeSet getBounds(PropertyDef parentDefinition) {
-		if(this.bounds == null)
-			processBounds();
-		
-		Hierarchy myLevel = Hierarchy.parse(this.getClass());
-		
-		IWorldTree root = this.root();
-		
-		String property = parentDefinition.property().name();
-		
-		Collection<PropertyDef> definitions	= root.definitions();
-		
-		PropertyDef definition = null;
-		for(PropertyDef def : definitions) {
-			if(def.property().name().equals(property) && (def.level().equals(myLevel))) {
-				definition = def;
-				break;
-			}
-		}
-		
-		if(bounds != null && bounds.get(property) != null)
-			return bounds.get(property);
-		
-		List<Range> bounds = new ArrayList<Range>();
-		if(this.children() != null) {
-			for(IWorldTree child : this.children()) {
-				Range bound = child.getBounds(definition);
-				bounds.add(bound);
-			}
-		}
-				
-//		TODO: Perhaps we should use the in-built Datum.add method?
-		float min = Float.MAX_VALUE;
-		float max = Float.MIN_VALUE;
-		
-		Range resultRange = null;
-		switch(definition.type()) {
-		case AGGREGATE:
-			Datum.DatumType type = bounds.get(0).lowerBound().type();
-			switch(definition.aggregateExpression().type()) {
-			case COUNT:
-				resultRange = IntegerRange.closed(0, this.children().size());
-				return resultRange;
-			case MAX:
-//				TODO: Determine whether min = minVal when maxVal > max
-				for(Range range : bounds) {
-					float maxVal = (Float) range.upperBound().toFlt().data();
-					if(maxVal > max) {
-						max = maxVal;
-						resultRange = range;
-					}
-				}
-				break;
-			case MIN:
-//				TODO: Determine whether max = maxVal when minVal < min
-				for(Range range : bounds) {
-					float minVal = (Float) range.lowerBound().toFlt().data();
-					if(minVal < min) {
-						min = minVal;
-						resultRange = range;
-					}
-				}
-				break;
-			case SUM:
-				min = 0;
-				max = 0;
-				resultRange = null;
-				
-				switch(type) {
-				case FLOAT:
-					resultRange = FloatRange.closed(0, 0);
-					break;
-				case INT:
-					resultRange = IntegerRange.closed(0, 0);
-					break;
-				default:
-					System.err.println("Warning: Trying to sum INT/FLOAT with type :" + type);
-					break;
-				}
-				
-//				We assume that all bounds are of the same 'type'
-				for(Range range : bounds) {
-					resultRange = resultRange.add(range);
-				}
-				max = (Float) resultRange.upperBound().toFlt().data();
-				min = (Float) resultRange.lowerBound().toFlt().data();
-				
-				break;
-			}
-			
-			switch(type) {
-			case FLOAT:
-				this.bounds.put(property, resultRange);
-				return this.bounds.get(property);
-			case INT:
-				this.bounds.put(property, resultRange);
-				return this.bounds.get(property);
-			default:
-				throw new IllegalStateException("Default case in allocating type is :" + type);
-			
-			}
-		case BASIC:
-//			TODO
-			break;
-		case INHERIT:
-//			TODO
-			break;
-		case RANDOM:
-			return definition.randomspec().range().clone();
-		default:
-			throw new IllegalStateException("Default case in definition type? Type is :" + definition.type());
-		}
-		return null;
+	public void setBounds(Map<Property, RangeSet> bounds) {
+		this.bounds = bounds;
 	}
 	
 	/* -------------------------------------------  String methods  ------------------------------------------- */

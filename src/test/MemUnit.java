@@ -1,4 +1,4 @@
-package test.memory;
+package test;
 
 public class MemUnit {
 	long bytes;

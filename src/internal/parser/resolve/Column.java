@@ -2,7 +2,6 @@ package internal.parser.resolve;
 
 import internal.tree.IWorldTree;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Vector;
 
@@ -12,6 +11,10 @@ import java.util.Vector;
  *
  */
 public class Column extends Vector<IWorldTree> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8728524978224116816L;
 	protected String name;
 	
 	public Column(String name, Collection<IWorldTree> collection) {

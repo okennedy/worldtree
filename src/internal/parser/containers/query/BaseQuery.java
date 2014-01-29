@@ -5,7 +5,6 @@ import internal.parser.containers.Statement;
 import internal.parser.containers.StatementType;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.pattern.IPattern;
-import internal.tree.IWorldTree;
 
 /**
  * Container class for storing a query <br>
