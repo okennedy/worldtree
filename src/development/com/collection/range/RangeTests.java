@@ -1,9 +1,5 @@
 package development.com.collection.range;
 
-import static org.junit.Assert.*;
-
-import java.util.Set;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

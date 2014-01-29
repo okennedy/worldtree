@@ -3,7 +3,6 @@ package internal.parser.containers;
 import internal.parser.TokenCmpOp;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public abstract class Datum {

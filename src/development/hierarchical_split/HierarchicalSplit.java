@@ -3,25 +3,18 @@ package development.hierarchical_split;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
-import internal.parser.containers.Datum.Int;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.PropertyDef;
-import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.parser.resolve.Result;
 import internal.parser.resolve.constraint.ConstraintSolver;
 import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.tree.IWorldTree;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import development.com.collection.range.IntegerRange;
 import development.com.collection.range.Range;
-import development.com.collection.range.Range.BoundType;
 import development.com.collection.range.RangeSet;
 
 public class HierarchicalSplit {
@@ -218,6 +211,14 @@ public class HierarchicalSplit {
 					default:
 						throw new IllegalStateException("Tree can't have a node with 2 objects somewhere below, but not be an aggregate!");
 					}
+				case BASIC:
+					break;
+				case INHERIT:
+					break;
+				case RANDOM:
+					break;
+				default:
+					break;
 				}
 			}
 		}

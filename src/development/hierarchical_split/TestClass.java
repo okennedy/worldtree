@@ -1,12 +1,10 @@
 package development.hierarchical_split;
 
-import static org.junit.Assert.*;
 import internal.Helper;
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.property.PropertyDef;
-import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.parser.resolve.constraint.ConstraintSolver;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree;
@@ -20,10 +18,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import development.com.collection.range.Range;
 import development.com.collection.range.RangeSet;
-
-import static internal.Helper.*;
 
 public class TestClass {
 	public static WorldTreeFactory factory = null;

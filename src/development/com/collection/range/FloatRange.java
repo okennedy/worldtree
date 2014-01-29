@@ -1,6 +1,5 @@
 package development.com.collection.range;
 
-import development.com.collection.range.Range.BoundType;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Datum.DatumType;
 

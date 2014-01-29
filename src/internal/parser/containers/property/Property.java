@@ -2,7 +2,6 @@ package internal.parser.containers.property;
 
 import java.util.HashMap;
 import internal.parser.containers.IContainer;
-import internal.parser.containers.Reference;
 
 /**
  * Container class for a property <br>

@@ -3,15 +3,10 @@ package development.com.collection.range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import development.com.collection.range.Range.BoundType;

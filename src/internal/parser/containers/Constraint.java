@@ -1,11 +1,7 @@
 package internal.parser.containers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import internal.Helper.Hierarchy;
 import internal.parser.containers.condition.ICondition;
-import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
 
 /**

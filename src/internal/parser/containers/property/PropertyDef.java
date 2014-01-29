@@ -1,12 +1,7 @@
 package internal.parser.containers.property;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Random;
-
 import development.com.collection.range.Range;
 import internal.Helper.Hierarchy;
-import internal.parser.containers.Datum;
 import internal.parser.containers.Reference;
 import internal.parser.containers.Statement;
 import internal.parser.containers.IContainer;
@@ -15,7 +10,6 @@ import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.AggExpr;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.pattern.BasePattern;
-import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.query.BaseQuery;
 import internal.parser.containers.query.IQuery;
 
