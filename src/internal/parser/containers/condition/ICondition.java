@@ -7,6 +7,8 @@ import internal.parser.containers.IContainer;
 import internal.parser.containers.Reference;
 import internal.parser.containers.condition.BaseCondition.ConditionType;
 import internal.parser.containers.property.Property;
+import internal.parser.resolve.Result;
+import internal.tree.IWorldTree;
 
 public interface ICondition extends IContainer {
 	
@@ -109,4 +111,6 @@ public interface ICondition extends IContainer {
 	 * @see ConditionType
 	 */
 	public void setType(ConditionType type);
+
+	public Datum evaluate(IWorldTree node, Result result);
 }

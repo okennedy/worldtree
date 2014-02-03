@@ -1,10 +1,13 @@
 package internal.parser.containers.expr;
 
 import internal.parser.TokenArithOp;
+import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.property.Property;
+import internal.parser.resolve.Result;
+import internal.tree.IWorldTree;
 
 /**
  * Container class for expressions <br>
@@ -112,6 +115,54 @@ public class Expr implements IExpr {
 	@Override
 	public IExpr elseExpr() {
 		return elseExpr;
+	}
+	
+	@Override
+	public Datum evaluate(IWorldTree node, Result result) {
+		Datum baseValue = null;
+		Datum subValue	= null;
+		switch(exprType) {
+		case ARITH:
+			baseValue = baseExpr.evaluate(node, result);
+			subValue 	= subExpr.evaluate(node, result);
+			switch(operator) {
+			case TK_DIV:
+				return baseValue.divide(subValue);
+			case TK_MINUS:
+				return baseValue.subtract(subValue);
+			case TK_MULT:
+				return baseValue.multiply(subValue);
+			case TK_PLUS:
+				return baseValue.add(subValue);
+			}
+			break;
+		case BASIC:
+			if(value != null)
+				return value;
+			else {
+				IWorldTree referenceNode = result.get(reference.toString()).get(0);	//FIXME: This is not the right thing to do..
+				return referenceNode.properties().get(property);
+			}
+		case MAXMIN:
+			baseValue	= baseExpr.evaluate(node, result);
+			subValue	= subExpr.evaluate(node, result);
+			if(maxminType.equalsIgnoreCase("MAX")) {
+				if(baseValue.compareTo(subValue, TokenCmpOp.GT) == 0)
+					return baseValue;
+				else
+					return subValue;
+			}
+			else {
+				if(baseValue.compareTo(subValue, TokenCmpOp.LT) == 0)
+					return baseValue;
+				else
+					return subValue;
+			}
+		case WHEN:
+		default :
+			throw new IllegalStateException("Unimplemented! expression type " + exprType);
+		}
+		return null;
 	}
 	
 	@Override

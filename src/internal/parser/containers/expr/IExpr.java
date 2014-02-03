@@ -6,6 +6,8 @@ import internal.parser.containers.IContainer;
 import internal.parser.containers.Reference;
 import internal.parser.containers.expr.Expr.ExprType;
 import internal.parser.containers.property.Property;
+import internal.parser.resolve.Result;
+import internal.tree.IWorldTree;
 
 public interface IExpr extends IContainer {
 	
@@ -36,4 +38,7 @@ public interface IExpr extends IContainer {
 	public IExpr whenExpr();
 	
 	public IExpr elseExpr();
+
+//	FIXME: This method should be moved out of IExpr to maintain clean separation
+	public Datum evaluate(IWorldTree node, Result result);
 }
