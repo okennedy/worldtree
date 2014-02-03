@@ -220,7 +220,8 @@ IExpr expr() :
         LOOKAHEAD(3)ref = reference() < DOT > property = property() { return new Expr(ref, property); }
     |   value = constant() { return new Expr(value); }
     )
-    |   (< MAX > | < MIN >) { maxminType = token.image; }
+
+//  FIXME: MAX MIN is incorrect. sub expressions don't carry notion of max/min..subExpr does not recurse either.|   (< MAX > | < MIN >) { maxminType = token.image; }
 		< LPARANS > baseExpr = expr() < COMMA > subExpr = expr() < RPARANS >
 	{ return new Expr(maxminType, baseExpr, subExpr); }
 	
