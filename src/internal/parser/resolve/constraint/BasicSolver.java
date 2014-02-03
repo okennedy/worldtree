@@ -9,8 +9,10 @@ import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
+import internal.parser.containers.query.IQuery;
 import internal.parser.resolve.Column;
 import internal.parser.resolve.Result;
 import internal.parser.resolve.query.QueryResolutionEngine;
@@ -195,7 +197,8 @@ public class BasicSolver implements IConstraintSolver {
 	}
 	
 	private void iterativePushDown(IWorldTree node) {
-//		FIXME: Currently assumes that properties need to be materialized only at the lowest level..all other levels are aggregates
+//		FIXME:	Currently assumes that properties need to be materialized only at the lowest level..all other levels are aggregates
+//		TODO:	Need to handle dependent properties in the right order
 		if(node.children() != null) {
 			for(IWorldTree child : node.children())
 				iterativePushDown(child);
@@ -211,9 +214,33 @@ public class BasicSolver implements IConstraintSolver {
 					continue;
 				Property property = definition.property();
 				Range range = null;
-				if(definition.randomspec() != null) {
+				Datum value = null;
+				
+				switch(definition.type()) {
+				case BASIC:
+					IQuery query = definition.query();
+					Result result = QueryResolutionEngine.evaluate(node, query);
+					Column column = result.get(definition.reference().toString());
+					if(column.contains(node)) {
+						IExpr expr = definition.expression();
+						ICondition condition = definition.condition();
+						if(expr != null)
+							value = expr.evaluate(node, result);
+						else if(condition != null)
+							value = condition.evaluate(node, result);
+					}
+					break;
+				case INHERIT:
+					break;
+				case RANDOM:
 					range = definition.randomspec().range();
-					node.addProperty(property, range.generateRandom());
+					value = range.generateRandom();
+					break;
+				default:
+					break;
+				}
+				if(value != null) {
+					node.properties().put(property, value);
 					updateParent(node, property);
 				}
 			}
