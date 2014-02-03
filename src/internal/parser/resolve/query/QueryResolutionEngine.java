@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IStatement;
@@ -99,12 +100,12 @@ public class QueryResolutionEngine {
 		}
 		case QUERY: {
 			IQuery query = (IQuery) statement;
-			Class<?> level		= query.level().HierarchyClass();
+			Hierarchy level		= query.level();
 			IPattern pattern	= query.pattern();
 			List<IWorldTree> objectList = getObjects(node, level);
 			
 			while(query != null) {
-				level		= query.level().HierarchyClass();
+				level		= query.level();
 				pattern		= query.pattern();
 				result		= new Result();
 				while(pattern != null) {
@@ -262,13 +263,13 @@ public class QueryResolutionEngine {
 	/**
 	 * Resolve method that is specifically designed to handle {@code IQuery}
 	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
-	 * @param level {@code Class<?>} representing the hierarchical level of WorldTree
+	 * @param level {@code Hierarchy} representing the hierarchical level of WorldTree
 	 * @param pattern {@code IPattern} representing the pattern to search for
 	 * @param result {@code Result} object containing previous query results(if any)
 	 * @param objects {@code Column} containing the objects to iterate over while resolving this {@code IQuery}
 	 * @return {@code Result} containing tuples satisfying the {@code IQuery}
 	 */
-	private Result resolveQuery(IWorldTree node, Class<?> level, IPattern pattern, Result result, Column objects) {
+	private Result resolveQuery(IWorldTree node, Hierarchy level, IPattern pattern, Result result, Column objects) {
 		Relation relation = pattern.relation();
 		switch(relation.type()) {
 		case CUSTOM:
@@ -316,19 +317,27 @@ public class QueryResolutionEngine {
 	 * @param level {@code Class<?>} hierarchy level with which objects are filtered
 	 * @return {@code Collection<IWorldTree>} containing all nodes in the tree at <b> level </b> having <b> node </b> as root 
 	 */
-	private List<IWorldTree> getObjects(IWorldTree node, Class<?> level) {
+	private List<IWorldTree> getObjects(IWorldTree node, Hierarchy level) {
 		List<IWorldTree> nodeList	= new LinkedList<IWorldTree>();
 		List<IWorldTree> objectList	= new LinkedList<IWorldTree>();
 //		Get collection of relevant objects
+		Hierarchy nodeLevel = Hierarchy.parse(node.getClass());
+		if(nodeLevel.equals(level)) {
+//			node is on the same level as the objects we want..
+//			FIXME: We currently ask node's parent for all its peers..we *may* want to change this to return just node
+			node = node.parent();
+		}
 		nodeList.add(node);
 		IWorldTree currentNode = null;
 		while(nodeList.size() > 0) {
 			currentNode = nodeList.get(0);
-			for(IWorldTree child : currentNode.children()) {
-				if(child.getClass().equals(level))
-					objectList.add(child);
-				else
-					nodeList.add(child);
+			if(currentNode.children() != null) {
+				for(IWorldTree child : currentNode.children()) {
+					if(Hierarchy.parse(child.getClass()).equals(level))
+						objectList.add(child);
+					else
+						nodeList.add(child);
+				}
 			}
 			nodeList.remove(currentNode);
 		}
