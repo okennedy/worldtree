@@ -259,10 +259,14 @@ public class BasicSolver implements IConstraintSolver {
 				break;
 			}
 		}
-		
-		Datum value = evaluate(parent, definition);
-		parent.properties().put(property, value);
-		updateParent(parent, property);
+		if(definition != null) {
+			Datum value = evaluate(parent, definition);
+			parent.properties().put(property, value);
+			updateParent(parent, property);
+		}
+		else {
+//			Parent has no definition of this property..ignore updating parent
+		}
 	}
 
 	@Override
