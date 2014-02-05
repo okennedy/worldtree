@@ -149,7 +149,11 @@ public class PropertyDef extends Statement {
 			result.append("DEFINE " + level + " " + reference + "." + property + " AS AGGREGATE " + aggExpr + " IN " + query);
 			break;
 		case BASIC:
-			result.append("DEFINE " + level + " " + reference + "." + property + " AS " + "(" + condition + ") IN " + query);
+			result.append("DEFINE " + level + " " + reference + "." + property + " AS " + "(");
+			if(condition != null)
+				result.append("" + condition);
+			else result.append("" + expr);
+			result.append(") IN " + query);
 			break;
 		case INHERIT:
 			result.append("INHERIT " + level + " " + reference + "." + property + " FROM " + parent);
