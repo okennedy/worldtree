@@ -47,8 +47,6 @@ public class Driver {
     else
       { propertiesFile = worldDefFile.replace(".definitions", "")+".properties"; }
     
-    System.out.println(propertiesFile);
-    
     /***** CREATE THE WORLD *****/
     PieceFactory.initialize(pieceStrings);
 		TimeKeeper timeKeeper = new TimeKeeper();
