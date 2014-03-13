@@ -1,8 +1,7 @@
 package development.com.collection.range;
 
-import development.com.collection.range.Range.BoundType;
-
 import internal.parser.containers.Datum;
+import internal.parser.containers.Datum.DatumType;
 
 public class FloatRange extends Range {
 	
@@ -10,44 +9,87 @@ public class FloatRange extends Range {
 		super();
 	}
 	
+	/* ---------------------------------- CONSTRUCTORS ---------------------------------- */
 	protected FloatRange(float lowerBound, BoundType lowerBoundType, float upperBound, BoundType upperBoundType) {
 		super(new Datum.Flt(lowerBound), lowerBoundType, new Datum.Flt(upperBound), upperBoundType);
+	}
+	
+	protected FloatRange(Datum lowerBound, BoundType lowerBoundType, Datum upperBound, BoundType upperBoundType) {
+		super(lowerBound, lowerBoundType, upperBound, upperBoundType);
 	}
 	
 	public static FloatRange open(float lowerBound, float upperBound) {
 		return new FloatRange(lowerBound, BoundType.OPEN, upperBound, BoundType.OPEN);
 	}
 	
+	public static FloatRange open(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.FLOAT && upperBound.type() == DatumType.FLOAT) : "FloatRange: Datum type is not FLOAT";
+		return new FloatRange(lowerBound, BoundType.OPEN, upperBound, BoundType.OPEN);
+	}
+	
+	
 	public static FloatRange closed(float lowerBound, float upperBound) {
 		return new FloatRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
 	}
+	
+	public static FloatRange closed(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.FLOAT && upperBound.type() == DatumType.FLOAT) : "FloatRange: Datum type is not FLOAT";
+		return new FloatRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
+	}
+	
 	
 	public static FloatRange openClosed(float lowerBound, float upperBound) {
 		return new FloatRange(lowerBound, BoundType.OPEN, upperBound, BoundType.CLOSED);
 	}
 	
+	public static FloatRange openClosed(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.FLOAT && upperBound.type() == DatumType.FLOAT) : "FloatRange: Datum type is not FLOAT";
+		return new FloatRange(lowerBound, BoundType.OPEN, upperBound, BoundType.CLOSED);
+	}
+	
+	
 	public static FloatRange closedOpen(float lowerBound, float upperBound) {
 		return new FloatRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.OPEN);
 	}
 	
-	public FloatRange intersection(Range range) {
-		float lowerBoundData			= (Float) this.lowerBound().data();
-		float upperBoundData			= (Float) this.upperBound().data();
-		float rangeLowerBoundData		= (Float) range.lowerBound().data();
-		float rangeUpperBoundData		= (Float) range.upperBound().data();
+	public static FloatRange closedOpen(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.FLOAT && upperBound.type() == DatumType.FLOAT) : "FloatRange: Datum type is not FLOAT";
+		return new FloatRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.OPEN);
+	}
+	/* ---------------------------------- CONSTRUCTORS ---------------------------------- */
+	
+	
+	public Range intersection(Range range) {
+//		R1 contains R2
+		if(range.contains(this.lowerBound()) && range.contains(this.upperBound()))
+			return this.clone();
+//		R2 contains R1
+		else if(this.contains(range.lowerBound()) && this.contains(range.upperBound()))
+			return range.clone();
 		
-		float lowerBound 				= lowerBoundData > rangeLowerBoundData ? lowerBoundData : rangeLowerBoundData;
-		float upperBound 				= upperBoundData < rangeUpperBoundData ? upperBoundData : rangeUpperBoundData;
-		
-		BoundType lowerBoundType	= BoundType.CLOSED;
-		BoundType upperBoundType	= BoundType.CLOSED;
-		
-		if(this.lowerBoundType() == BoundType.OPEN || range.lowerBoundType() == BoundType.OPEN)
-			lowerBoundType = BoundType.OPEN;
-		if(this.upperBoundType() == BoundType.OPEN || range.upperBoundType() == BoundType.OPEN)
-			upperBoundType = BoundType.OPEN;
-		
-		return new FloatRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+//		Either no overlap or partial overlap
+		else {
+			Datum lowerBound 			= null;
+			BoundType lowerBoundType	= null;
+			Datum upperBound			= null;
+			BoundType upperBoundType	= null;
+			
+			if(this.contains(range.lowerBound())) {
+				lowerBound 		= range.lowerBound();
+				lowerBoundType	= range.lowerBoundType();
+				upperBound		= this.upperBound();
+				upperBoundType	= this.upperBoundType();
+				return new FloatRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+			}
+			else if(this.contains(range.upperBound())) {
+				lowerBound		= this.lowerBound();
+				lowerBoundType	= this.lowerBoundType();
+				upperBound		= range.upperBound();
+				upperBoundType	= range.upperBoundType();
+				return new FloatRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+			}
+		}
+		return null;
 	}
 	
 	@Override
@@ -55,24 +97,32 @@ public class FloatRange extends Range {
 		float lowerBound				= (Float) this.lowerBound().add(range.lowerBound()).data();
 		float upperBound				= (Float) this.upperBound().add(range.upperBound()).data();
 		
-		BoundType lowerBoundType	= BoundType.CLOSED;
-		BoundType upperBoundType	= BoundType.OPEN;
+		if(this.lowerBoundType() == BoundType.OPEN)
+			lowerBound += Float.MIN_VALUE;
+		if(this.upperBoundType() == BoundType.OPEN)
+			upperBound -= Float.MIN_VALUE;
 		
-		return new FloatRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+		if(range.lowerBoundType() == BoundType.OPEN)
+			lowerBound += Float.MIN_VALUE;
+		if(range.upperBoundType() == BoundType.OPEN)
+			upperBound -= Float.MIN_VALUE;
+		
+		return new FloatRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
 	}
 	
 	@Override
 	public boolean contains(Datum datum) {
-		Float value = null;
-		
-		Float lowerBoundData	= (Float) lowerBound().data();
-		Float upperBoundData	= (Float) upperBound().data();
+		Float valueFlt = null;
+		float value;
+		float lowerBoundData	= (Float) lowerBound().data();
+		float upperBoundData	= (Float) upperBound().data();
 		
 		try {
-			value 			= (Float) datum.data();
+			valueFlt			= (Float) datum.data();
 		} catch(Exception e) {
 			throw new IllegalArgumentException("FloatRange cannot contain an object of type '" + datum.type() + "'");
 		}
+		value = valueFlt.floatValue();
 		switch(lowerBoundType()) {
 		case CLOSED:
 			if(value == lowerBoundData)
@@ -179,6 +229,6 @@ public class FloatRange extends Range {
 	
 	@Override
 	public Range clone() {
-		return new FloatRange((Float) lowerBound().data(), lowerBoundType(), (Float) upperBound().data(), upperBoundType());
+		return new FloatRange(lowerBound(), lowerBoundType(), upperBound(), upperBoundType());
 	}
 }

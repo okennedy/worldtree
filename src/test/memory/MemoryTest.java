@@ -8,7 +8,9 @@ import internal.tree.WorldTreeFactory;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import test.MemUnit;
 import test.MemUsageMonitor;
+import test.TimeKeeper;
 
 public class MemoryTest {
 	private IMap map;
@@ -26,34 +28,35 @@ public class MemoryTest {
 
 	@Test
 	public void sizeTest() {
-		Thread memUsage = new MemUsageMonitor(1, true);
+		Thread memUsage = new MemUsageMonitor(10, true);
+		TimeKeeper timeKeeper = new TimeKeeper();
 		memUsage.start();
 		
-		long startTime 	= System.nanoTime();
+		timeKeeper.start();
 		factory = new WorldTreeFactory("init.properties", "world.definitions");
 		map = factory.newMap("InitTestMap", null);
 		map.initRooms();
 		map.initRegions();
 		map.initTiles();
 		
-		long endTime 	= System.nanoTime();
-		System.out.println("Time taken to create skeleton          :" + ((endTime - startTime)/1e9) + " seconds");
+		timeKeeper.stop();
+		System.out.println("Time taken to create skeleton          :" + timeKeeper.toString());
 		
-		startTime		= System.nanoTime();
+		timeKeeper.start();
 		map.fill();
-		endTime			= System.nanoTime();
-		System.out.println("Time taken to fill entire map          :" + ((endTime - startTime)/1e9) + " seconds");
+		timeKeeper.stop();
+		System.out.println("Time taken to fill entire map          :" + timeKeeper.toString());
 		
 		
-		startTime		= System.nanoTime();
+		timeKeeper.start();
 		map.materializeConstraints();
-		endTime			= System.nanoTime();
-		System.out.println("Time taken to materialize constraints  :" + ((endTime - startTime)/1e9) + " seconds");
+		timeKeeper.stop();
+		System.out.println("Time taken to materialize constraints  :" + timeKeeper.toString());
 		
-		startTime		= System.nanoTime();
+		timeKeeper.start();
 		write(map);
-		endTime			= System.nanoTime();
-		System.out.println("Time taken to write map        :" + ((endTime - startTime)/1e9) + " seconds");
+		timeKeeper.stop();
+		System.out.println("Time taken to write map                :" + timeKeeper.toString());
 		
 		getMemoryUsage();
 		

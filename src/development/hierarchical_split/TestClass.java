@@ -1,12 +1,11 @@
 package development.hierarchical_split;
 
-import static org.junit.Assert.*;
 import internal.Helper;
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.property.PropertyDef;
-import internal.parser.containers.property.PropertyDef.RandomSpec;
+import internal.parser.resolve.constraint.ConstraintSolver;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree;
 import internal.tree.WorldTreeFactory;
@@ -19,9 +18,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import development.com.collection.range.Range;
-
-import static internal.Helper.*;
+import development.com.collection.range.RangeSet;
 
 public class TestClass {
 	public static WorldTreeFactory factory = null;
@@ -53,17 +50,17 @@ public class TestClass {
 		}
 		
 		for(PropertyDef def : map.definitions()) {
-			if(def.property().name().equals(constraint.condition().property().name()) &&
+			if(def.property().equals(constraint.condition().property().name()) &&
 					def.level().equals(level))
 				definition	= def;
 		}
 		
 		
-		Map<IWorldTree, Range> childRanges = new HashMap<IWorldTree, Range>();
+		Map<IWorldTree, RangeSet> childRanges = new HashMap<IWorldTree, RangeSet>();
 		
 		for(IWorldTree child : map.children()) {
-			RandomSpec bound = child.getBounds(definition);
-			childRanges.put(child, bound.range());
+			RangeSet bounds = ConstraintSolver.getBounds(child, definition);
+			childRanges.put(child, bounds);
 		}
 		Map<IWorldTree, Datum> split = HierarchicalSplit.split(map, constraint, definition);
 		

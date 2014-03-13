@@ -22,6 +22,22 @@ public abstract class Range {
 	protected Range() {}
 	
 	protected Range(Datum lowerBound, BoundType lowerBoundType, Datum upperBound, BoundType upperBoundType) {
+		switch(lowerBoundType) {
+		case CLOSED:
+			switch(upperBoundType) {
+			case CLOSED:
+				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LE) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+				break;
+			case OPEN:
+				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+				break;
+			}
+			break;
+		case OPEN:
+			assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+			break;
+		}
+		
 		this.lowerBoundType	= lowerBoundType;
 		this.upperBoundType	= upperBoundType;
 		this.lowerBound		= lowerBound;
@@ -69,12 +85,44 @@ public abstract class Range {
 		return result.toString();
 	}
 	
-	
+	/**
+	 * Adds a {@code Range} to this range.
+	 * @param range {@code Range} specifying the range to add
+	 * @return new {@code Range} denoting the result of the addition
+	 */
 	public abstract Range add(Range range);
+	
+	/**
+	 * Checks to see whether this range contains the {@code Datum}
+	 * @param datum {@code Datum} object containing the value to check
+	 * @return <b>true</b> if it does contain {@code datum}<br>
+	 * <b>false</b> otherwise
+	 */
 	public abstract boolean contains(Datum datum);
+	
+	/**
+	 * Return the intersection with another {@code Range}
+	 * @param range {@code Range} object to intersect with
+	 * @return new {@code Range} object specifying the intersection
+	 */
 	public abstract Range intersection(Range range);
+	
+	/**
+	 * Generate a random value from this range
+	 * @return {@code Datum} containing the random value
+	 */
 	public abstract Datum generateRandom();
+	
+	/**
+	 * Find span of two ranges
+	 * @param range {@code Range} specifying the second range 
+	 * @return new {@code Range} expressing the span
+	 */
 	public abstract Range span(Range range);
+	
+	/**
+	 * Create a new {@code Range} object that is a deep-copy clone of the current {@code Range}
+	 */
 	public abstract Range clone();
 	
 	public void setUpperBound(Datum upperBound) {

@@ -1,6 +1,5 @@
 package test;
 
-import test.memory.MemUnit;
 
 public class MemUsageMonitor extends Thread implements Runnable {
 	private long delay;

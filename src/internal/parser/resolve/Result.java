@@ -14,6 +14,11 @@ import static internal.Helper.multiLine;
  */
 public class Result extends ArrayList<Column> {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3076712417591790867L;
+
 	@Override
 	public boolean add(Column column) {
 		for(Column t : this) {

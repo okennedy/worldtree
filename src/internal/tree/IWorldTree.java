@@ -1,14 +1,15 @@
 package internal.tree;
 
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import development.com.collection.range.RangeSet;
+import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
+import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
-import internal.parser.containers.property.PropertyDef.RandomSpec;
 import internal.piece.IPiece;
 import internal.piece.TileInterfaceType;
 import internal.space.Space;
@@ -52,11 +53,6 @@ public interface IWorldTree {
 	public Collection<Constraint> constraints();
 	
 	/**
-	 * Push down the {@code Constraints} defined at this level to its children
-	 */
-	public void pushDownConstraints();
-	
-	/**
 	 * Obtain the definitions of this {@code IWorldTree} instance
 	 * @return {@code Collection<PropertyDef>}
 	 */
@@ -81,16 +77,16 @@ public interface IWorldTree {
 	
 	/**
 	 * Add a new property to this {@code IWorldTree}
-	 * @param name {@code String} containing the name of this property
-	 * @param value {@code Datum} containing the value of this property
+	 * @param name {@code Property}
+	 * @param value {@code Datum} containing the value of this {@code Property}
 	 */
-	public void addProperty(String name, Datum value);
+	public void addProperty(Property property, Datum value);
 	
 	/**
 	 * Obtain the properties of this {@code IWorldTree} instance
-	 * @return {@code Map<String, Datum>} containing the properties and their values of this {@code IWorldTree} instance
+	 * @return {@code Map<Property, Datum>} containing the properties and their values of this {@code IWorldTree} instance
 	 */
-	public Map<String, Datum> properties();
+	public Map<Property, Datum> properties();
 	
 	/**
 	 * Obtain root of this {@code IWorldTree} instance
@@ -112,12 +108,16 @@ public interface IWorldTree {
 	public void move(test.ui.Direction direction);
 	
 	/**
-	 * Return bounds of the specified {@code PropertyDef} on this {@code IWorldTree} instance
-	 * @param parentDefinition {@code PropertyDef} definition whose bounds are required
-	 * @return {@code Map<PropertyDef, RandomSpec>} containing the minimum and maximum values for each definition 
-	 * that matches the parent definition
+	 * Return bounds of this {@code IWorldTree} instance
+	 * @return {@code Map<Property, RangeSet>} containing the ranges for each definition 
 	 */
-	public RandomSpec getBounds(PropertyDef parentDefinition);
+	public Map<Property, RangeSet> bounds();
+	
+	/**
+	 * Set the bounds field
+	 * @param {@code Map<Property, RangeSet>} containing the bounds
+	 */
+	public void setBounds(Map<Property, RangeSet> bounds);
 	
 	/**
 	 * Get set of strings used to represent this {@code IWorldTree} instance.
@@ -148,6 +148,8 @@ public interface IWorldTree {
 		public void materializeConstraints();
 
 		public void fill();
+		
+		public Collection<IWorldTree> getNodesByLevel(Hierarchy level);
 	}
 	
 	public interface IRoom extends IWorldTree {

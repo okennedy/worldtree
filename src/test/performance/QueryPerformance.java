@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import internal.Helper;
 import internal.parser.Parser;
 import internal.parser.containers.IStatement;
-import internal.parser.resolve.ResolutionEngine;
+import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.piece.PieceFactory;
 import internal.tree.WorldTreeFactory;
 import internal.tree.IWorldTree.IMap;
@@ -21,8 +21,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import test.MemUnit;
 import test.MemUsageMonitor;
-import test.memory.MemUnit;
 
 public class QueryPerformance {
 	private static File outputDir = new File("output/PerformanceTests/QueryPerformance");
@@ -78,7 +78,7 @@ public class QueryPerformance {
 					String query = "Tile A toeast B;";
 					Parser parser = new Parser(new StringReader(query));
 					IStatement statement	= parser.parse();
-					ResolutionEngine.evaluate(map, statement);
+					QueryResolutionEngine.evaluate(map, statement);
 				} catch(Exception e) {
 					e.printStackTrace();
 					fail("Failed!");

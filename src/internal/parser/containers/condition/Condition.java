@@ -1,9 +1,14 @@
 package internal.parser.containers.condition;
 
+import development.com.collection.range.Range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Reference;
+import internal.parser.containers.Datum.Bool;
 import internal.parser.containers.condition.BaseCondition.ConditionType;
 import internal.parser.containers.property.Property;
+import internal.parser.resolve.Result;
+import internal.tree.IWorldTree;
 
 /**
  * Container class for storing a condition <br>
@@ -17,7 +22,7 @@ public class Condition implements ICondition {
 	private ICondition subCondition;
 	
 	public Condition(boolean not, ICondition condition) {
-		this.baseCondition	= new BaseCondition(not, condition.type(), condition.property(), condition.operator(), condition.value());
+		this.baseCondition	= new BaseCondition(not, condition.type(), condition.reference(), condition.property(), condition.operator(), condition.value());
 		this.subCondition	= condition.subCondition();
 	}
 	
@@ -32,6 +37,11 @@ public class Condition implements ICondition {
 		return baseCondition.notFlag();
 	}
 
+	@Override
+	public Reference reference() {
+		return baseCondition.reference();
+	}
+	
 	@Override
 	public Property property() {
 		return baseCondition.property();
@@ -58,14 +68,28 @@ public class Condition implements ICondition {
 	}
 	
 	@Override
+	public void setValueRange(Range range) {
+		baseCondition.setValueRange(range);
+	}
+	
+	@Override
 	public ConditionType type() {
 		return ConditionType.COMPLEX;
 	}
 	
-
+	@Override
+	public UnionType unionType() {
+		return unionType;
+	}
+	
 	@Override
 	public void setNotFlag(Boolean flag) {
 		baseCondition.setNotFlag(flag);
+	}
+
+	@Override
+	public void setReference(Reference reference) {
+		baseCondition.setReference(reference);
 	}
 
 	@Override
@@ -108,5 +132,26 @@ public class Condition implements ICondition {
 
 		result.append(")");
 		return result.toString();
+	}
+
+	@Override
+	public Datum evaluate(IWorldTree node, Result result) {
+		boolean baseConditionResult, subConditionResult;
+		boolean conditionResult = false;
+		if(unionType != null) {
+			baseConditionResult	= (Boolean) baseCondition.evaluate(node, result).data();
+			subConditionResult	= (Boolean) subCondition.evaluate(node, result).data();
+			switch(unionType) {
+			case AND:
+				conditionResult = baseConditionResult & subConditionResult;
+				break;
+			case OR:
+				conditionResult = baseConditionResult | subConditionResult;
+				break;
+			}
+			return new Datum.Bool(conditionResult);
+		}
+		else
+			return baseCondition.evaluate(node, result);
 	}
 }

@@ -6,8 +6,8 @@ import internal.parser.ParseException;
 import internal.parser.Parser;
 import internal.parser.containers.IStatement;
 import internal.parser.containers.query.IQuery;
-import internal.parser.resolve.ResolutionEngine;
 import internal.parser.resolve.Result;
+import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.piece.PieceFactory;
 import internal.tree.IWorldTree.IMap;
 import internal.tree.WorldTreeFactory;
@@ -57,7 +57,7 @@ public class ParserTest {
 					Parser parser = new Parser(new StringReader(command.toString()));
 					IQuery query = (IQuery) parser.parse();
 					System.out.println(query.debugString());
-					Result result = ResolutionEngine.evaluate(map, query);
+					Result result = QueryResolutionEngine.evaluate(map, query);
 					System.out.println(result);
 					write("query", makeStringFromResult(query, result));
 					command.delete(0, command.length());

@@ -1,7 +1,7 @@
 package development.com.collection.range;
 
 import internal.parser.containers.Datum;
-import internal.parser.containers.Datum.Int;
+import internal.parser.containers.Datum.DatumType;
 
 public class IntegerRange extends Range {
 	
@@ -9,44 +9,87 @@ public class IntegerRange extends Range {
 		super();
 	}
 	
+	/* ---------------------------------- CONSTRUCTORS ---------------------------------- */
 	protected IntegerRange(int lowerBound, BoundType lowerBoundType, int upperBound, BoundType upperBoundType) {
 		super(new Datum.Int(lowerBound), lowerBoundType, new Datum.Int(upperBound), upperBoundType);
+	}
+	
+	protected IntegerRange(Datum lowerBound, BoundType lowerBoundType, Datum upperBound, BoundType upperBoundType) {
+		super(lowerBound, lowerBoundType, upperBound, upperBoundType);
 	}
 	
 	public static IntegerRange open(int lowerBound, int upperBound) {
 		return new IntegerRange(lowerBound, BoundType.OPEN, upperBound, BoundType.OPEN);
 	}
 	
+	public static IntegerRange open(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
+		return new IntegerRange(lowerBound, BoundType.OPEN, upperBound, BoundType.OPEN);
+	}
+	
+	
 	public static IntegerRange closed(int lowerBound, int upperBound) {
 		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
 	}
+	
+	public static IntegerRange closed(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
+		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.CLOSED);
+	}
+	
 	
 	public static IntegerRange openClosed(int lowerBound, int upperBound) {
 		return new IntegerRange(lowerBound, BoundType.OPEN, upperBound, BoundType.CLOSED);
 	}
 	
+	public static IntegerRange openClosed(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
+		return new IntegerRange(lowerBound, BoundType.OPEN, upperBound, BoundType.CLOSED);
+	}
+	
+	
 	public static IntegerRange closedOpen(int lowerBound, int upperBound) {
 		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.OPEN);
 	}
 	
-	public IntegerRange intersection(Range range) {
-		int lowerBoundData			= (Integer) this.lowerBound().data();
-		int upperBoundData			= (Integer) this.upperBound().data();
-		int rangeLowerBoundData		= (Integer) range.lowerBound().data();
-		int rangeUpperBoundData		= (Integer) range.upperBound().data();
+	public static IntegerRange closedOpen(Datum lowerBound, Datum upperBound) {
+		assert (lowerBound.type() == DatumType.INT && upperBound.type() == DatumType.INT) : "IntegerRange: Datum type is not INT";
+		return new IntegerRange(lowerBound, BoundType.CLOSED, upperBound, BoundType.OPEN);
+	}
+	/* ---------------------------------- CONSTRUCTORS ---------------------------------- */
+	
+	
+	public Range intersection(Range range) {
+//		R1 contains R2
+		if(range.contains(this.lowerBound()) && range.contains(this.upperBound()))
+			return this.clone();
+//		R2 contains R1
+		else if(this.contains(range.lowerBound()) && this.contains(range.upperBound()))
+			return range.clone();
 		
-		int lowerBound 				= lowerBoundData > rangeLowerBoundData ? lowerBoundData : rangeLowerBoundData;
-		int upperBound 				= upperBoundData < rangeUpperBoundData ? upperBoundData : rangeUpperBoundData;
-		
-		BoundType lowerBoundType	= BoundType.CLOSED;
-		BoundType upperBoundType	= BoundType.CLOSED;
-		
-		if(this.lowerBoundType() == BoundType.OPEN || range.lowerBoundType() == BoundType.OPEN)
-			lowerBoundType = BoundType.OPEN;
-		if(this.upperBoundType() == BoundType.OPEN || range.upperBoundType() == BoundType.OPEN)
-			upperBoundType = BoundType.OPEN;
-		
-		return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+//		Either no overlap or partial overlap
+		else {
+			Datum lowerBound 			= null;
+			BoundType lowerBoundType	= null;
+			Datum upperBound			= null;
+			BoundType upperBoundType	= null;
+			
+			if(this.contains(range.lowerBound())) {
+				lowerBound 		= range.lowerBound();
+				lowerBoundType	= range.lowerBoundType();
+				upperBound		= this.upperBound();
+				upperBoundType	= this.upperBoundType();
+				return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+			}
+			else if(this.contains(range.upperBound())) {
+				lowerBound		= this.lowerBound();
+				lowerBoundType	= this.lowerBoundType();
+				upperBound		= range.upperBound();
+				upperBoundType	= range.upperBoundType();
+				return new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+			}
+		}
+		return null;
 	}
 	
 	@Override
@@ -69,16 +112,19 @@ public class IntegerRange extends Range {
 	
 	@Override
 	public boolean contains(Datum datum) {
-		Integer value = null;
-		
-		Integer lowerBoundData	= (Integer) lowerBound().data();
-		Integer upperBoundData	= (Integer) upperBound().data();
+		Integer valueInt 	= null;
+		int value;
+		int lowerBoundData	= (Integer) lowerBound().data();
+		int upperBoundData	= (Integer) upperBound().data();
 		
 		try {
-			value 			= (Integer) datum.data();
+			valueInt		= (Integer) datum.data();
 		} catch(Exception e) {
 			throw new IllegalArgumentException("IntegerRange cannot contain an object of type '" + datum.type() + "'");
 		}
+		value = valueInt.intValue();
+		if(value > lowerBoundData && value < upperBoundData)
+			return true;
 		switch(lowerBoundType()) {
 		case CLOSED:
 			if(value == lowerBoundData)
@@ -99,11 +145,7 @@ public class IntegerRange extends Range {
 				return false;
 			break;
 		}
-		
-		if(value > lowerBoundData && value < upperBoundData)
-			return true;
-		else
-			return false;
+		return false;
 	}
 
 	@Override
@@ -180,6 +222,6 @@ public class IntegerRange extends Range {
 
 	@Override
 	public Range clone() {
-		return new IntegerRange((Integer) lowerBound().data(), lowerBoundType(), (Integer) upperBound().data(), upperBoundType());
+		return new IntegerRange(lowerBound(), lowerBoundType(), upperBound(), upperBoundType());
 	}
 }
