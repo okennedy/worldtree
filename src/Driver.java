@@ -1,8 +1,4 @@
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 
 import static internal.Helper.*;
 import internal.piece.PieceFactory;
@@ -16,14 +12,15 @@ public class Driver {
 
     /***** DEFINE COMMAND LINE OPTIONS *****/
     Options options = new Options();
+    options.addOption("?", "help", false, "Display this help text");
     options.addOption("o", true, 
       "Specify the output file (stdout by default)");
-    options.addOption("config", true,
-      "Specify the config file ('<worldDef>.properties' by default)");
+    options.addOption("c", "config", true,
+      "Specify the config file ('worldDefFile.properties' by default)");
     options.addOption("map", false,
       "Dump a graphical representation of the map");
-    options.addOption("properties", false,
-      "Dump a the node properties (default)");
+    options.addOption("dumpProperties", false,
+      "Dump each node's properties (default)");
     
     /***** PARSE COMMAND LINE *****/
     CommandLineParser parser = new BasicParser();
@@ -32,6 +29,13 @@ public class Driver {
     catch(ParseException e) { 
       System.err.println(e.getMessage()); 
       System.exit(-1);
+    }
+    if(argv.hasOption("?") || argv.hasOption("help")){
+      (new HelpFormatter()).printHelp(
+        "bin/wt [options] worldDefFile", 
+        options
+      );
+      System.exit(0);                        
     }
 
     /***** INTERPRET COMMAND LINE *****/
@@ -78,7 +82,7 @@ public class Driver {
       write(map, outFile);
       propertiesByDefault = false;
     }
-    if(propertiesByDefault || argv.hasOption("properties")){
+    if(propertiesByDefault || argv.hasOption("dumpProperties")){
       writeProperties(map, outFile);
     }
 	}
