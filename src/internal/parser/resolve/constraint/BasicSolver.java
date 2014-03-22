@@ -213,7 +213,10 @@ public class BasicSolver implements IConstraintSolver {
 //				}
 		}
 		else {
-			for(PropertyDef definition : node.definitions()) {
+			Collection<PropertyDef> definitions = node.definitions();
+			if(definitions == null)
+				return;
+			for(PropertyDef definition : definitions) {
 				if(!definition.level().equals(Hierarchy.parse(node.getClass())))
 					continue;
 				Property property = definition.property();
