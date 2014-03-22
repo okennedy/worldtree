@@ -132,7 +132,8 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.constraints = constraints;
 	}
 	
-	protected void setDefinitions(Collection<PropertyDef> definitions) {
+	@Override
+	public void setDefinitions(Collection<PropertyDef> definitions) {
 		this.definitions = definitions;
 	}
 
