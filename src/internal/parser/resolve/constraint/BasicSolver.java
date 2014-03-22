@@ -32,11 +32,14 @@ public class BasicSolver implements IConstraintSolver {
 		
 		Column column = null;
 		String columnName = null;
+		Property aggregateProperty = null;
 		switch(definition.type()) {
 		case AGGREGATE:
 			columnName = definition.aggregateExpression().expr().reference().toString();
+			aggregateProperty = definition.aggregateExpression().expr().property();
 			break;
 		case BASIC:
+			columnName = definition.reference().toString();
 			break;
 		case INHERIT:
 			break;
@@ -46,7 +49,7 @@ public class BasicSolver implements IConstraintSolver {
 		Result result = QueryResolutionEngine.evaluate(node, definition.query());
 		column = result.get(columnName);
 		for(IWorldTree child : column) {
-			Datum value = child.properties().get(property);
+			Datum value = child.properties().get(aggregateProperty);
 			if(value != null)
 				values.add(value);
 		}
