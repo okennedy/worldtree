@@ -361,7 +361,6 @@ public class BasicSolver implements IConstraintSolver {
 			propertyDefMap.put(level, levelPropertyDefMap);
 			propertyDependencyMap.put(level, levelDependencyMap);
 		}
-		
 		List<PropertyDef> orderedDefinitions = new ArrayList<PropertyDef>();
 		for(Hierarchy level : Hierarchy.values()) {
 			List<Property> levelOrderedProperties = new ArrayList<Property>();
@@ -395,7 +394,7 @@ public class BasicSolver implements IConstraintSolver {
 					if(visited.contains(dependency)) {
 //						Fatal! We have a circular dependency...
 //						TODO: Add some nice visual showing the circular dependency
-						throw new IllegalStateException("Circular dependency detected!\n");
+						throw new IllegalStateException("Circular dependency detected on property '" + property + "'\n");
 					}
 					visited.add(dependency);
 					resolvePropertyDependencies(dependencyMap, dependency, visited, orderedProperties);
