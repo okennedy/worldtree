@@ -11,6 +11,12 @@ import java.util.TreeSet;
 
 import development.com.collection.range.Range.BoundType;
 
+/**
+ * The {@code RangeSet} class extends {@code TreeSet<Range>} and is provided as a container 
+ * for storing several related {@code Range} objects.
+ * @author guru
+ *
+ */
 public class RangeSet extends TreeSet<Range> {
 	private static final long serialVersionUID = 1L;
 	private static SetComparator comparator = new SetComparator();
@@ -63,6 +69,11 @@ public class RangeSet extends TreeSet<Range> {
 		return result;
 	}
 	
+	/**
+	 * Get a {@code Range} by its index
+	 * @param index {@code int} the index of the required {@code Range}
+	 * @return {@code Range} corresponding to the index specified
+	 */
 	public Range get(int index) {
 		if(index >= this.size())
 			throw new IndexOutOfBoundsException("RangeSet: Index: " + index + " Size: " + this.size());
@@ -72,6 +83,12 @@ public class RangeSet extends TreeSet<Range> {
 		return iter.next();
 	}
 	
+	/**
+	 * Check to see if this {@code RangeSet} contains the specified <tt>value</tt>
+	 * @param value {@code Datum} the value to check for
+	 * @return <b>true</b> if it contains the <tt>value</tt> <br>
+	 * <b>false</b> otherwise
+	 */
 	public boolean contains(Datum value) {
 		Iterator<Range> iter = this.iterator();
 		while(iter.hasNext()) {
@@ -82,6 +99,10 @@ public class RangeSet extends TreeSet<Range> {
 		return false;
 	}
 	
+	/**
+	 * Generate a random value from one of the underlying {@code Range}s
+	 * @return {@code Datum} containing the randomly generated value
+	 */
 	public Datum generateRandom() {
 		int index	= (new Random()).nextInt(this.size());
 		
@@ -93,6 +114,9 @@ public class RangeSet extends TreeSet<Range> {
 		return randomRange.generateRandom();
 	}
 	
+	/**
+	 * Create a deep-copy of this {@code RangeSet}
+	 */
 	public RangeSet clone() {
 		RangeSet result = new RangeSet();
 		for(Range range : this) {
@@ -101,6 +125,11 @@ public class RangeSet extends TreeSet<Range> {
 		return result;
 	}
 
+	/**
+	 * Nested-loop addition of two {@code RangeSet}s
+	 * @param set {@code RangeSet} the set to add
+	 * @return new {@code RangeSet} containing the result of the addition 
+	 */
 	public RangeSet sum(RangeSet set) {
 		RangeSet result = new RangeSet();
 		if(this.size() == 0)
@@ -114,7 +143,13 @@ public class RangeSet extends TreeSet<Range> {
 		}
 		return result;
 	}
-	
+
+	/**
+	 * The comparator to store {@code Range}s in the right order in the underlying {@code TreeSet<Range>} <br>
+	 * This is currently set to be in ascending order
+	 * @author guru
+	 *
+	 */
 	private static class SetComparator implements Comparator<Range> {
 
 		@Override

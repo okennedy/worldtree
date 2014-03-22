@@ -2,7 +2,7 @@
   
   <property name="src" location="src/"/>
   <property name="build" location="build/"/>
-  <property name="javacchome" location="/opt/local/share/java"/>
+  <property name="javacchome" location="lib/"/>
 
   <target name="compile" depends="init,gram">
     <javac srcdir="${src}" 

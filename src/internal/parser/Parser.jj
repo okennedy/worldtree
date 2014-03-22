@@ -163,15 +163,17 @@ String word() :
 
 Datum constant() :
 {
-    String value = null;
+    StringBuffer value = new StringBuffer();
+    String tmp = null;
 }
 {
-    LOOKAHEAD(2) < CONSTANT > { value = token.image; }
-    	< DOT > < CONSTANT > 							{ return new Datum.Flt(Float.parseFloat(value + "." + token.image)); }
+    LOOKAHEAD(2) < CONSTANT > { value.append(token.image); }
+    	< DOT > < CONSTANT > 							{ return new Datum.Flt(Float.parseFloat(value.toString() + "." + token.image)); }
     	
 |   < CONSTANT > 										{ return new Datum.Int(Integer.parseInt(token.image)); }
 
-|   ("'" | "\"" | "`" | "“")? value = word() ("'" | "\"" | "`" | "”")?	{ return new Datum.Str(value); }
+|   ("'" | "\"" | "`" | "“")? (tmp = word() {value.append(tmp + " ");} )+ ("'" | "\"" | "`" | "”")?
+														{ return new Datum.Str(value.toString().trim()); }
 }
 
 Reference reference() :
@@ -218,7 +220,8 @@ IExpr expr() :
         LOOKAHEAD(3)ref = reference() < DOT > property = property() { return new Expr(ref, property); }
     |   value = constant() { return new Expr(value); }
     )
-    |   (< MAX > | < MIN >) { maxminType = token.image; }
+
+//  FIXME: MAX MIN is incorrect. sub expressions don't carry notion of max/min..subExpr does not recurse either.|   (< MAX > | < MIN >) { maxminType = token.image; }
 		< LPARANS > baseExpr = expr() < COMMA > subExpr = expr() < RPARANS >
 	{ return new Expr(maxminType, baseExpr, subExpr); }
 	

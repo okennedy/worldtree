@@ -4,7 +4,10 @@ import development.com.collection.range.Range;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Reference;
+import internal.parser.containers.Datum.Bool;
 import internal.parser.containers.property.Property;
+import internal.parser.resolve.Result;
+import internal.tree.IWorldTree;
 
 /**
  * Container class for storing a condition <br>
@@ -129,8 +132,10 @@ public class BaseCondition implements ICondition {
 			result.append(" " + cmpOp + " " + value);
 			break;
 		case BOOLEAN:
+//			TODO
 			break;
 		case COMPLEX:
+//			TODO
 			break;
 		default:
 			break;
@@ -152,8 +157,10 @@ public class BaseCondition implements ICondition {
 			result.append(" " + cmpOp + " " + value);
 			break;
 		case BOOLEAN:
+//			TODO
 			break;
 		case COMPLEX:
+//			TODO
 			break;
 		default:
 			break;
@@ -168,5 +175,31 @@ public class BaseCondition implements ICondition {
 		BOOLEAN,
 		COMPLEX,
 		;
+	}
+
+
+	@Override
+	public Datum evaluate(IWorldTree node, Result result) {
+		IWorldTree referenceNode	= result.get(reference.toString()).get(0);	//FIXME: This may not be the right approach...
+		Datum propertyValue			= referenceNode.properties().get(property);
+		boolean conditionResult		= false;
+		switch(type) {
+		case BASIC:
+			if(propertyValue.compareTo(value, cmpOp) == 0)
+				conditionResult = true;
+			break;
+		case BOOLEAN:
+			if(propertyValue != null)
+				conditionResult = ((Integer) propertyValue.toInt().data()).intValue() > 0 ? true : false;
+			break;
+		case COMPLEX:
+//			TODO
+			break;
+		default:
+			break;
+		}
+		if(not)
+			conditionResult = !conditionResult;
+		return new Datum.Bool(conditionResult);
 	}
 }

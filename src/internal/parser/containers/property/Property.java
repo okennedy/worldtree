@@ -59,6 +59,8 @@ public class Property implements IContainer {
 		PASSABLE_WEST("passablewest"),
 		PASSABLE_NORTH("passablenorth"),
 		PASSABLE_SOUTH("passablesouth"),
+		NAME("name"),
+		ABSOLUTENAME("absolutename"),
 		;
 		
 		private String property;
