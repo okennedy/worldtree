@@ -4,14 +4,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import internal.Helper.Hierarchy;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Datum.Bool;
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.expr.Expr;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
@@ -27,34 +32,62 @@ import development.com.collection.range.RangeSet;
 public class BasicSolver implements IConstraintSolver {
 
 	private Datum evaluate(IWorldTree node, PropertyDef definition) {
-		Collection<Datum> values = new ArrayList<Datum>();
-		Property property = definition.property();
+		Property definitionProperty = definition.property();
 		
 		Column column = null;
 		String columnName = null;
-		Property aggregateProperty = null;
+		Collection<Property> expressionProperties = new LinkedList<Property>();
 		switch(definition.type()) {
 		case AGGREGATE:
 			columnName = definition.aggregateExpression().expr().reference().toString();
-			aggregateProperty = definition.aggregateExpression().expr().property();
+			expressionProperties.add(definition.aggregateExpression().expr().property());
 			break;
 		case BASIC:
 			columnName = definition.reference().toString();
+			if(definition.expression() != null) {
+				IExpr expr = definition.expression();
+				while(expr != null) {
+					expressionProperties.add(expr.property());
+					expr = expr.subExpr();
+				}
+			}
+			else if(definition.condition() != null) {
+				ICondition condition = definition.condition();
+				while(condition != null) {
+					expressionProperties.add(condition.property());
+					condition = condition.subCondition();
+				}
+			}
 			break;
 		case INHERIT:
 			break;
 		case RANDOM:
-			return node.properties().get(property);
+			return node.properties().get(definitionProperty);
 		}
 		Result result = QueryResolutionEngine.evaluate(node, definition.query());
 		column = result.get(columnName);
+		
+		Map<IWorldTree, Collection<Datum>> childMap = new HashMap<IWorldTree, Collection<Datum>>(column.size());
 		for(IWorldTree child : column) {
-			Datum value = child.properties().get(aggregateProperty);
-			if(value != null)
+			List<Datum> values = new LinkedList<Datum>();
+			for(Property p : expressionProperties) {
+				Datum value = child.properties().get(p);
 				values.add(value);
+			}
+			childMap.put(child, values);
 		}
 		
 		Datum propertyValue = null;
+		List<Datum> values = new ArrayList<Datum>(childMap.size());
+		if(definition.expression() != null) {
+			for(Map.Entry<IWorldTree, Collection<Datum>> entry : childMap.entrySet()) {
+				Datum childValue = null;
+				
+//				The following code below handles manual evalulation of an expression
+				
+			}
+		}
+			
 		for(Datum value : values) {
 			switch(definition.type()) {
 			case AGGREGATE:
@@ -62,7 +95,7 @@ public class BasicSolver implements IConstraintSolver {
 				case COUNT:
 					if(propertyValue == null)
 						propertyValue = new Datum.Int(0);
-					propertyValue = propertyValue.add(new Datum.Int(1));
+					propertyValue = new Datum.Int(childMap.size());
 					break;
 				case MAX:
 					if(propertyValue == null)
@@ -94,12 +127,13 @@ public class BasicSolver implements IConstraintSolver {
 				break;
 			default:
 				break;
-			
 			}
 		}
 		return propertyValue;
 	}
 	
+	
+
 	private boolean satisfies(IWorldTree node, ICondition condition, PropertyDef definition) {
 		if(condition == null)
 			return true;
@@ -295,13 +329,38 @@ public class BasicSolver implements IConstraintSolver {
 	
 	
 	private void sortDefinitions(IWorldTree root) {
+		Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = 
+				new HashMap<Hierarchy, Map<Property, Collection<Property>>>();
+		Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = 
+				new HashMap<Hierarchy, Map<Property, PropertyDef>>();
+		
+		resolveDefinitionDependencies(root, propertyDependencyMap, propertyDefMap);
+		
+		Collection<PropertyDef> definitions = root.definitions();
+		List<PropertyDef> orderedDefinitions = new ArrayList<PropertyDef>();
+		
+		for(Hierarchy level : Hierarchy.values()) {
+			List<Property> levelOrderedProperties = new ArrayList<Property>();
+			resolvePropertyOrder(propertyDependencyMap.get(level), null, null, levelOrderedProperties);
+//			We now have the order in which definitions need to be instantiated
+			for(Property property: levelOrderedProperties) {
+				Map<Property, PropertyDef> localDefMap = propertyDefMap.get(level);
+				orderedDefinitions.add(localDefMap.get(property));
+			}
+		}
+//		At this point, we have an ordered list of definitions
+		assert(definitions.size() == orderedDefinitions.size() && definitions.containsAll(orderedDefinitions)) : 
+			"definitions and orderedDefinitions are not equivalent!\n";
+		root.setDefinitions(orderedDefinitions);
+	}
+	
+	private void resolveDefinitionDependencies(IWorldTree root, Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap,
+			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
 		Collection<PropertyDef> definitions = root.definitions();
 		
 //		We now find dependencies among property definitions
-		HashMap<Hierarchy, HashMap<Property, PropertyDef>> propertyDefMap = 
-				new HashMap<Hierarchy, HashMap<Property, PropertyDef>>();
-		HashMap<Hierarchy, HashMap<Property, Collection<Property>>> propertyDependencyMap = 
-				new HashMap<Hierarchy, HashMap<Property, Collection<Property>>>();
+		if(propertyDefMap == null)
+			propertyDefMap = new HashMap<Hierarchy, Map<Property, PropertyDef>>();
 		
 		for(Hierarchy level : Hierarchy.values()) {
 			HashMap<Property, Collection<Property>> levelDependencyMap = new HashMap<Property, Collection<Property>>();
@@ -364,31 +423,17 @@ public class BasicSolver implements IConstraintSolver {
 			propertyDefMap.put(level, levelPropertyDefMap);
 			propertyDependencyMap.put(level, levelDependencyMap);
 		}
-		List<PropertyDef> orderedDefinitions = new ArrayList<PropertyDef>();
-		for(Hierarchy level : Hierarchy.values()) {
-			List<Property> levelOrderedProperties = new ArrayList<Property>();
-			resolvePropertyDependencies(propertyDependencyMap.get(level), null, null, levelOrderedProperties);
-//			We now have the order in which definitions need to be instantiated
-			for(Property property: levelOrderedProperties) {
-				HashMap<Property, PropertyDef> localDefMap = propertyDefMap.get(level);
-				orderedDefinitions.add(localDefMap.get(property));
-			}
-		}
-//		At this point, we have an ordered list of definitions
-		assert(definitions.size() == orderedDefinitions.size() && definitions.containsAll(orderedDefinitions)) : 
-			"definitions and orderedDefinitions are not equivalent!\n";
-		root.setDefinitions(orderedDefinitions);
 	}
 	
-	private void resolvePropertyDependencies(HashMap<Property, Collection<Property>> dependencyMap, Property property, 
+	private void resolvePropertyOrder(Map<Property, Collection<Property>> dependencyMap, Property property, 
 			Collection<Property> visited, List<Property> orderedProperties) {
 		if(property == null) {
 //			First call..iterate over map and start solving
 			for(java.util.Map.Entry<Property, Collection<Property>> entry : dependencyMap.entrySet()) {
-				List<Property> newVisited = new ArrayList<Property>();
+				List<Property> newVisited = new LinkedList<Property>();
 				Property baseProperty = entry.getKey();
 				newVisited.add(baseProperty);
-				resolvePropertyDependencies(dependencyMap, baseProperty, newVisited, orderedProperties);
+				resolvePropertyOrder(dependencyMap, baseProperty, newVisited, orderedProperties);
 			}
 		}
 		else {
@@ -397,10 +442,19 @@ public class BasicSolver implements IConstraintSolver {
 					if(visited.contains(dependency)) {
 //						Fatal! We have a circular dependency...
 //						TODO: Add some nice visual showing the circular dependency
-						throw new IllegalStateException("Circular dependency detected on property '" + property + "'\n");
+						StringBuilder sb = new StringBuilder();
+						Iterator<Property> iter = visited.iterator();
+						while(iter.hasNext()) {
+							Property p = iter.next();
+							sb.append(p.toString());
+							if(iter.hasNext())
+								sb.append(" -> ");
+						}
+						throw new IllegalStateException("Circular dependency detected on property '" + property + "'\n" +
+								sb.toString() + "\n");
 					}
 					visited.add(dependency);
-					resolvePropertyDependencies(dependencyMap, dependency, visited, orderedProperties);
+					resolvePropertyOrder(dependencyMap, dependency, visited, orderedProperties);
 				}
 			}
 			if(!orderedProperties.contains(property))
