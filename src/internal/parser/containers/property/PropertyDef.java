@@ -68,42 +68,82 @@ public class PropertyDef extends Statement {
 		this(Type.INHERIT, level, reference, property, null, null, parent, null, null, null);
 	}
 	
+	/**
+	 * Return the level where this {@code PropertyDef} applies
+	 * @return {@code Hierarchy} representing the level
+	 */
 	public Hierarchy level() {
 		return level;
 	}
 	
+	/**
+	 * Return the name of the parent whose property is to be inherited
+	 * @return {@code String} naming the parent
+	 */
 	public String parent() {
 		return parent;
 	}
 	
+	/**
+	 * Return the aggregate expression (if any)
+	 * @return {@code AggExpr}
+	 */
 	public AggExpr aggregateExpression() {
 		return aggExpr;
 	}
 
+	/**
+	 * Return the reference named in this definition
+	 * @return {@code Reference}
+	 */
 	public Reference reference() {
 		return reference;
 	}
 	
+	/**
+	 * Return the property that is being defined
+	 * @return {@code Property}
+	 */
 	public Property property() {
 		return property;
 	}
 	
+	/**
+	 * Return the condition(s) (if any) present in this definition
+	 * @return {@code ICondition}
+	 */
 	public ICondition condition() {
 		return condition;
 	}
 	
+	/**
+	 * Return the expression(s) (if any) present in this definition
+	 * @return {@code IExpr}
+	 */
 	public IExpr expression() {
 		return expr;
 	}
 	
+	/**
+	 * Return the query (if any) specified in this definition
+	 * @return {@code IQuery}
+	 */
 	public IQuery query() {
 		return query;
 	}
 	
+	/**
+	 * Return the random specification (if any) defined
+	 * @return {@code RandomSpec}
+	 */
 	public RandomSpec randomspec() {
 		return randomSpec;
 	}
 	
+	/**
+	 * Return the definition type
+	 * @return {@code PropertyDef.Type}
+	 */
 	public Type type() {
 		return type;
 	}
@@ -175,6 +215,11 @@ public class PropertyDef extends Statement {
 		;
 	}
 	
+	/**
+	 * Container class to store the random specification
+	 * @author guru
+	 *
+	 */
 	public static class RandomSpec implements IContainer {
 		RandomSpecType type;
 		Range range;
@@ -184,6 +229,10 @@ public class PropertyDef extends Statement {
 			this.range	= range;
 		}
 		
+		/**
+		 * return the type of random spec
+		 * @return {@code RandomSpecType}
+		 */
 		public RandomSpecType type() {
 			return type;
 		}
@@ -219,6 +268,10 @@ public class PropertyDef extends Statement {
 			}
 		}
 
+		/**
+		 * Return the underlying range
+		 * @return {@code Range}
+		 */
 		public Range range() {
 			return range;
 		}
