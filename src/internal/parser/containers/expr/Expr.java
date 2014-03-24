@@ -56,7 +56,7 @@ public class Expr implements IExpr {
 	}
 	
 	public Expr(IExpr baseExpr, TokenArithOp operator, IExpr subExpr) {
-		this(ExprType.ARITH, baseExpr.value(), baseExpr, operator, subExpr, null, null, null, null, null, null);
+		this(ExprType.ARITH, baseExpr.value(), baseExpr, operator, subExpr, null, null, baseExpr.property(), null, null, null);
 	}
 	
 	public Expr(String maxminType, IExpr baseExpr, IExpr subExpr) {
