@@ -59,6 +59,12 @@ public interface IWorldTree {
 	public Collection<PropertyDef> definitions();
 	
 	/**
+	 * Updates the definitions of this {@code IWorldTree} instance
+	 * @param orderedDefinitions {@code Collection<PropertyDef>} definitions to set
+	 */
+	public void setDefinitions(Collection<PropertyDef> orderedDefinitions);
+	
+	/**
 	 * Set constraints to provided object for this {@code IWorldTree} instance
 	 * @param constraints {@code Collection<Constraint>} set of new constraints
 	 */

@@ -24,7 +24,7 @@ import internal.tree.IWorldTree;
 public class Expr implements IExpr {
 	private Datum value;
 	private TokenArithOp operator;
-	private IExpr baseExpr, subExpr;
+	private IExpr subExpr;
 	private String maxminType;
 	private Reference reference;
 	private Property property;
@@ -37,7 +37,6 @@ public class Expr implements IExpr {
 			Reference reference, Property property, ICondition condition, IExpr whenExpr, IExpr elseExpr) {
 		this.exprType	= exprType;
 		this.value		= value;
-		this.baseExpr	= baseExpr;
 		this.operator	= operator;
 		this.subExpr	= subExpr;
 		this.maxminType	= maxminType;
@@ -57,7 +56,7 @@ public class Expr implements IExpr {
 	}
 	
 	public Expr(IExpr baseExpr, TokenArithOp operator, IExpr subExpr) {
-		this(ExprType.ARITH, null, baseExpr, operator, subExpr, null, null, null, null, null, null);
+		this(ExprType.ARITH, baseExpr.value(), baseExpr, operator, subExpr, null, null, null, null, null, null);
 	}
 	
 	public Expr(String maxminType, IExpr baseExpr, IExpr subExpr) {
@@ -123,7 +122,7 @@ public class Expr implements IExpr {
 		Datum subValue	= null;
 		switch(exprType) {
 		case ARITH:
-			baseValue = baseExpr.evaluate(node, result);
+			baseValue = evaluate(node, result);
 			subValue 	= subExpr.evaluate(node, result);
 			switch(operator) {
 			case TK_DIV:
@@ -144,7 +143,7 @@ public class Expr implements IExpr {
 				return referenceNode.properties().get(property);
 			}
 		case MAXMIN:
-			baseValue	= baseExpr.evaluate(node, result);
+			baseValue	= evaluate(node, result);
 			subValue	= subExpr.evaluate(node, result);
 			if(maxminType.equalsIgnoreCase("MAX")) {
 				if(baseValue.compareTo(subValue, TokenCmpOp.GT) == 0)
@@ -170,7 +169,7 @@ public class Expr implements IExpr {
 		StringBuffer result = null;
 		switch(exprType) {
 		case ARITH:
-			result = new StringBuffer("EXPR( " + baseExpr.debugString() + " " + operator + " " + subExpr.debugString() + " )");
+			result = new StringBuffer("EXPR( " + debugString() + " " + operator + " " + subExpr.debugString() + " )");
 			break;
 		case BASIC:
 			if(value != null)
@@ -179,7 +178,7 @@ public class Expr implements IExpr {
 				result = new StringBuffer("EXPR(" + reference.debugString() + "." + property.debugString() + ")");
 			break;
 		case MAXMIN:
-			result = new StringBuffer("EXPR(" + maxminType + "(" + baseExpr.debugString());
+			result = new StringBuffer("EXPR(" + maxminType + "(" + debugString());
 			if(subExpr != null)
 				result.append(" " + subExpr.debugString() + " )");
 			break;
@@ -197,7 +196,10 @@ public class Expr implements IExpr {
 		StringBuffer result = new StringBuffer();
 		switch(exprType) {
 		case ARITH:
-			result.append(baseExpr + " " + operator + " " + subExpr);
+			if(this.value != null)
+				result.append(value + " " + operator + " " + subExpr);
+			else if(this.reference != null && this.property != null)
+				result.append(reference + "." + property + " " + operator + " " + subExpr);
 			break;
 		case BASIC:
 			if(value != null)
@@ -206,7 +208,7 @@ public class Expr implements IExpr {
 				result.append(reference + "." + property);
 			break;
 		case MAXMIN:
-			result.append(maxminType + " (" + baseExpr);
+			result.append(maxminType + " (");	//TODO: Should something additional be appended here?
 			if(subExpr != null)
 				result.append(" , " + subExpr);
 			result.append(" )");
