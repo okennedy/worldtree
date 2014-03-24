@@ -3,8 +3,14 @@ package internal.parser.containers;
 import internal.parser.TokenCmpOp;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
+/**
+ * Abstract container class to store various data types
+ * @author guru
+ *
+ */
 public abstract class Datum {
 	Object data;
 	DatumType type;
@@ -25,14 +31,59 @@ public abstract class Datum {
 		return type;
 	}
 	
-	public abstract List<Datum> split(int size);
+	/**
+	 * Split the provided datum into a {@code Collection<Datum>}
+	 * @param size {@code int} containing the size of the collection
+	 * @return {@code Collection<Datum>}
+	 */
+	public abstract Collection<Datum> split(int size);
+	
+	/**
+	 * Add a {@code Datum} to the current {@code Datum} element
+	 * @param datum {@code Datum} to add
+	 * @return new {@code Datum} object containing the result
+	 */
 	public abstract Datum add(Datum datum);
+
+	/**
+	 * Subtract a {@code Datum} from the current {@code Datum} element
+	 * @param datum {@code Datum} to subtract
+	 * @return new {@code Datum} object containing the result
+	 */
 	public abstract Datum subtract(Datum datum);
+	
+	/**
+	 * Multiply the current {@code Datum} element by the specified {@code Datum}
+	 * @param datum {@code Datum} to multiply by
+	 * @return new {@code Datum} object containing the result
+	 */
 	public abstract Datum multiply(Datum datum);
+	
+	/**
+	 * Divide the current {@code Datum} element by the specified {@code Datum}
+	 * @param datum {@code Datum} to divide by
+	 * @return new {@code Datum} object containing the result
+	 */
 	public abstract Datum divide(Datum datum);
+	
+	/**
+	 * Modulo the current {@code Datum} element by the specified {@code Datum}
+	 * @param datum {@code Datum} to modulo by
+	 * @return new {@code Datum} object containing the result
+	 */
 	public abstract Datum modulo(Datum datum);
+	
+	/**
+	 * Clone the current {@code Datum} element
+	 * @return new {@code Datum} object containing a deep-copy of the current {@code Datum}
+	 */
 	public abstract Datum clone();
 	
+	/**
+	 * Convert the value of the current {@code Datum} to an {@link java.lang.Integer}
+	 * @return {@code Datum} object containing the value as an {@code Integer}
+	 * @throws IllegalStateException if the conversion is not possible
+	 */
 	public Datum toInt() {
 		if(this.type == DatumType.INT)
 			return this;
@@ -49,11 +100,16 @@ public abstract class Datum {
 		default:
 			throw new IllegalStateException("Cannot convert from " + type + " to " + DatumType.INT);
 		}
-		if(datum == null)
-			datum = new Datum.Int(value);
+
+		datum = new Datum.Int(value);
 		return datum;
 	}
 	
+	/**
+	 * Convert the value of the current {@code Datum} to an {@link java.lang.Float}
+	 * @return {@code Datum} object containing the value as an {@code Float}
+	 * @throws IllegalStateException if the conversion is not possible
+	 */
 	public Datum toFlt() {
 		if(this.type == DatumType.FLOAT)
 			return this;
@@ -70,11 +126,16 @@ public abstract class Datum {
 		default:
 			throw new IllegalStateException("Cannot convert from " + type + " to " + DatumType.FLOAT);
 		}
-		if(datum == null)
-			datum = new Datum.Flt(value);
+		
+		datum = new Datum.Flt(value);
 		return datum;
 	}
 	
+	/**
+	 * Convert the value of the current {@code Datum} to an {@link java.lang.String}
+	 * @return {@code Datum} object containing the value as an {@code String}
+	 * @throws IllegalStateException if the conversion is not possible
+	 */
 	public Datum toStr() {
 		if(this.type == DatumType.STRING)
 			return this;
@@ -89,12 +150,20 @@ public abstract class Datum {
 		default:
 			throw new IllegalStateException("Cannot convert from " + type + " to " + DatumType.FLOAT);
 		}
-		if(datum == null)
-			datum = new Datum.Str(value);
+		
+		datum = new Datum.Str(value);
 		return datum;
 	}
 	
-	
+	/**
+	 * Compare current {@code Datum} object to another using the operator specified
+	 * @param datum {@code Datum} object to compare against
+	 * @param operator {@code TokenCmpOp} operator to compare with
+	 * @return <b>0</b> if the two {@code Datum}s are equal in value<br>
+	 * <b>-1</b> otherwise
+	 * @throws IllegalArgumentException if the two datums are not comparable
+	 */
+//	FIXME: Perhaps we should return all possible values rather than just 0 or -1
 	public int compareTo(Datum datum, TokenCmpOp operator) {
 		switch(type) {
 		case BOOL: {
@@ -203,7 +272,11 @@ public abstract class Datum {
 	}
 	
 	
-	
+	/**
+	 * Inner {@code Datum} class to store {@link java.lang.Integer}
+	 * @author guru
+	 *
+	 */
 	public static class Int extends Datum {
 		public Int(Integer data) {
 			super(data);
@@ -331,7 +404,11 @@ public abstract class Datum {
 	}
 	
 	
-	
+	/**
+	 * Inner {@code Datum} class to store {@link java.lang.Float}
+	 * @author guru
+	 *
+	 */
 	public static class Flt extends Datum {
 		public Flt(Float data) {
 			super(data);
@@ -454,7 +531,11 @@ public abstract class Datum {
 	}
 	
 	
-	
+	/**
+	 * Inner {@code Datum} class to store {@link java.lang.String}
+	 * @author guru
+	 *
+	 */
 	public static class Str extends Datum {
 		public Str(String data) {
 			super(data);
@@ -503,7 +584,11 @@ public abstract class Datum {
 	}
 	
 	
-	
+	/**
+	 * Inner {@code Datum} class to store {@link java.lang.Boolean}
+	 * @author guru
+	 *
+	 */
 	public static class Bool extends Datum {
 		public Bool(Boolean data) {
 			super(data);
@@ -552,7 +637,11 @@ public abstract class Datum {
 		}
 	}
 
-	
+	/**
+	 * Enum enumerating the various datum types
+	 * @author guru
+	 *
+	 */
 	public enum DatumType {
 		INT(Datum.Int.class),
 		FLOAT(Datum.Flt.class),
@@ -566,6 +655,12 @@ public abstract class Datum {
 			this.clazz = clazz;
 		}
 		
+		/**
+		 * Parse a {@code Datum} class into a {@code DatumType}
+		 * @param clazz {@code Class<?>} representing a concrete {@code Datum} class 
+		 * @return {@code DatumType} representing {@code clazz}
+		 * @throws IllegalArgumentException if {@code clazz} is not a valid {@code Datum}
+		 */
 		protected static DatumType parse(Class<?> clazz) {
 			for(DatumType dt : values()) {
 				if(dt.clazz.equals(clazz))

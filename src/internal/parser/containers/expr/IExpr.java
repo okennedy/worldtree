@@ -18,25 +18,51 @@ public interface IExpr extends IContainer {
 	public ExprType type();
 	
 	/**
-	 * Obtain the sub-expression(if any)
-	 * @return {@code IExpr} if there exists a sub-expression <br>
-	 * <b>null</b> otherwise
+	 * Obtain the reference (if any)
+	 * @return {@code Reference} 
 	 */
-	
 	public Reference reference();
 	
+	/**
+	 * Obtain the property (if any)
+	 * @return {@code Property}
+	 */
 	public Property property();
-	
+
+	/**
+	 * Obtain the arithmetic operator (if any) used in this expression
+	 * @return {@code TokenArithOp}
+	 */
 	public TokenArithOp operator();
-	
+
+	/**
+	 * Obtain the value (if any) specified in this expression
+	 * @return {@code Datum}
+	 */
 	public Datum value();
-	
+
+	/**
+	 * Obtain the sub-expression (if any)
+	 * @return {@code IExpr}
+	 */
 	public IExpr subExpr();
-	
+
+	/**
+	 * Obtain the max-min type if relevant
+	 * @return {@code String}
+	 */
 	public String maxminType();
-	
+
+	/**
+	 * Obtain the when-expression (if any)
+	 * @return {@code IExpr}
+	 */
 	public IExpr whenExpr();
-	
+
+	/**
+	 * Obtain the else-expression (if any)
+	 * @return {@code IExpr}
+	 */
 	public IExpr elseExpr();
 
 //	FIXME: This method should be moved out of IExpr to maintain clean separation
