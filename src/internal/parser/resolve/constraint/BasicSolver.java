@@ -2,24 +2,17 @@ package internal.parser.resolve.constraint;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
 import internal.Helper.Hierarchy;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
-import internal.parser.containers.Datum.Bool;
-import internal.parser.containers.Datum.DatumType;
 import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
-import internal.parser.containers.expr.Expr;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
@@ -293,50 +286,6 @@ public class BasicSolver implements IConstraintSolver {
 		return result;
 	}
 	
-	@Override
-	public void pushDownConstraints(IWorldTree node) {
-		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
-		IMap map = ((IMap) node.root());	//FIXME: Hack
-		nodes.add(map);
-		nodes.addAll(map.getNodesByLevel(Hierarchy.Room));
-		nodes.addAll(map.getNodesByLevel(Hierarchy.Region));
-		nodes.addAll(map.getNodesByLevel(Hierarchy.Tile));
-		
-		List<IWorldTree> nodesCopy = new ArrayList<IWorldTree>(nodes);
-		IWorldTree currentNode = null;
-		while(true) {
-			boolean satisfied = true;
-			iterativePushDown(node);
-			while(nodesCopy.size() > 0) {
-				currentNode = nodesCopy.get(0);
-				for(Constraint constraint : node.constraints()) {
-					if(constraint.level().equals(Hierarchy.parse(currentNode.getClass()))) {
-						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
-						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
-							Property property = constraint.condition().property();
-							PropertyDef definition = null;
-							for(PropertyDef def : currentNode.root().definitions()) {
-								if(def.level().equals(Hierarchy.parse(currentNode.getClass())) && def.property().equals(property)) {
-									definition = def;
-									break;
-								}
-							}
-							satisfied &= satisfies(currentNode, constraint.condition(), property);
-						}
-					}
-				}
-				if(!satisfied) {
-					nodesCopy.clear();
-					nodesCopy.addAll(nodes);
-					break;
-				}
-				else
-					nodesCopy.remove(0);
-			}
-			if(satisfied)
-				break;
-		}
-	}
 	
 	/**
 	 * Iteratively materialize definitions starting from {@code node}.
@@ -434,7 +383,45 @@ public class BasicSolver implements IConstraintSolver {
 //			Parent has no definition of this property..ignore updating parent
 		}
 	}
-	
+
+	@Override
+	public void pushDownConstraints(IWorldTree node) {
+		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
+		IMap map = ((IMap) node.root());	//FIXME: Hack
+		nodes.add(map);
+		nodes.addAll(map.getNodesByLevel(Hierarchy.Room));
+		nodes.addAll(map.getNodesByLevel(Hierarchy.Region));
+		nodes.addAll(map.getNodesByLevel(Hierarchy.Tile));
+		
+		List<IWorldTree> nodesCopy = new ArrayList<IWorldTree>(nodes);
+		IWorldTree currentNode = null;
+		while(true) {
+			boolean satisfied = true;
+			iterativePushDown(node);
+			while(nodesCopy.size() > 0) {
+				currentNode = nodesCopy.get(0);
+				for(Constraint constraint : node.constraints()) {
+					if(constraint.level().equals(Hierarchy.parse(currentNode.getClass()))) {
+						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
+						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
+							Property property = constraint.condition().property();
+							satisfied &= satisfies(currentNode, constraint.condition(), property);
+						}
+					}
+				}
+				if(!satisfied) {
+					nodesCopy.clear();
+					nodesCopy.addAll(nodes);
+					break;
+				}
+				else
+					nodesCopy.remove(0);
+			}
+			if(satisfied)
+				break;
+		}
+	}
+
 	@Override
 	public RangeSet getBounds(IWorldTree node, PropertyDef definition) {
 		return null;
