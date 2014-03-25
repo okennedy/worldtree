@@ -92,10 +92,7 @@ public class Expr implements IExpr {
 	
 	@Override
 	public Datum value() {
-		if(value != null)
-			return value;
-		else	//FIXME: This might cause issues as we return a new object every time value() is requested
-			return new Datum.Str(property.toString());
+		return value;
 	}
 
 	@Override
