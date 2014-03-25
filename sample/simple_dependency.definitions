@@ -1,0 +1,29 @@
+FOR ALL MAP M ASSERT M.treasure < 8;
+DEFINE MAP M.treasure AS AGGREGATE MAX(R.treasure)
+	in ROOM R;
+DEFINE ROOM R.treasure as (R.value + 4)
+	in ROOM R;
+DEFINE REGION R.treasure as AGGREGATE SUM(T.treasure)
+	in TILE T;
+DEFINE TILE T.treasure as RANDOM UNIFORM INT FROM 0 to 5;
+
+FOR ALL ROOM R ASSERT R.treasure = 16;
+
+FOR ALL MAP M ASSERT M.value < 20;
+DEFINE MAP M.value AS AGGREGATE MAX(R.value)
+	in ROOM R;
+DEFINE ROOM R.value as (R.value1 * 2)
+	in ROOM R;
+DEFINE REGION R.value as AGGREGATE SUM(T.value)
+	in TILE T;
+DEFINE TILE T.value as RANDOM UNIFORM INT FROM 0 to 5;
+
+
+DEFINE MAP M.value1 AS AGGREGATE MAX(R.value1)
+	in ROOM R;
+DEFINE ROOM R.value1 as AGGREGATE SUM(REG.value1)
+	in REGION REG;
+DEFINE REGION R.value1 as AGGREGATE SUM(T.value1)
+	in TILE T;
+DEFINE TILE T.value1 as RANDOM UNIFORM INT FROM 0 to 5;
+
