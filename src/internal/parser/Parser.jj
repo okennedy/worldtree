@@ -90,10 +90,11 @@ BaseQuery baseQuery(Hierarchy level) :
     ICondition condition = null;
     String lvl;
 }
-{     LOOKAHEAD(3) lvl = word()	{ level = Hierarchy.parse(lvl); }
+{    LOOKAHEAD(5) pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }
+|   lvl = word()	{ level = Hierarchy.parse(lvl); }
      pattern = pattern() (< WHERE > condition = condition())?
      	{ return new BaseQuery(level, pattern, condition); }
- |   LOOKAHEAD(3) pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
+ }Relation relation() :
 {
     Relation relation = null;
     String name = null, regex = null;
