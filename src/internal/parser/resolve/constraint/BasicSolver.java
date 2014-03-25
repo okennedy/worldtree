@@ -144,7 +144,6 @@ public class BasicSolver implements IConstraintSolver {
 				default:
 					break;
 				}
-				break;
 			}
 			break;
 		case BASIC:
