@@ -4,14 +4,22 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import internal.Helper.Hierarchy;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Datum.Bool;
+import internal.parser.containers.Datum.DatumType;
+import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.expr.Expr;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
@@ -26,40 +34,108 @@ import development.com.collection.range.RangeSet;
 
 public class BasicSolver implements IConstraintSolver {
 
+	/**
+	 * Evaluate a definition on a specific node and return the value computed
+	 * @param node {@code IWorldTree} 
+	 * @param definition {@code PropertyDef}
+	 * @return {@code Datum} containing the value of the {@code Property} defined by {@code definition}
+	 */
 	private Datum evaluate(IWorldTree node, PropertyDef definition) {
-		Collection<Datum> values = new ArrayList<Datum>();
-		Property property = definition.property();
+		Property definitionProperty = definition.property();
 		
 		Column column = null;
-		String columnName = null;
+		
+//		First we collect all the references and properties that are part of the expression of this definition
+		Collection<Reference> references = new HashSet<Reference>();
+		Collection<Property> expressionProperties = new LinkedList<Property>();
 		switch(definition.type()) {
 		case AGGREGATE:
-			columnName = definition.aggregateExpression().expr().reference().toString();
+			IExpr expr = definition.aggregateExpression().expr();
+			while(expr != null) {
+				if(expr.property() != null) {
+					expressionProperties.add(expr.property());
+					references.add(expr.reference());
+				}
+				expr = expr.subExpr();
+			}
+			
 			break;
 		case BASIC:
-			break;
-		case INHERIT:
+			if(definition.expression() != null) {
+				expr = definition.expression();
+				while(expr != null) {
+					if(expr.property() != null) {
+						expressionProperties.add(expr.property());
+						references.add(expr.reference());
+					}
+					expr = expr.subExpr();
+				}
+			}
+			else if(definition.condition() != null) {
+				ICondition condition = definition.condition();
+				while(condition != null) {
+					if(condition.property() != null) {
+						expressionProperties.add(condition.property());
+						references.add(condition.reference());
+					}
+					condition = condition.subCondition();
+				}
+			}
 			break;
 		case RANDOM:
-			return node.properties().get(property);
-		}
-		Result result = QueryResolutionEngine.evaluate(node, definition.query());
-		column = result.get(columnName);
-		for(IWorldTree child : column) {
-			Datum value = child.properties().get(property);
-			if(value != null)
-				values.add(value);
+			return node.properties().get(definitionProperty);
+		case INHERIT:
+		default:
+			throw new IllegalStateException("Unimplemented definition type :" + definition.type());
 		}
 		
+//		Now, we evaluate the query and narrow down on the columns based on the references
+		Result result = QueryResolutionEngine.evaluate(node, definition.query());
+		column = result.get(references.iterator().next().toString());	//FIXME: Temporary hack
+		
+//		Since we are probably going to have to evaluate an expression, we store the values of properties referenced in the expression
+		Map<IWorldTree, List<Datum>> childMap = new LinkedHashMap<IWorldTree, List<Datum>>(column.size());
+		for(IWorldTree child : column) {
+			List<Datum> values = new LinkedList<Datum>();
+			for(Property p : expressionProperties) {
+				Datum value = child.properties().get(p);
+				if(value != null)	//XXX: Is this valid?
+					values.add(value);
+			}
+			if(values.size() > 0)	//XXX: Is this valid?
+				childMap.put(child, values);
+		}
+		
+//		Now, we evaluate the expression value for each child
+		List<Datum> values = new ArrayList<Datum>(childMap.size());
+		if(definition.expression() != null) {
+			for(Map.Entry<IWorldTree, List<Datum>> entry : childMap.entrySet()) {
+				Datum childValue = evaluateExpression(definition.expression(), entry.getValue());
+				values.add(childValue);
+			}
+		}
+		else if(definition.condition() != null) {
+//			TODO: This is boolean stuff
+		}
+		else if(definition.aggregateExpression() != null) {
+//			FIXME: This is repeated code..similar to definition.expression() != null case..handle this properly
+			for(Map.Entry<IWorldTree, List<Datum>> entry : childMap.entrySet()) {
+				Datum childValue = evaluateExpression(definition.aggregateExpression().expr(), entry.getValue());
+				values.add(childValue);
+			}
+		}
+
+//		Now, we apply the definition type and obtain the result as propertyValue
 		Datum propertyValue = null;
-		for(Datum value : values) {
-			switch(definition.type()) {
-			case AGGREGATE:
+		switch(definition.type()) {
+		case AGGREGATE:
+//			Since we already have all the 'children', and since we have already computed the expression, just iterate over the values and apply the aggregation logic
+			for(Datum value : values) {
 				switch(definition.aggregateExpression().type()) {
 				case COUNT:
 					if(propertyValue == null)
 						propertyValue = new Datum.Int(0);
-					propertyValue = propertyValue.add(new Datum.Int(1));
+					propertyValue = new Datum.Int(childMap.size());
 					break;
 				case MAX:
 					if(propertyValue == null)
@@ -82,22 +158,84 @@ public class BasicSolver implements IConstraintSolver {
 				default:
 					break;
 				}
-				break;
-			case BASIC:
-				break;
-			case INHERIT:
-				break;
-			case RANDOM:
-				break;
-			default:
-				break;
-			
 			}
-		}
+			break;
+		case BASIC:
+//			XXX: Assumes that the BASIC expr type always has the form 'DEFINE X.property AS EXPR in LEVEL X'
+//			XXX: Given the above assumption, we've already computed this value..so just pull it out..
+			int idx = -1;
+			for(Map.Entry<IWorldTree, List<Datum>> entry : childMap.entrySet()) {
+				idx++;
+				if(entry.getKey().equals(node))
+					break;
+				
+			}
+			if(idx == -1)
+				return null;
+			return values.get(idx);
+		case INHERIT:
+//			TODO: Need to implement this
+		case RANDOM:
+//			TODO: Need to implement this
+//			TODO: Figure out if and when this can occur 
+		default:
+			throw new IllegalStateException("Unimplemented definition type :" + definition.type());
+		}		
 		return propertyValue;
 	}
 	
-	private boolean satisfies(IWorldTree node, ICondition condition, PropertyDef definition) {
+	/**
+	 * Evaluate an expression. The list {@code values} is to be used to substitute for any variable encountered in the {@code expression}
+	 * @param expression {@code IExpr} expression to evaluate
+	 * @param values {@code List<Datum>} list of values to use for substitution
+	 * @return {@code Datum} containing the result of the evaluation
+	 */
+	private Datum evaluateExpression(IExpr expression, List<Datum> values) {
+		Datum result = null;
+		IExpr expr = expression;
+		Datum subExprValue = null;
+		
+//		We opt for a simple recursive solution
+		if(expr.value() != null)
+			result = expr.value();
+		else {
+			assert values.size() > 0 : expr.property() + " has no substitution in provided list\n";
+			result = values.remove(0);
+		}
+
+		if(expr.subExpr() != null)
+			subExprValue = evaluateExpression(expr.subExpr(), values);
+		
+		if(subExprValue != null) {
+			switch(expr.operator()) {
+			case TK_DIV:
+				result = result.divide(subExprValue);
+				break;
+			case TK_MINUS:
+				result = result.subtract(subExprValue);
+				break;
+			case TK_MULT:
+				result = result.multiply(subExprValue);
+				break;
+			case TK_PLUS:
+				result = result.add(subExprValue);
+				break;
+			default:
+				throw new IllegalStateException("Unknown operator " + expr.operator());
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Checks whether a condition was satisfied on a given node for a given property
+	 * @param node {@code IWorldTree} to check
+	 * @param condition {@code ICondition} to satisfy
+	 * @param property {@code Property} whose value is checked
+	 * @return <b>true</b> is the {@code condition} was satisfied <br>
+	 * <b>false</b> otherwise
+	 */
+	private boolean satisfies(IWorldTree node, ICondition condition, Property property) {
 		if(condition == null)
 			return true;
 		ICondition subCondition = condition.subCondition();
@@ -105,8 +243,9 @@ public class BasicSolver implements IConstraintSolver {
 		boolean result = false;
 		switch(condition.type()) {
 		case BASIC:
-			Datum propertyValue = evaluate(node, definition);
-			if(condition.property().equals(definition.property())) {
+//			Datum propertyValue = evaluate(node, definition);
+			Datum propertyValue = node.properties().get(property);
+			if(condition.property().equals(property)) {
 				Datum conditionValue = condition.value();
 				switch(condition.operator()) {
 				case EQ:
@@ -137,18 +276,18 @@ public class BasicSolver implements IConstraintSolver {
 			}
 			break;
 		case BOOLEAN:
-			break;
 		case COMPLEX:
-			break;
+		default:
+			throw new IllegalStateException("Unimplemented condition type :" + condition.type());
 		}
 		
 		if(subCondition != null) {
 			switch(condition.unionType()) {
 			case AND:
-				return result & satisfies(node, subCondition, definition);
+				return result & satisfies(node, subCondition, property);
 			case OR:
 //				TODO: Not sure how to handle or
-				break;
+				throw new IllegalStateException("Unimplemented union type :" + condition.unionType());
 			}
 		}
 		return result;
@@ -183,7 +322,7 @@ public class BasicSolver implements IConstraintSolver {
 									break;
 								}
 							}
-							satisfied &= satisfies(currentNode, constraint.condition(), definition);
+							satisfied &= satisfies(currentNode, constraint.condition(), property);
 						}
 					}
 				}
@@ -200,12 +339,23 @@ public class BasicSolver implements IConstraintSolver {
 		}
 	}
 	
+	/**
+	 * Iteratively materialize definitions starting from {@code node}.
+	 * Since recursive calls lead to massive memory consumption, we opt for an iterative approach to materializing constraints.
+	 * @param node {@code IWorldTree} from which the push down is to be performed
+	 */
 	private void iterativePushDown(IWorldTree node) {
+		Collection<PropertyDef> definitions = node.definitions();
 //		FIXME:	Currently assumes that properties need to be materialized only at the lowest level..all other levels are aggregates
 //		TODO:	Need to handle dependent properties in the right order
 		if(node.children() != null) {
 			for(IWorldTree child : node.children())
 				iterativePushDown(child);
+			for(PropertyDef definition : definitions) {
+				if(!definition.level().equals(Hierarchy.parse(node.getClass())))
+					continue;
+				updateNode(node, definition);
+			}
 //				TODO: Enable query parsing on constraint.query()
 //				Result result = QueryResolutionEngine.evaluate(node, constraint.query());
 //				Column column = result.get(constraint.query().pattern().lhs().toString());
@@ -213,7 +363,6 @@ public class BasicSolver implements IConstraintSolver {
 //				}
 		}
 		else {
-			Collection<PropertyDef> definitions = node.definitions();
 			if(definitions == null)
 				return;
 			for(PropertyDef definition : definitions) {
@@ -225,6 +374,7 @@ public class BasicSolver implements IConstraintSolver {
 				
 				switch(definition.type()) {
 				case BASIC:
+//					We have an expression at the Tile level
 					IQuery query = definition.query();
 					Result result = QueryResolutionEngine.evaluate(node, query);
 					Column column = result.get(definition.reference().toString());
@@ -237,23 +387,33 @@ public class BasicSolver implements IConstraintSolver {
 							value = condition.evaluate(node, result);
 					}
 					break;
-				case INHERIT:
-					break;
 				case RANDOM:
 					range = definition.randomspec().range();
 					value = range.generateRandom();
 					break;
+				case INHERIT:
 				default:
-					break;
+					throw new IllegalStateException("Unimplemented definition type :" + definition.type());
 				}
 				if(value != null) {
 					node.properties().put(property, value);
-					updateParent(node, property);
+//					updateParent(node, property);
 				}
 			}
 		}
 	}
 
+	/**
+	 * Update a {@code node}'s property map with the property defined in {@code definition}
+	 * @param node {@code IWorldTree} to update
+	 * @param definition {@code PropertyDef} containing the {@code Property} to update
+	 */
+	private void updateNode(IWorldTree node, PropertyDef definition) {
+		Datum value = evaluate(node, definition);
+		node.properties().put(definition.property(), value);
+	}
+	
+//	TODO: There was a reason for opting for this expensive update method..don't quite recall what it was..try and figure it out
 	private void updateParent(IWorldTree node, Property property) {
 		IWorldTree parent = node.parent();
 		PropertyDef definition = null;
@@ -291,14 +451,51 @@ public class BasicSolver implements IConstraintSolver {
 	}
 	
 	
+	/**
+	 * Sort definitions based on dependencies
+	 * @param root {@code IWorldTree} node containing definitions
+	 */
 	private void sortDefinitions(IWorldTree root) {
+		Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = 
+				new HashMap<Hierarchy, Map<Property, Collection<Property>>>();
+		Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = 
+				new HashMap<Hierarchy, Map<Property, PropertyDef>>();
+		
+		resolveDefinitionDependencies(root, propertyDependencyMap, propertyDefMap);
+		
+//		Now that we have the dependencies-per-level, we iterate over each level and resolve property order
+		Collection<PropertyDef> definitions = root.definitions();
+		List<PropertyDef> orderedDefinitions = new ArrayList<PropertyDef>();
+		
+		for(Hierarchy level : Hierarchy.values()) {
+			List<Property> levelOrderedProperties = new ArrayList<Property>();
+			resolvePropertyOrder(propertyDependencyMap.get(level), null, null, levelOrderedProperties);
+//			We now have the order in which definitions need to be instantiated
+			for(Property property: levelOrderedProperties) {
+				Map<Property, PropertyDef> localDefMap = propertyDefMap.get(level);
+				orderedDefinitions.add(localDefMap.get(property));
+			}
+		}
+//		At this point, we have an ordered list of definitions
+		assert(definitions.size() == orderedDefinitions.size() && definitions.containsAll(orderedDefinitions)) : 
+			"definitions and orderedDefinitions are not equivalent!\n";
+		root.setDefinitions(orderedDefinitions);
+	}
+	
+	/**
+	 * Resolve dependencies among definitions
+	 * @param root {@code IWorldTree} node containing definitions
+	 * @param propertyDependencyMap {@code Map<Hierarchy, Map<Property, Collection<Property>>} to be filled with the dependency chain
+	 * @param propertyDefMap {@code Map<Hierarchy, Map<Property, PropertyDef>>} optional. Is used to obtain mapping of property -> property definition
+	 * in each hierarchy level
+	 */
+	private void resolveDefinitionDependencies(IWorldTree root, Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap,
+			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
 		Collection<PropertyDef> definitions = root.definitions();
 		
 //		We now find dependencies among property definitions
-		HashMap<Hierarchy, HashMap<Property, PropertyDef>> propertyDefMap = 
-				new HashMap<Hierarchy, HashMap<Property, PropertyDef>>();
-		HashMap<Hierarchy, HashMap<Property, Collection<Property>>> propertyDependencyMap = 
-				new HashMap<Hierarchy, HashMap<Property, Collection<Property>>>();
+		if(propertyDefMap == null)
+			propertyDefMap = new HashMap<Hierarchy, Map<Property, PropertyDef>>();
 		
 		for(Hierarchy level : Hierarchy.values()) {
 			HashMap<Property, Collection<Property>> levelDependencyMap = new HashMap<Property, Collection<Property>>();
@@ -331,11 +528,10 @@ public class BasicSolver implements IConstraintSolver {
 						}
 					}
 					break;
-				case INHERIT:
-//					TODO: Need to implement this
-					break;
 				case RANDOM:
 					break;
+				case INHERIT:
+//					TODO: Need to implement this
 				default:
 					throw new IllegalStateException("Unimplemented PropertyDef type " + definition.type());
 				}
@@ -361,32 +557,26 @@ public class BasicSolver implements IConstraintSolver {
 			propertyDefMap.put(level, levelPropertyDefMap);
 			propertyDependencyMap.put(level, levelDependencyMap);
 		}
-		
-		List<PropertyDef> orderedDefinitions = new ArrayList<PropertyDef>();
-		for(Hierarchy level : Hierarchy.values()) {
-			List<Property> levelOrderedProperties = new ArrayList<Property>();
-			resolvePropertyDependencies(propertyDependencyMap.get(level), null, null, levelOrderedProperties);
-//			We now have the order in which definitions need to be instantiated
-			for(Property property: levelOrderedProperties) {
-				HashMap<Property, PropertyDef> localDefMap = propertyDefMap.get(level);
-				orderedDefinitions.add(localDefMap.get(property));
-			}
-		}
-//		At this point, we have an ordered list of definitions
-		assert(definitions.size() == orderedDefinitions.size() && definitions.containsAll(orderedDefinitions)) : 
-			"definitions and orderedDefinitions are not equivalent!\n";
-		root.setDefinitions(orderedDefinitions);
 	}
 	
-	private void resolvePropertyDependencies(HashMap<Property, Collection<Property>> dependencyMap, Property property, 
+	/**
+	 * Resolve the order of properties given the dependency map. <br>
+	 * This is a hacky recursive function that orders the properties. <br>
+	 * It works by maintaining a collection a visited properties until there are no more unvisited dependencies. <br>
+	 * @param dependencyMap {@code Map<Property, Collection<Property>>} containing the dependencies for each property
+	 * @param property {@code Property} should be <b>null</b> in the initial call. The function internally recurses on the base case.
+	 * @param visited {@code Collection<Property>} should be <b>null</b> in the initial call. The function uses this internally.
+	 * @param orderedProperties {@code List<Property>} containing properties in sorted order based on dependencies.
+	 */
+	private void resolvePropertyOrder(Map<Property, Collection<Property>> dependencyMap, Property property, 
 			Collection<Property> visited, List<Property> orderedProperties) {
 		if(property == null) {
 //			First call..iterate over map and start solving
 			for(java.util.Map.Entry<Property, Collection<Property>> entry : dependencyMap.entrySet()) {
-				List<Property> newVisited = new ArrayList<Property>();
+				List<Property> newVisited = new LinkedList<Property>();	//FIXME: This should ideally be a HashSet
 				Property baseProperty = entry.getKey();
 				newVisited.add(baseProperty);
-				resolvePropertyDependencies(dependencyMap, baseProperty, newVisited, orderedProperties);
+				resolvePropertyOrder(dependencyMap, baseProperty, newVisited, orderedProperties);
 			}
 		}
 		else {
@@ -395,16 +585,23 @@ public class BasicSolver implements IConstraintSolver {
 					if(visited.contains(dependency)) {
 //						Fatal! We have a circular dependency...
 //						TODO: Add some nice visual showing the circular dependency
-						throw new IllegalStateException("Circular dependency detected!\n");
+						StringBuilder sb = new StringBuilder();
+						Iterator<Property> iter = visited.iterator();
+						while(iter.hasNext()) {
+							Property p = iter.next();
+							sb.append(p.toString());
+							if(iter.hasNext())
+								sb.append(" -> ");
+						}
+						throw new IllegalStateException("Circular dependency detected on property '" + property + "'\n" +
+								sb.toString() + "\n");
 					}
 					visited.add(dependency);
-					resolvePropertyDependencies(dependencyMap, dependency, visited, orderedProperties);
+					resolvePropertyOrder(dependencyMap, dependency, visited, orderedProperties);
 				}
 			}
 			if(!orderedProperties.contains(property))
 				orderedProperties.add(property);
 		}
 	}
-	
-	
 }

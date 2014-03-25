@@ -1,0 +1,18 @@
+FOR ALL MAP M ASSERT M.treasure = 15;
+DEFINE MAP M.treasure AS AGGREGATE MAX(R.treasure)
+	in ROOM R;
+DEFINE ROOM R.treasure as AGGREGATE MIN((REG.treasure + REG.monster))
+	in REGION REG;
+DEFINE REGION R.treasure as AGGREGATE SUM((T.treasure + T.monster))
+	in TILE T;
+DEFINE TILE T.treasure as RANDOM UNIFORM INT FROM 0 to 10;
+
+
+FOR ALL MAP M ASSERT M.monster != 15;
+DEFINE MAP M.monster AS AGGREGATE MAX(R.monster)
+	in ROOM R;
+DEFINE ROOM R.monster as AGGREGATE MIN(REG.monster)
+	in REGION REG;
+DEFINE REGION R.monster as AGGREGATE SUM(T.monster)
+	in TILE T;
+DEFINE TILE T.monster as RANDOM UNIFORM INT FROM 0 to 5;
