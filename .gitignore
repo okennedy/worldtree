@@ -9,3 +9,5 @@ worldtree
 !src
 !.gitignore
 !CHANGES
+
+build.properties
