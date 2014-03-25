@@ -402,7 +402,7 @@ public class BasicSolver implements IConstraintSolver {
 				currentNode = nodesCopy.get(0);
 				for(Constraint constraint : node.constraints()) {
 					if(constraint.level().equals(Hierarchy.parse(currentNode.getClass()))) {
-						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
+						Result result = QueryResolutionEngine.evaluate(currentNode.parent(), constraint.query());
 						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
 							Property property = constraint.condition().property();
 							satisfied &= satisfies(currentNode, constraint.condition(), property);
