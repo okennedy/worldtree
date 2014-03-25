@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,8 @@ import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
 import internal.parser.containers.Datum.Bool;
+import internal.parser.containers.Datum.DatumType;
+import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.Expr;
 import internal.parser.containers.expr.IExpr;
@@ -35,26 +38,38 @@ public class BasicSolver implements IConstraintSolver {
 		Property definitionProperty = definition.property();
 		
 		Column column = null;
-		String columnName = null;
+		Collection<Reference> references = new HashSet<Reference>();
 		Collection<Property> expressionProperties = new LinkedList<Property>();
 		switch(definition.type()) {
 		case AGGREGATE:
-			columnName = definition.aggregateExpression().expr().reference().toString();
-			expressionProperties.add(definition.aggregateExpression().expr().property());
+			IExpr expr = definition.aggregateExpression().expr();
+			while(expr != null) {
+				if(expr.property() != null) {
+					expressionProperties.add(expr.property());
+					references.add(expr.reference());
+				}
+				expr = expr.subExpr();
+			}
+			
 			break;
 		case BASIC:
-			columnName = definition.reference().toString();
 			if(definition.expression() != null) {
-				IExpr expr = definition.expression();
+				expr = definition.expression();
 				while(expr != null) {
-					expressionProperties.add(expr.property());
+					if(expr.property() != null) {
+						expressionProperties.add(expr.property());
+						references.add(expr.reference());
+					}
 					expr = expr.subExpr();
 				}
 			}
 			else if(definition.condition() != null) {
 				ICondition condition = definition.condition();
 				while(condition != null) {
-					expressionProperties.add(condition.property());
+					if(condition.property() != null) {
+						expressionProperties.add(condition.property());
+						references.add(condition.reference());
+					}
 					condition = condition.subCondition();
 				}
 			}
@@ -65,32 +80,43 @@ public class BasicSolver implements IConstraintSolver {
 			return node.properties().get(definitionProperty);
 		}
 		Result result = QueryResolutionEngine.evaluate(node, definition.query());
-		column = result.get(columnName);
+		column = result.get(references.iterator().next().toString());	//FIXME: Temporary hack
 		
-		Map<IWorldTree, Collection<Datum>> childMap = new HashMap<IWorldTree, Collection<Datum>>(column.size());
+		Map<IWorldTree, List<Datum>> childMap = new LinkedHashMap<IWorldTree, List<Datum>>(column.size());
 		for(IWorldTree child : column) {
 			List<Datum> values = new LinkedList<Datum>();
 			for(Property p : expressionProperties) {
 				Datum value = child.properties().get(p);
-				values.add(value);
+				if(value != null)	//TODO: Is this valid?
+					values.add(value);
 			}
-			childMap.put(child, values);
+			if(values.size() > 0)	//TODO: Is this valid?
+				childMap.put(child, values);
 		}
 		
 		Datum propertyValue = null;
 		List<Datum> values = new ArrayList<Datum>(childMap.size());
 		if(definition.expression() != null) {
-			for(Map.Entry<IWorldTree, Collection<Datum>> entry : childMap.entrySet()) {
-				Datum childValue = null;
-				
+			for(Map.Entry<IWorldTree, List<Datum>> entry : childMap.entrySet()) {
 //				The following code below handles manual evalulation of an expression
-				
+				Datum childValue = evaluateExpression(definition.expression(), entry.getValue());
+				values.add(childValue);
+			}
+		}
+		else if(definition.condition() != null) {
+//			TODO: This is boolean stuff
+		}
+		else if(definition.aggregateExpression() != null) {
+//			FIXME: This is repeated code..similar to definition.expression() != null case..handle this properly
+			for(Map.Entry<IWorldTree, List<Datum>> entry : childMap.entrySet()) {
+				Datum childValue = evaluateExpression(definition.aggregateExpression().expr(), entry.getValue());
+				values.add(childValue);
 			}
 		}
 			
-		for(Datum value : values) {
-			switch(definition.type()) {
-			case AGGREGATE:
+		switch(definition.type()) {
+		case AGGREGATE:
+			for(Datum value : values) {
 				switch(definition.aggregateExpression().type()) {
 				case COUNT:
 					if(propertyValue == null)
@@ -119,20 +145,63 @@ public class BasicSolver implements IConstraintSolver {
 					break;
 				}
 				break;
-			case BASIC:
-				break;
-			case INHERIT:
-				break;
-			case RANDOM:
-				break;
-			default:
-				break;
 			}
-		}
+			break;
+		case BASIC:
+//			FIXME: Assumes that the BASIC expr type always has the form 'DEFINE X.property AS EXPR in LEVEL X'
+//			Given the above assumption, we've already computed this value..so just pull it out..
+			int idx = -1;
+			for(Map.Entry<IWorldTree, List<Datum>> entry : childMap.entrySet()) {
+				idx++;
+				if(entry.getKey().equals(node))
+					break;
+				
+			}
+			if(idx == -1)
+				return null;
+			return values.get(idx);
+		case INHERIT:
+			break;
+		case RANDOM:
+			break;
+		default:
+			break;
+		}		
 		return propertyValue;
 	}
 	
-	
+	private Datum evaluateExpression(IExpr expression, List<Datum> values) {
+		Datum result = null;
+		IExpr expr = expression;
+		Datum subExprValue = null;
+		if(expr.value() != null && expr.value().type() != DatumType.STRING)
+			result = expr.value();
+		else
+			result = values.remove(0);
+
+		if(expr.subExpr() != null)
+			subExprValue = evaluateExpression(expr.subExpr(), values);
+		
+		if(subExprValue != null) {
+			switch(expr.operator()) {
+			case TK_DIV:
+				result = result.divide(subExprValue);
+				break;
+			case TK_MINUS:
+				result = result.subtract(subExprValue);
+				break;
+			case TK_MULT:
+				result = result.multiply(subExprValue);
+				break;
+			case TK_PLUS:
+				result = result.add(subExprValue);
+				break;
+			default:
+				throw new IllegalStateException("Unknown operator " + expr.operator());
+			}
+		}
+		return result;
+	}
 
 	private boolean satisfies(IWorldTree node, ICondition condition, PropertyDef definition) {
 		if(condition == null)
@@ -238,11 +307,17 @@ public class BasicSolver implements IConstraintSolver {
 	}
 	
 	private void iterativePushDown(IWorldTree node) {
+		Collection<PropertyDef> definitions = node.definitions();
 //		FIXME:	Currently assumes that properties need to be materialized only at the lowest level..all other levels are aggregates
 //		TODO:	Need to handle dependent properties in the right order
 		if(node.children() != null) {
 			for(IWorldTree child : node.children())
 				iterativePushDown(child);
+			for(PropertyDef definition : definitions) {
+				if(!definition.level().equals(Hierarchy.parse(node.getClass())))
+					continue;
+				updateNode(node, definition);
+			}
 //				TODO: Enable query parsing on constraint.query()
 //				Result result = QueryResolutionEngine.evaluate(node, constraint.query());
 //				Column column = result.get(constraint.query().pattern().lhs().toString());
@@ -250,7 +325,6 @@ public class BasicSolver implements IConstraintSolver {
 //				}
 		}
 		else {
-			Collection<PropertyDef> definitions = node.definitions();
 			if(definitions == null)
 				return;
 			for(PropertyDef definition : definitions) {
@@ -285,12 +359,18 @@ public class BasicSolver implements IConstraintSolver {
 				}
 				if(value != null) {
 					node.properties().put(property, value);
-					updateParent(node, property);
+//					updateParent(node, property);
 				}
 			}
 		}
 	}
 
+	private void updateNode(IWorldTree node, PropertyDef definition) {
+		Datum value = evaluate(node, definition);
+		node.properties().put(definition.property(), value);
+	}
+	
+//	TODO: Figure out the reason for this expensive update method
 	private void updateParent(IWorldTree node, Property property) {
 		IWorldTree parent = node.parent();
 		PropertyDef definition = null;
