@@ -4,6 +4,7 @@ import internal.parser.TokenArithOp;
 import internal.parser.containers.Datum;
 import internal.parser.containers.IContainer;
 import internal.parser.containers.Reference;
+import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.Expr.ExprType;
 import internal.parser.containers.property.Property;
 import internal.parser.resolve.Result;
@@ -65,6 +66,12 @@ public interface IExpr extends IContainer {
 	 */
 	public IExpr elseExpr();
 
+	/**
+	 * Obtain the condition (if any)
+	 * @return {@code ICondition}
+	 */
+	public ICondition condition();
+	
 //	FIXME: This method should be moved out of IExpr to maintain clean separation
 	public Datum evaluate(IWorldTree node, Result result);
 }

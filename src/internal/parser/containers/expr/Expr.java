@@ -33,7 +33,7 @@ public class Expr implements IExpr {
 	private IExpr whenExpr, elseExpr;
 	
 
-	public Expr(ExprType exprType, Datum value, IExpr baseExpr, TokenArithOp operator, IExpr subExpr, String maxminType, 
+	public Expr(ExprType exprType, Datum value, TokenArithOp operator, IExpr subExpr, String maxminType, 
 			Reference reference, Property property, ICondition condition, IExpr whenExpr, IExpr elseExpr) {
 		this.exprType	= exprType;
 		this.value		= value;
@@ -48,23 +48,25 @@ public class Expr implements IExpr {
 	}
 	
 	public Expr(Datum value) {
-		this(ExprType.BASIC, value, null, null, null, null, null, null, null, null, null);
+		this(ExprType.BASIC, value, null, null, null, null, null, null, null, null);
 	}
 	
 	public Expr(Reference reference, Property property) {
-		this(ExprType.BASIC, null, null, null, null, null, reference, property, null, null, null);
+		this(ExprType.BASIC, null, null, null, null, reference, property, null, null, null);
 	}
 	
 	public Expr(IExpr baseExpr, TokenArithOp operator, IExpr subExpr) {
-		this(ExprType.ARITH, baseExpr.value(), baseExpr, operator, subExpr, null, null, baseExpr.property(), null, null, null);
+		this(ExprType.ARITH, baseExpr.value(), operator, subExpr, null, baseExpr.reference(), baseExpr.property(), 
+				baseExpr.condition(), baseExpr.whenExpr(), baseExpr.elseExpr());
 	}
 	
 	public Expr(String maxminType, IExpr baseExpr, IExpr subExpr) {
-		this(ExprType.MAXMIN, null, baseExpr, null, subExpr, null, null, null, null, null, null);
+		this(ExprType.MAXMIN, baseExpr.value(), baseExpr.operator(), subExpr, baseExpr.maxminType(), baseExpr.reference(), 
+				baseExpr.property(), baseExpr.condition(), baseExpr.whenExpr(), baseExpr.elseExpr());
 	}
 	
 	public Expr(ICondition condition, IExpr whenExpr, IExpr elseExpr) {
-		this(ExprType.WHEN, null, null, null, null, null, null, null, condition, whenExpr, elseExpr);
+		this(ExprType.WHEN, null, null, null, null, null, null, condition, whenExpr, elseExpr);
 	}
 
 	@Override
@@ -114,6 +116,11 @@ public class Expr implements IExpr {
 	@Override
 	public IExpr elseExpr() {
 		return elseExpr;
+	}
+	
+	@Override
+	public ICondition condition() {
+		return condition;
 	}
 	
 	@Override
