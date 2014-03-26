@@ -486,7 +486,6 @@ public class BasicSolver implements IConstraintSolver {
 				Property failedProperty = null;
 				for(Constraint constraint : node.constraints()) {
 					if(constraint.level().equals(Hierarchy.parse(currentNode.getClass()))) {
-						IWorldTree parent = currentNode.parent() == null ? currentNode : currentNode.parent();
 						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
 						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
 							Property property = constraint.condition().property();
