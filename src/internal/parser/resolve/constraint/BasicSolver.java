@@ -2,7 +2,9 @@ package internal.parser.resolve.constraint;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,6 +16,7 @@ import internal.parser.containers.Datum;
 import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.IExpr;
+import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
@@ -384,8 +387,73 @@ public class BasicSolver implements IConstraintSolver {
 		}
 	}
 
+	private Map<Property, Collection<Property>> resolveConstraintPropertyDependencies(IWorldTree node) {
+		Collection<Constraint> constraints = node.root().constraints();
+		Map<Property, Collection<Constraint>> propertyConstraintMap = new HashMap<Property, Collection<Constraint>>();
+		for(Constraint constraint : constraints) {
+			Property property = constraint.condition().property();
+			if(!propertyConstraintMap.containsKey(property))
+				propertyConstraintMap.put(property, new HashSet<Constraint>());
+			propertyConstraintMap.get(property).add(constraint);
+		}
+		
+		Map<Property, Collection<Property>> propertyGroups = new HashMap<Property, Collection<Property>>();
+		
+		for(Constraint constraint : constraints) {
+			Collection<Property> dependencies = new HashSet<Property>();
+			Property property = constraint.condition().property();
+			constraintDependencies(constraint, propertyConstraintMap, dependencies);
+			propertyGroups.put(property, dependencies);
+		}
+		return propertyGroups;
+	}
+	
+	private void constraintDependencies(Constraint constraint, Map<Property, Collection<Constraint>> propertyConstraintMap, 
+			Collection<Property> dependencies) {
+		int oldDependenciesSize = dependencies.size();
+//		Now, we add all properties referenced within this constraint
+//		TODO: Figure out if we really need to add *all* the properties referenced
+//		First, the query
+		IQuery query = constraint.query();
+		while(query != null) {
+			ICondition condition = query.condition();
+			while(condition != null) {
+				if(condition.property() != null)
+					dependencies.add(condition.property());
+				condition = condition.subCondition();
+			}
+			query = query.subQuery();
+		}
+		
+//		Now, the constraint condition itself..we may be repeating the base property..but that's okay since we're using a HashSet
+		ICondition condition = constraint.condition();
+		while(condition != null) {
+			if(condition.property() != null)
+				dependencies.add(condition.property());
+			condition = condition.subCondition();
+		}
+		
+		int newDependenciesSize = dependencies.size();
+		if(oldDependenciesSize == newDependenciesSize)
+//			We didn't really do anything new..just return
+			return;
+//		Now we have all the properties, create a list of all the corresponding constraints, and get their dependencies
+		Collection<Constraint> dependentConstraints = new HashSet<Constraint>();
+		for(Property property : dependencies)
+			dependentConstraints.addAll(propertyConstraintMap.get(property));
+		
+		Iterator<Constraint> iter = dependentConstraints.iterator();
+		while(iter.hasNext()) {
+			Constraint c = iter.next();
+			constraintDependencies(c, propertyConstraintMap, dependencies);
+			iter.remove();
+		}
+	}
+	
 	@Override
 	public void pushDownConstraints(IWorldTree node) {
+		Map<Property, Collection<Property>> PropertyGroups = resolveConstraintPropertyDependencies(node);
+		
 		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
 		IMap map = ((IMap) node.root());	//FIXME: Hack
 		nodes.add(map);
