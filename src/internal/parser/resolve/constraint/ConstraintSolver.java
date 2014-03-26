@@ -21,11 +21,19 @@ import internal.parser.containers.query.IQuery;
 import internal.tree.IWorldTree;
 
 public class ConstraintSolver {
-	private static IConstraintSolver solver = new BasicSolver();
+	private static IConstraintSolver solver = null;
+	private static Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = 
+			new HashMap<Hierarchy, Map<Property, PropertyDef>>();
+	private static Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = 
+			new HashMap<Hierarchy, Map<Property, Collection<Property>>>();
 	
 	public static void pushDownConstraints(IWorldTree node) {
-		validateDefinitions(node);
-		sortDefinitions(node);
+		
+		resolveDefinitionDependencies(node, propertyDependencyMap, propertyDefMap);
+		validateDefinitions(node, propertyDependencyMap, propertyDefMap);
+		sortDefinitions(node, propertyDependencyMap, propertyDefMap);
+		
+		solver = new BasicSolver(propertyDependencyMap, propertyDefMap);
 		solver.pushDownConstraints(node);
 	}
 	
@@ -47,15 +55,10 @@ public class ConstraintSolver {
 	 * @param node {@code IWorldTree} to obtain definitions from
 	 * @throws IllegalStateException if a constraint does not have a valid set of definitions
 	 */
-	private static void validateDefinitions(IWorldTree node) {
+	private static void validateDefinitions(IWorldTree node, 
+			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap, 
+			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
 		IWorldTree root = node.root();
-		
-		Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = 
-				new HashMap<Hierarchy, Map<Property, Collection<Property>>>();
-		Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = 
-				new HashMap<Hierarchy, Map<Property, PropertyDef>>();
-		
-		resolveDefinitionDependencies(root, propertyDependencyMap, propertyDefMap);
 		
 		for(Constraint constraint : root.constraints()) {
 			Property constraintProperty	= constraint.condition().property();
@@ -130,14 +133,9 @@ public class ConstraintSolver {
 	 * Sort definitions based on dependencies
 	 * @param root {@code IWorldTree} node containing definitions
 	 */
-	private static void sortDefinitions(IWorldTree root) {
-		Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = 
-				new HashMap<Hierarchy, Map<Property, Collection<Property>>>();
-		Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = 
-				new HashMap<Hierarchy, Map<Property, PropertyDef>>();
-		
-		resolveDefinitionDependencies(root, propertyDependencyMap, propertyDefMap);
-		
+	private static void sortDefinitions(IWorldTree root, 
+			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap, 
+			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
 //		Now that we have the dependencies-per-level, we iterate over each level and resolve property order
 		Collection<PropertyDef> definitions = root.definitions();
 		List<PropertyDef> orderedDefinitions = new ArrayList<PropertyDef>();
