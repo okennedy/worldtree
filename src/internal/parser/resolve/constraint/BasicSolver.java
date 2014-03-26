@@ -16,7 +16,6 @@ import internal.parser.containers.Datum;
 import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.IExpr;
-import internal.parser.containers.pattern.IPattern;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
@@ -29,6 +28,14 @@ import development.com.collection.range.Range;
 import development.com.collection.range.RangeSet;
 
 public class BasicSolver implements IConstraintSolver {
+	private Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = null;
+	private Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = null;
+	public BasicSolver(
+			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap,
+			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
+		this.propertyDependencyMap	= propertyDependencyMap;
+		this.propertyDefMap			= propertyDefMap;
+	}
 
 	/**
 	 * Evaluate a definition on a specific node and return the value computed
@@ -54,7 +61,6 @@ public class BasicSolver implements IConstraintSolver {
 				}
 				expr = expr.subExpr();
 			}
-			
 			break;
 		case BASIC:
 			if(definition.expression() != null) {
@@ -295,13 +301,12 @@ public class BasicSolver implements IConstraintSolver {
 	 * Since recursive calls lead to massive memory consumption, we opt for an iterative approach to materializing constraints.
 	 * @param node {@code IWorldTree} from which the push down is to be performed
 	 */
-	private void iterativePushDown(IWorldTree node) {
-		Collection<PropertyDef> definitions = node.definitions();
+	private void iterativePushDown(IWorldTree node, Collection<PropertyDef> definitions) {
 //		FIXME:	Currently assumes that properties need to be materialized only at the lowest level..all other levels are aggregates
 //		TODO:	Need to handle dependent properties in the right order
 		if(node.children() != null) {
 			for(IWorldTree child : node.children())
-				iterativePushDown(child);
+				iterativePushDown(child, definitions);
 			for(PropertyDef definition : definitions) {
 				if(!definition.level().equals(Hierarchy.parse(node.getClass())))
 					continue;
@@ -404,6 +409,14 @@ public class BasicSolver implements IConstraintSolver {
 			Property property = constraint.condition().property();
 			constraintDependencies(constraint, propertyConstraintMap, dependencies);
 			propertyGroups.put(property, dependencies);
+
+//			Now add all definition dependencies
+			Hierarchy currentLevel = constraint.level();
+			while(currentLevel != null) {
+				Collection<Property> definitionDependencies = propertyDependencyMap.get(currentLevel).get(property);
+				propertyGroups.get(property).addAll(definitionDependencies);
+				currentLevel = currentLevel.childLevel();
+			}
 		}
 		return propertyGroups;
 	}
@@ -452,34 +465,48 @@ public class BasicSolver implements IConstraintSolver {
 	
 	@Override
 	public void pushDownConstraints(IWorldTree node) {
-		Map<Property, Collection<Property>> PropertyGroups = resolveConstraintPropertyDependencies(node);
+		Map<Property, Collection<Property>> propertyGroups = resolveConstraintPropertyDependencies(node);
 		
-		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
 		IMap map = ((IMap) node.root());	//FIXME: Hack
+		Collection<PropertyDef> definitions = node.root().definitions();
+		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
+		
 		nodes.add(map);
 		nodes.addAll(map.getNodesByLevel(Hierarchy.Room));
 		nodes.addAll(map.getNodesByLevel(Hierarchy.Region));
 		nodes.addAll(map.getNodesByLevel(Hierarchy.Tile));
 		
-		List<IWorldTree> nodesCopy = new ArrayList<IWorldTree>(nodes);
+		List<IWorldTree> nodesCopy = new LinkedList<IWorldTree>(nodes);
 		IWorldTree currentNode = null;
 		while(true) {
 			boolean satisfied = true;
-			iterativePushDown(node);
+			iterativePushDown(node, definitions);
 			while(nodesCopy.size() > 0) {
 				currentNode = nodesCopy.get(0);
+				Property failedProperty = null;
 				for(Constraint constraint : node.constraints()) {
 					if(constraint.level().equals(Hierarchy.parse(currentNode.getClass()))) {
-						Result result = QueryResolutionEngine.evaluate(currentNode.parent(), constraint.query());
+						IWorldTree parent = currentNode.parent() == null ? currentNode : currentNode.parent();
+						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
 						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
 							Property property = constraint.condition().property();
 							satisfied &= satisfies(currentNode, constraint.condition(), property);
+							if(!satisfied) {
+								failedProperty = property;
+								break;
+							}
 						}
 					}
 				}
 				if(!satisfied) {
 					nodesCopy.clear();
 					nodesCopy.addAll(nodes);
+					definitions = new HashSet<PropertyDef>();
+					for(Property property : propertyGroups.get(failedProperty)) {
+						for(Hierarchy level : Hierarchy.values()) {
+							definitions.add(propertyDefMap.get(level).get(property));
+						}
+					}
 					break;
 				}
 				else
