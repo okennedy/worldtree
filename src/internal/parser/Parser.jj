@@ -84,6 +84,7 @@ BasePattern basePattern() :
 {    LOOKAHEAD(2) r1 = reference() relation = relation() r2 = reference() { return new BasePattern(r1, relation, r2); }
 |   r1 = reference() { return new BasePattern(r1, null, null); }}
 
+//FIXME: baseQuery has bugs. It does not work as expected for constraint queries with full patterns.
 BaseQuery baseQuery(Hierarchy level) :
 {
     IPattern pattern = null;
