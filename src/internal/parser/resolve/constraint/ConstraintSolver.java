@@ -14,6 +14,7 @@ import development.com.collection.range.RangeSet;
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.condition.ICondition;
+import internal.parser.containers.expr.Expr;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
@@ -182,11 +183,23 @@ public class ConstraintSolver {
 				Set<Property> dependencies = new HashSet<Property>();	//TODO: Figure out whether we care about the order here
 				switch(definition.type()) {
 				case AGGREGATE:
-//					TODO: Figure out whether we're only looking at lower levels when we're aggregating..if not, we need some code here
+//					While these properties are not needed as per-level definition dependencies, they are still part of related properties
+//					So add them to the related properties map
+					IExpr expr = definition.aggregateExpression().expr();
+					while(expr != null ){
+						if(expr.property() != null) {
+							if(!relatedPropertiesMap.containsKey(baseProperty))
+								relatedPropertiesMap.put(baseProperty, new HashSet<Property>());
+//							Add self
+							relatedPropertiesMap.get(baseProperty).add(baseProperty);
+							relatedPropertiesMap.get(baseProperty).add(expr.property());
+						}
+						expr = expr.subExpr();
+					}
 					break;
 				case BASIC:
 					if(definition.expression() != null) {
-						IExpr expr = definition.expression();
+						expr = definition.expression();
 						while(expr != null) {
 							if(expr.property() != null)
 								dependencies.add(expr.property());
