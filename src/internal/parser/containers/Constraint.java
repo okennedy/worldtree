@@ -12,7 +12,7 @@ import internal.parser.containers.query.IQuery;
  */
 public class Constraint extends Statement {
 	private Type type;
-	private Hierarchy level;
+	private Hierarchy level;	/*	This field is redundant..it is stored only for convenience */
 	private IQuery query;
 	private ICondition condition;
 	
@@ -26,12 +26,12 @@ public class Constraint extends Statement {
 
 	@Override
 	public String toString() {
-		return "FOR ALL " + level + " " + query.toString() + " ASSERT " + condition.toString();
+		return "FOR ALL " + " " + query.toString() + " ASSERT " + condition.toString();
 	}
 	
 	@Override
 	public String debugString() {
-		StringBuffer result = new StringBuffer("CONSTRAINT(FOR ALL " + level + " ");
+		StringBuffer result = new StringBuffer("CONSTRAINT(FOR ALL " + " ");
 		
 		result.append(query.debugString());
 		result.append(" ASSERT ");

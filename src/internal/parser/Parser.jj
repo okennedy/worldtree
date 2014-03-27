@@ -91,10 +91,7 @@ BaseQuery baseQuery(Hierarchy level) :
     ICondition condition = null;
     String lvl;
 }
-{     LOOKAHEAD(3) lvl = word()	{ level = Hierarchy.parse(lvl); }
-     pattern = pattern() (< WHERE > condition = condition())?
-     	{ return new BaseQuery(level, pattern, condition); }
- |   LOOKAHEAD(3) pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
+{    pattern = pattern() (< WHERE > condition = condition())? { return new BaseQuery(level, pattern, condition); }}Relation relation() :
 {
     Relation relation = null;
     String name = null, regex = null;
@@ -283,7 +280,9 @@ Constraint constraint() :
 
 PropertyDef propertyDef() :
 {    Hierarchy level 		= null;
+    Hierarchy queryLevel	= null;
     String lvl				= null;
+    String queryLvl			= null;
     Reference ref			= null;
     Property property 		= null;
     String parent			= null;
@@ -299,10 +298,13 @@ PropertyDef propertyDef() :
         (            (
                 LOOKAHEAD(8) condition = condition()            |	expr = expr()
             )
-            < IN > query = query(level)
+            < IN > queryLvl = word() { queryLevel = Hierarchy.parse(queryLvl); }
+            query = query(queryLevel)
             { return new PropertyDef(level, ref, property, expr, condition, query); }
             
-        |   < AGGREGATE > aggExpr = aggExpr() < IN > query = query(level)
+        |   < AGGREGATE > aggExpr = aggExpr()
+            < IN > queryLvl = word() { queryLevel = Hierarchy.parse(queryLvl); }
+            query = query(queryLevel)
         	{ return new PropertyDef(level, ref, property, aggExpr, query); }
         			|   < RANDOM > randomspec = randomspec() (< WHERE > condition = condition())?
 			{ return new PropertyDef(level, ref, property, randomspec, condition); }
