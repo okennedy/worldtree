@@ -26,14 +26,14 @@ public class ConstraintSolver {
 			new HashMap<Hierarchy, Map<Property, PropertyDef>>();
 	private static Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = 
 			new HashMap<Hierarchy, Map<Property, Collection<Property>>>();
+	private static Map<Property, Collection<Property>> relatedPropertiesMap = null;
 	
 	public static void pushDownConstraints(IWorldTree node) {
-		
 		resolveDefinitionDependencies(node, propertyDependencyMap, propertyDefMap);
 		validateDefinitions(node, propertyDependencyMap, propertyDefMap);
 		sortDefinitions(node, propertyDependencyMap, propertyDefMap);
-		
-		solver = new BasicSolver(propertyDependencyMap, propertyDefMap);
+		relatedPropertiesMap = resolveRelatedProperties(node);
+		solver = new BasicSolver(propertyDependencyMap, propertyDefMap, relatedPropertiesMap);
 		solver.pushDownConstraints(node);
 	}
 	
@@ -276,6 +276,77 @@ public class ConstraintSolver {
 			}
 			if(!orderedProperties.contains(property))
 				orderedProperties.add(property);
+		}
+	}
+	
+	private static Map<Property, Collection<Property>> resolveRelatedProperties(IWorldTree node) {
+		Collection<Constraint> constraints = node.root().constraints();
+		Map<Property, Collection<Constraint>> propertyConstraintMap = new HashMap<Property, Collection<Constraint>>();
+		for(Constraint constraint : constraints) {
+			Property property = constraint.condition().property();
+			if(!propertyConstraintMap.containsKey(property))
+				propertyConstraintMap.put(property, new HashSet<Constraint>());
+			propertyConstraintMap.get(property).add(constraint);
+		}
+		
+		Map<Property, Collection<Property>> relatedPropertiesMap = new HashMap<Property, Collection<Property>>();
+		
+		for(Constraint constraint : constraints) {
+			Collection<Property> dependencies = new HashSet<Property>();
+			Property property = constraint.condition().property();
+			resolveConstraintDependencies(constraint, propertyConstraintMap, dependencies);
+			relatedPropertiesMap.put(property, dependencies);
+
+//			Now add all definition dependencies
+			Hierarchy currentLevel = constraint.level();
+			while(currentLevel != null) {
+				Collection<Property> definitionDependencies = propertyDependencyMap.get(currentLevel).get(property);
+				relatedPropertiesMap.get(property).addAll(definitionDependencies);
+				currentLevel = currentLevel.childLevel();
+			}
+		}
+		return relatedPropertiesMap;
+	}
+	
+	private static void resolveConstraintDependencies(Constraint constraint, Map<Property, Collection<Constraint>> propertyConstraintMap, 
+			Collection<Property> dependencies) {
+		int oldDependenciesSize = dependencies.size();
+//		Now, we add all properties referenced within this constraint
+//		TODO: Figure out if we really need to add *all* the properties referenced
+//		First, the query
+		IQuery query = constraint.query();
+		while(query != null) {
+			ICondition condition = query.condition();
+			while(condition != null) {
+				if(condition.property() != null)
+					dependencies.add(condition.property());
+				condition = condition.subCondition();
+			}
+			query = query.subQuery();
+		}
+		
+//		Now, the constraint condition itself..we may be repeating the base property..but that's okay since we're using a HashSet
+		ICondition condition = constraint.condition();
+		while(condition != null) {
+			if(condition.property() != null)
+				dependencies.add(condition.property());
+			condition = condition.subCondition();
+		}
+		
+		int newDependenciesSize = dependencies.size();
+		if(oldDependenciesSize == newDependenciesSize)
+//			We didn't really do anything new..just return
+			return;
+//		Now we have all the properties, create a list of all the corresponding constraints, and get their dependencies
+		Collection<Constraint> dependentConstraints = new HashSet<Constraint>();
+		for(Property property : dependencies)
+			dependentConstraints.addAll(propertyConstraintMap.get(property));
+		
+		Iterator<Constraint> iter = dependentConstraints.iterator();
+		while(iter.hasNext()) {
+			Constraint c = iter.next();
+			resolveConstraintDependencies(c, propertyConstraintMap, dependencies);
+			iter.remove();
 		}
 	}
 }
