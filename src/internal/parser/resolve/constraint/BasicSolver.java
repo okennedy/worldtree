@@ -30,11 +30,15 @@ import development.com.collection.range.RangeSet;
 public class BasicSolver implements IConstraintSolver {
 	private Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = null;
 	private Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = null;
+	private Map<Property, Collection<Property>> relatedPropertiesMap = null;
+	
 	public BasicSolver(
 			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap,
-			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
+			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap,
+			Map<Property, Collection<Property>> relatedPropertiesMap) {
 		this.propertyDependencyMap	= propertyDependencyMap;
 		this.propertyDefMap			= propertyDefMap;
+		this.relatedPropertiesMap	= relatedPropertiesMap;
 	}
 
 	/**
@@ -392,81 +396,8 @@ public class BasicSolver implements IConstraintSolver {
 		}
 	}
 
-	private Map<Property, Collection<Property>> resolveConstraintPropertyDependencies(IWorldTree node) {
-		Collection<Constraint> constraints = node.root().constraints();
-		Map<Property, Collection<Constraint>> propertyConstraintMap = new HashMap<Property, Collection<Constraint>>();
-		for(Constraint constraint : constraints) {
-			Property property = constraint.condition().property();
-			if(!propertyConstraintMap.containsKey(property))
-				propertyConstraintMap.put(property, new HashSet<Constraint>());
-			propertyConstraintMap.get(property).add(constraint);
-		}
-		
-		Map<Property, Collection<Property>> propertyGroups = new HashMap<Property, Collection<Property>>();
-		
-		for(Constraint constraint : constraints) {
-			Collection<Property> dependencies = new HashSet<Property>();
-			Property property = constraint.condition().property();
-			constraintDependencies(constraint, propertyConstraintMap, dependencies);
-			propertyGroups.put(property, dependencies);
-
-//			Now add all definition dependencies
-			Hierarchy currentLevel = constraint.level();
-			while(currentLevel != null) {
-				Collection<Property> definitionDependencies = propertyDependencyMap.get(currentLevel).get(property);
-				propertyGroups.get(property).addAll(definitionDependencies);
-				currentLevel = currentLevel.childLevel();
-			}
-		}
-		return propertyGroups;
-	}
-	
-	private void constraintDependencies(Constraint constraint, Map<Property, Collection<Constraint>> propertyConstraintMap, 
-			Collection<Property> dependencies) {
-		int oldDependenciesSize = dependencies.size();
-//		Now, we add all properties referenced within this constraint
-//		TODO: Figure out if we really need to add *all* the properties referenced
-//		First, the query
-		IQuery query = constraint.query();
-		while(query != null) {
-			ICondition condition = query.condition();
-			while(condition != null) {
-				if(condition.property() != null)
-					dependencies.add(condition.property());
-				condition = condition.subCondition();
-			}
-			query = query.subQuery();
-		}
-		
-//		Now, the constraint condition itself..we may be repeating the base property..but that's okay since we're using a HashSet
-		ICondition condition = constraint.condition();
-		while(condition != null) {
-			if(condition.property() != null)
-				dependencies.add(condition.property());
-			condition = condition.subCondition();
-		}
-		
-		int newDependenciesSize = dependencies.size();
-		if(oldDependenciesSize == newDependenciesSize)
-//			We didn't really do anything new..just return
-			return;
-//		Now we have all the properties, create a list of all the corresponding constraints, and get their dependencies
-		Collection<Constraint> dependentConstraints = new HashSet<Constraint>();
-		for(Property property : dependencies)
-			dependentConstraints.addAll(propertyConstraintMap.get(property));
-		
-		Iterator<Constraint> iter = dependentConstraints.iterator();
-		while(iter.hasNext()) {
-			Constraint c = iter.next();
-			constraintDependencies(c, propertyConstraintMap, dependencies);
-			iter.remove();
-		}
-	}
-	
 	@Override
 	public void pushDownConstraints(IWorldTree node) {
-		Map<Property, Collection<Property>> propertyGroups = resolveConstraintPropertyDependencies(node);
-		
 		IMap map = ((IMap) node.root());	//FIXME: Hack
 		Collection<PropertyDef> definitions = node.root().definitions();
 		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
@@ -501,7 +432,7 @@ public class BasicSolver implements IConstraintSolver {
 					nodesCopy.clear();
 					nodesCopy.addAll(nodes);
 					definitions = new HashSet<PropertyDef>();
-					for(Property property : propertyGroups.get(failedProperty)) {
+					for(Property property : relatedPropertiesMap.get(failedProperty)) {
 						for(Hierarchy level : Hierarchy.values()) {
 							definitions.add(propertyDefMap.get(level).get(property));
 						}
