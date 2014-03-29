@@ -285,6 +285,24 @@ public class ConstraintSolver {
 	}
 	
 	private static void resolveRelatedProperties(IWorldTree node) {
+/*		At this point, we have definition dependencies per-level. Since the definition dependencies were done out of order, we still
+		need to walk down the dependency chain and form sets of related properties */
+		for(Hierarchy level : Hierarchy.values()) {
+			for(Property baseProperty : propertyDependencyMap.get(level).keySet()) {
+				Hierarchy currentLevel = level;
+				while(currentLevel != null) {
+					Collection<Property> dependencies = propertyDependencyMap.get(currentLevel).get(baseProperty);
+					relatedPropertiesMap.get(baseProperty).addAll(dependencies);
+					for(Property property : dependencies) {
+						Collection<Property> subDependencies = propertyDependencyMap.get(currentLevel).get(property);
+						relatedPropertiesMap.get(baseProperty).addAll(subDependencies);
+					}
+					currentLevel = currentLevel.childLevel();
+				}				
+			}
+		}
+		
+//		Now we add constraint dependencies
 		Collection<Constraint> constraints = node.root().constraints();
 		Map<Property, Collection<Constraint>> propertyConstraintMap = new HashMap<Property, Collection<Constraint>>();
 		for(Constraint constraint : constraints) {
@@ -298,7 +316,7 @@ public class ConstraintSolver {
 			Collection<Property> dependencies = new HashSet<Property>();
 			Property property = constraint.condition().property();
 			resolveConstraintDependencies(constraint, propertyConstraintMap, dependencies);
-			relatedPropertiesMap.put(property, dependencies);
+			relatedPropertiesMap.get(property).addAll(dependencies);
 
 //			Now add all definition dependencies
 			Hierarchy currentLevel = constraint.level();
