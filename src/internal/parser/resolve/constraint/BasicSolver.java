@@ -418,7 +418,8 @@ public class BasicSolver implements IConstraintSolver {
 				for(Constraint constraint : node.constraints()) {
 					if(constraint.level().equals(Hierarchy.parse(currentNode.getClass()))) {
 						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
-						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
+						String reference = constraint.condition().reference().toString();
+						if(result.get(reference).contains(currentNode)) {
 							Property property = constraint.condition().property();
 							satisfied &= satisfies(currentNode, constraint.condition(), property);
 							if(!satisfied) {
@@ -434,7 +435,9 @@ public class BasicSolver implements IConstraintSolver {
 					definitions = new HashSet<PropertyDef>();
 					for(Property property : relatedPropertiesMap.get(failedProperty)) {
 						for(Hierarchy level : Hierarchy.values()) {
-							definitions.add(propertyDefMap.get(level).get(property));
+							PropertyDef definition = propertyDefMap.get(level).get(property);
+							if(definition != null)
+								definitions.add(definition);
 						}
 					}
 					break;
