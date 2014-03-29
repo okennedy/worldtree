@@ -54,49 +54,29 @@ public class QueryResolutionEngine {
 	public static Result evaluate(IWorldTree node, IStatement statement) {
 		if(instance == null)
 			init();
-		return instance.resolve(node, statement);
+		return instance.resolveQueryStatement(node, statement);
 	}
 
 	/**
 	 * Resolve method that is private to {@code ResolutionEngine} and used to evaluate an {@code IStatement}
 	 * @param node {@code IWorldTree} object upon which the {@code IStatement} is to be evaluated
-	 * @param query {@code IStatement} object containing the statement to evaluate
+	 * @param statement {@code IStatement} object containing the statement to evaluate
 	 * @return {@code Result} representing the output of the {@code IStatement}
 	 */
-	private Result resolve(IWorldTree node, IStatement statement) {
+	private Result resolveQueryStatement(IWorldTree node, IStatement statement) {
 		Result result = new Result();
 		Result oldResult = null;
 		switch(statement.getType()) {
 		case CONSTRAINT: {
 //			We're handling a constraint query
 			Constraint constraint = (Constraint) statement;
-			IQuery query = constraint.query();
-			ICondition condition = query.condition();
-			String columnName = query.pattern().lhs().toString();
-			result.add(new Column(columnName));
-			Column column = result.get(columnName);
-			column.add(node);
-			while(condition != null) {
-				Property property = condition.property();
-				if(!node.properties().containsKey(property)) {
-					if(column.contains(node))
-						column.remove(node);
-					return result;
-				}
-				else {
-					Datum conditionValue 	= condition.value();
-					Datum objectValue		= node.properties().get(property);
-					if(objectValue.compareTo(conditionValue, condition.operator()) != 0) {
-						if(column.contains(node))
-							column.remove(node);
-					}
-				}
-				condition = condition.subCondition();
-			}
+			result = resolveQueryStatement(node, constraint.query());
 			break;
 		}
 		case PROPERTYDEF: {
-			result = resolveDefinition(node, (PropertyDef) statement);
+//			We're handling a PropertyDef query
+			PropertyDef definition = (PropertyDef) statement;
+			result = resolveQueryStatement(node, definition.query());
 			break;
 		}
 		case QUERY: {
@@ -125,50 +105,7 @@ public class QueryResolutionEngine {
 					result = resolveQuery(node, level, pattern, result, rhsColumn);
 					
 //					Filter based on conditions
-					if(query.condition() != null) {
-						ICondition condition = query.condition();
-						while(condition != null) {
-							boolean inbuiltProperty	= false;
-							String columnName	= condition.reference().toString();
-							Property property	= condition.property();
-							if (Property.InbuiltPropertyEnum.check(property) != null)
-								inbuiltProperty = true;
-							Column column		= result.get(columnName);
-							if(column == null)
-								throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
-							Column columnCopy	= new Column(column.name(), column);
-							for(IWorldTree object : columnCopy) {
-								if(inbuiltProperty) {
-									Method method = instance.relationMap.get(property.toString().toLowerCase());
-									try {
-										boolean satisfies = (Boolean) method.invoke(null, object, condition);
-										if(!satisfies) {
-											int rowIndex = column.indexOf(object);
-											result.removeRow(rowIndex);
-										}
-									} catch (Exception e) {
-										e.printStackTrace();
-									}
-								}
-								else {
-									if(!object.properties().containsKey(property)) {
-										int rowIndex = column.indexOf(object);
-										result.removeRow(rowIndex);
-									}
-									else {
-										Datum value 		= condition.value();
-										Datum objectValue	= object.properties().get(property);
-										if(objectValue.compareTo(value, condition.operator()) != 0) {
-											int rowIndex 	= column.indexOf(object);
-											result.removeRow(rowIndex);
-										}
-									}
-								}
-							}
-							condition = condition.subCondition();
-						}
-					}
-					
+					validateCondition(result, query.condition());
 					pattern = pattern.subPattern();
 				}
 //				Check if we need to union
@@ -201,66 +138,50 @@ public class QueryResolutionEngine {
 		return result;
 	}
 
-	private Result resolveDefinition(IWorldTree node, PropertyDef definition) {
-		Result result = resolve(node, definition.query());
-		
-		Reference childReference 	= definition.query().pattern().lhs();
-		Column childNodes			= result.get(childReference.toString());
-		Property property			= definition.property();
-		
-		switch(definition.type()) {
-		case AGGREGATE:
-			switch(definition.aggregateExpression().type()) {
-			case COUNT:
-				node.addProperty(property, new Datum.Int(childNodes.size()));
-				break;
-			case MAX:
-				float maxValue = 0;
-				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(property);
-					if(datum != null) {
-						float value = (Float) datum.toFlt().data();
-						maxValue = maxValue > value ? maxValue : value;
+	private void validateCondition(Result result, ICondition condition) {
+//		TODO: Handle AND | OR
+		while(condition != null) {
+			boolean inbuiltProperty	= false;
+			String columnName	= condition.reference().toString();
+			Property property	= condition.property();
+			if (Property.InbuiltPropertyEnum.check(property) != null)
+				inbuiltProperty = true;
+			Column column		= result.get(columnName);
+			if(column == null)
+				throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
+			Column columnCopy	= new Column(column.name(), column);
+			for(IWorldTree object : columnCopy) {
+				if(inbuiltProperty) {
+					Method method = instance.relationMap.get(property.toString().toLowerCase());
+					try {
+						boolean satisfies = (Boolean) method.invoke(null, object, condition);
+						if(!satisfies) {
+							int rowIndex = column.indexOf(object);
+							result.removeRow(rowIndex);
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
-				node.addProperty(property, new Datum.Flt(maxValue));	//FIXME: Should probably be same type as child datum(s)
-				break;
-			case MIN:
-				float minValue = 0;
-				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(property);
-					if(datum != null) {
-						float value = (Float) datum.toFlt().data();
-						minValue = minValue < value ? minValue : value;
+				else {
+					if(!object.properties().containsKey(property)) {
+						int rowIndex = column.indexOf(object);
+						result.removeRow(rowIndex);
+					}
+					else {
+						Datum value 		= condition.value();
+						Datum objectValue	= object.properties().get(property);
+						if(objectValue.compareTo(value, condition.operator()) != 0) {
+							int rowIndex 	= column.indexOf(object);
+							result.removeRow(rowIndex);
+						}
 					}
 				}
-				node.addProperty(property, new Datum.Flt(minValue));	//FIXME: Should probably be same type as child datum(s)
-				break;
-			case SUM:
-				float sum = 0;
-				for(IWorldTree childNode : childNodes) {
-					Datum datum = childNode.properties().get(property);
-					if(datum != null) {
-						float value = (Float) datum.toFlt().data();
-						sum += value;
-					}
-				}
-				node.addProperty(property, new Datum.Flt(sum));			//FIXME: Should probably be same type as child datum(s)
-				break;
-			default:
-				break;
 			}
-			break;
-		case INHERIT:
-			break;
-		case BASIC:
-		case RANDOM:
-		default:
-			throw new IllegalStateException("Cannot handle property-definitions of type " + definition.type() + " in ResolutionEngine");
+			condition = condition.subCondition();
 		}
-		return result;
 	}
-
+	
 	/**
 	 * Resolve method that is specifically designed to handle {@code IQuery}
 	 * @param node {@code IWorldTree} object upon which the {@code IQuery} is to be evaluated
@@ -326,7 +247,13 @@ public class QueryResolutionEngine {
 		if(nodeLevel.equals(level)) {
 //			node is on the same level as the objects we want..
 //			FIXME: We currently ask node's parent for all its peers..we *may* want to change this to return just node
-			node = node.parent();
+			if(node.parent() == null) {
+//				We're at the top of the hierarchy and this is the level that is requested
+				objectList.add(node);
+				return objectList;
+			}
+			else
+				node = node.parent();
 		}
 		nodeList.add(node);
 		IWorldTree currentNode = null;
@@ -334,7 +261,11 @@ public class QueryResolutionEngine {
 			currentNode = nodeList.get(0);
 			if(currentNode.children() != null) {
 				for(IWorldTree child : currentNode.children()) {
-					if(Hierarchy.parse(child.getClass()).equals(level))
+					Hierarchy childLevel = Hierarchy.parse(child.getClass());
+//					If the child level is already lower than what we want, just break
+					if(childLevel.compareTo(level) > 0)
+						break;	//TODO: Verify that this works as expected
+					else if(childLevel.equals(level))
 						objectList.add(child);
 					else
 						nodeList.add(child);
