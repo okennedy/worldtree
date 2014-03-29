@@ -27,13 +27,14 @@ public class ConstraintSolver {
 			new HashMap<Hierarchy, Map<Property, PropertyDef>>();
 	private static Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = 
 			new HashMap<Hierarchy, Map<Property, Collection<Property>>>();
-	private static Map<Property, Collection<Property>> relatedPropertiesMap = null;
+	private static Map<Property, Collection<Property>> relatedPropertiesMap = 
+			new HashMap<Property, Collection<Property>>();
 	
 	public static void pushDownConstraints(IWorldTree node) {
-		resolveDefinitionDependencies(node, propertyDependencyMap, propertyDefMap);
-		validateDefinitions(node, propertyDependencyMap, propertyDefMap);
-		sortDefinitions(node, propertyDependencyMap, propertyDefMap);
-		relatedPropertiesMap = resolveRelatedProperties(node);
+		resolveDefinitionDependencies(node);
+		validateDefinitions(node);
+		sortDefinitions(node);
+		resolveRelatedProperties(node);
 		solver = new BasicSolver(propertyDependencyMap, propertyDefMap, relatedPropertiesMap);
 		solver.pushDownConstraints(node);
 	}
@@ -56,9 +57,7 @@ public class ConstraintSolver {
 	 * @param node {@code IWorldTree} to obtain definitions from
 	 * @throws IllegalStateException if a constraint does not have a valid set of definitions
 	 */
-	private static void validateDefinitions(IWorldTree node, 
-			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap, 
-			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
+	private static void validateDefinitions(IWorldTree node) {
 		IWorldTree root = node.root();
 		
 		for(Constraint constraint : root.constraints()) {
@@ -134,9 +133,7 @@ public class ConstraintSolver {
 	 * Sort definitions based on dependencies
 	 * @param root {@code IWorldTree} node containing definitions
 	 */
-	private static void sortDefinitions(IWorldTree root, 
-			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap, 
-			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
+	private static void sortDefinitions(IWorldTree root) {
 //		Now that we have the dependencies-per-level, we iterate over each level and resolve property order
 		Collection<PropertyDef> definitions = root.definitions();
 		List<PropertyDef> orderedDefinitions = new ArrayList<PropertyDef>();
@@ -163,15 +160,10 @@ public class ConstraintSolver {
 	 * @param propertyDefMap {@code Map<Hierarchy, Map<Property, PropertyDef>>} optional. 
 	 * Is used to obtain mapping of property -> property definition in each hierarchy level
 	 */
-	private static void resolveDefinitionDependencies(IWorldTree root, 
-			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap,
-			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap) {
+	private static void resolveDefinitionDependencies(IWorldTree root) {
 		Collection<PropertyDef> definitions = root.definitions();
 		
 //		We now find dependencies among property definitions
-		if(propertyDefMap == null)
-			propertyDefMap = new HashMap<Hierarchy, Map<Property, PropertyDef>>();
-		
 		for(Hierarchy level : Hierarchy.values()) {
 			HashMap<Property, Collection<Property>> levelDependencyMap = new HashMap<Property, Collection<Property>>();
 			HashMap<Property, PropertyDef> levelPropertyDefMap = new HashMap<Property, PropertyDef>();
@@ -292,7 +284,7 @@ public class ConstraintSolver {
 		}
 	}
 	
-	private static Map<Property, Collection<Property>> resolveRelatedProperties(IWorldTree node) {
+	private static void resolveRelatedProperties(IWorldTree node) {
 		Collection<Constraint> constraints = node.root().constraints();
 		Map<Property, Collection<Constraint>> propertyConstraintMap = new HashMap<Property, Collection<Constraint>>();
 		for(Constraint constraint : constraints) {
@@ -301,8 +293,6 @@ public class ConstraintSolver {
 				propertyConstraintMap.put(property, new HashSet<Constraint>());
 			propertyConstraintMap.get(property).add(constraint);
 		}
-		
-		Map<Property, Collection<Property>> relatedPropertiesMap = new HashMap<Property, Collection<Property>>();
 		
 		for(Constraint constraint : constraints) {
 			Collection<Property> dependencies = new HashSet<Property>();
@@ -318,7 +308,6 @@ public class ConstraintSolver {
 				currentLevel = currentLevel.childLevel();
 			}
 		}
-		return relatedPropertiesMap;
 	}
 	
 	private static void resolveConstraintDependencies(Constraint constraint, Map<Property, Collection<Constraint>> propertyConstraintMap, 
