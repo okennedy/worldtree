@@ -5,4 +5,4 @@ DEFINE REGION R.PIT as AGGREGATE SUM(T.PIT) in TILE T;
 DEFINE TILE t1.PIT AS 1 IN 
 	tile t1 towest t2, t3 tonorth t2, t4 towest t3;
 
-FOR ALL MAP M ASSERT M.PIT > 8;
+FOR ALL MAP M ASSERT M.PIT > 2;

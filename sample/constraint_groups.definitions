@@ -1,11 +1,14 @@
 FOR ALL MAP M ASSERT M.treasure > 10;
 FOR ALL MAP M ASSERT M.monster > 10;
+FOR ALL MAP M ASSERT M.difficulty = 1;
 
 DEFINE MAP M.treasure AS AGGREGATE SUM(R.treasure)
 	in ROOM R;
 DEFINE MAP M.monster AS AGGREGATE MAX(R.monster)
 	in ROOM R;
-
+DEFINE MAP M.difficulty AS AGGREGATE MAX(R.difficulty)
+	in ROOM R;
+	
 FOR ALL ROOM R ASSERT R.treasure > 6;
 FOR ALL ROOM R where R.monster > 5 ASSERT R.treasure > 20;
  
@@ -13,16 +16,22 @@ DEFINE ROOM R.treasure as AGGREGATE SUM(REG.treasure)
 	in REGION REG;
 DEFINE ROOM R.monster as AGGREGATE SUM(REG.monster)
 	in REGION REG;
+DEFINE ROOM R.difficulty as AGGREGATE MAX(REG.difficulty)
+	in REGION REG;
 
+FOR ALL REGION R where R.difficulty < 2 ASSERT R.monster < 5;
 FOR ALL REGION R where R.monster < 5 ASSERT R.treasure <= 4;
 FOR ALL REGION R where R.monster > 5 ASSERT R.treasure = 11;
 DEFINE REGION R.treasure as AGGREGATE SUM(T.treasure)
 	in TILE T;
 DEFINE REGION R.monster as AGGREGATE SUM(T.monster)
 	in TILE T;
+DEFINE REGION R.difficulty as AGGREGATE MAX(T.difficulty)
+	in TILE T;
 	
 DEFINE TILE T.treasure as RANDOM UNIFORM INT FROM 0 to 5;
 DEFINE TILE T.monster as RANDOM UNIFORM INT FROM 0 to 3;
+DEFINE TILE T.difficulty as RANDOM UNIFORM INT FROM 0 to 2;
 
 FOR ALL TILE T ASSERT T.treasure != 3;
 
