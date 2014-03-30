@@ -104,6 +104,9 @@ public class RangeSet extends TreeSet<Range> {
 	 * @return {@code Datum} containing the randomly generated value
 	 */
 	public Datum generateRandom() {
+		if(this.size() == 0)
+			return null;
+		
 		int index	= (new Random()).nextInt(this.size());
 		
 		Range randomRange = null;
