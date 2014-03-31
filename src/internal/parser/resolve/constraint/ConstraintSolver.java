@@ -1,6 +1,7 @@
 package internal.parser.resolve.constraint;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +20,8 @@ import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
+import internal.parser.resolve.Result;
+import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.tree.IWorldTree;
 
 public class ConstraintSolver {
@@ -398,3 +401,30 @@ public class ConstraintSolver {
 		}
 	}
 }
+
+
+/*
+//Check to see which constraint-conditions from the collection of constraints were satisfied
+BitSet bits = new BitSet(propertyConstraints.size());
+Collection<Constraint> satisfiedConstraints = new LinkedList<Constraint>();
+int idx = 0;
+for(Constraint constraint : propertyConstraints) {
+	IQuery query = constraint.query();
+	Result result = QueryResolutionEngine.evaluate(currentNode, query);
+	if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
+		bits.set(idx);
+		satisfiedConstraints.add(constraint);
+	}
+}
+
+//Check to see if the combining those conditions results in a valid constraint condition
+RangeSet validRanges = mergeConstraints(currentNode, constraintProperty, satisfiedConstraints);
+if(validRanges.contains(currentNode.properties().get(constraintProperty)))
+	satisfied = true;
+else {
+	satisfied = false;
+	failedProperty = constraintProperty;
+	break;
+}
+}
+*/
