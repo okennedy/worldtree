@@ -107,7 +107,7 @@ public class BasicSolver implements IConstraintSolver {
 		
 //		Now, we evaluate the query and narrow down on the columns based on the references
 		Result result = QueryResolutionEngine.evaluate(node, definition.query());
-		column = result.get(references.iterator().next().toString());	//FIXME: Temporary hack
+		column = result.get(references.iterator().next());	//FIXME: Temporary hack
 		
 //		Since we are probably going to have to evaluate an expression, we store the values of properties referenced in the expression
 		Map<IWorldTree, List<Datum>> childMap = new LinkedHashMap<IWorldTree, List<Datum>>(column.size());
@@ -347,7 +347,7 @@ public class BasicSolver implements IConstraintSolver {
 //					We have an expression at the Tile level
 					IQuery query = definition.query();
 					Result result = QueryResolutionEngine.evaluate(node, query);
-					Column column = result.get(definition.reference().toString());
+					Column column = result.get(definition.reference());
 					if(column.contains(node)) {
 						IExpr expr = definition.expression();
 						ICondition condition = definition.condition();
@@ -438,7 +438,7 @@ public class BasicSolver implements IConstraintSolver {
 					Collection<Constraint> propertyConstraints = entry.getValue();
 					for(Constraint constraint : propertyConstraints) {
 						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
-						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
+						if(result.get(constraint.query().pattern().lhs()).contains(currentNode)) {
 							satisfied = satisfies(currentNode, constraint.condition(), constraintProperty);
 						}
 						if(!satisfied) {

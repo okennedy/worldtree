@@ -1,9 +1,11 @@
 package internal.parser.resolve;
 
+import internal.parser.containers.Reference;
 import internal.tree.IWorldTree;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import static internal.Helper.multiLine;
 
 /**
@@ -22,7 +24,7 @@ public class Result extends ArrayList<Column> {
 	@Override
 	public boolean add(Column column) {
 		for(Column t : this) {
-			if(t.name.equals(column.name)) {
+			if(t.name().equals(column.name())) {
 				int index = this.indexOf(t);
 				this.remove(index);
 				this.add(index, column);
@@ -38,9 +40,9 @@ public class Result extends ArrayList<Column> {
 	 * @return {@code true} if there exists a {@code Column} with this name <br>
 	 * {@code false} otherwise
 	 */
-	public boolean contains(String name) {
+	public boolean contains(Reference reference) {
 		for(Column t : this) {
-			if(t.name.equals(name))
+			if(t.name().equals(reference))
 				return true;
 		}
 		return false;
@@ -52,9 +54,9 @@ public class Result extends ArrayList<Column> {
 	 * @return {@code Column} corresponding to the specified name <br>
 	 * <b> null </b> otherwise
 	 */
-	public Column get(String name) {
+	public Column get(Reference reference) {
 		for(Column t : this) {
-			if(t.name.equals(name))
+			if(t.name().equals(reference))
 				return t;
 		}
 		return null;
@@ -108,9 +110,9 @@ public class Result extends ArrayList<Column> {
 	 * @return {@code int} representing the index of the {@code Column} if found <br>
 	 * {@code -1} otherwise
 	 */
-	public int indexOf(String name) {
+	public int indexOf(Reference reference) {
 		for(int i = 0; i < size(); i++) {
-			if(get(i).name.equals(name))
+			if(get(i).name().equals(reference))
 				return i;
 		}
 		return -1;
@@ -164,7 +166,7 @@ public class Result extends ArrayList<Column> {
 	public static Result newCopy(Result result) {
 		Result newResult = new Result();
 		for(Column c : result)
-			newResult.add(new Column(c.name));
+			newResult.add(new Column(c.name()));
 		return newResult;
 	}
 }

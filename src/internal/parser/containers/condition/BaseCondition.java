@@ -180,7 +180,7 @@ public class BaseCondition implements ICondition {
 
 	@Override
 	public Datum evaluate(IWorldTree node, Result result) {
-		IWorldTree referenceNode	= result.get(reference.toString()).get(0);	//FIXME: This may not be the right approach...
+		IWorldTree referenceNode	= result.get(reference).get(0);	//FIXME: This may not be the right approach...
 		Datum propertyValue			= referenceNode.properties().get(property);
 		boolean conditionResult		= false;
 		switch(type) {
