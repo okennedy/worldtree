@@ -94,16 +94,16 @@ public class QueryResolutionEngine {
 					if(pattern.rhs() == null) {
 //						FIXME
 						result.add(new Column(pattern.lhs().toString(), objectList));
-						return result;
+//						return result;
 					}
-					else
+					else {
 						rhsColumnName 		= pattern.rhs().toString();
-					Column rhsColumn		= result.get(rhsColumnName);
-					if(rhsColumn == null)
-						rhsColumn			= new Column(rhsColumnName, objectList);
-					
-					result = resolveQuery(node, level, pattern, result, rhsColumn);
-					
+						Column rhsColumn		= result.get(rhsColumnName);
+						if(rhsColumn == null)
+							rhsColumn			= new Column(rhsColumnName, objectList);
+						
+						result = resolveQuery(node, level, pattern, result, rhsColumn);
+					}
 //					Filter based on conditions
 					validateCondition(result, query.condition());
 					pattern = pattern.subPattern();
