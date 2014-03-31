@@ -1,6 +1,7 @@
 package internal.parser.resolve.constraint;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +14,8 @@ import internal.Helper.Hierarchy;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Datum.DatumType;
+import internal.parser.containers.Datum.Flt;
 import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.IExpr;
@@ -24,21 +27,28 @@ import internal.parser.resolve.Result;
 import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.IMap;
+import development.com.collection.range.FloatRange;
+import development.com.collection.range.IntegerRange;
 import development.com.collection.range.Range;
 import development.com.collection.range.RangeSet;
+import development.com.collection.range.Range.BoundType;
 
 public class BasicSolver implements IConstraintSolver {
-	private Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = null;
-	private Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = null;
+	private Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap = null;
+	private Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap = null;
+	private Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDepMap = null;
 	private Map<Property, Collection<Property>> relatedPropertiesMap = null;
 	
 	public BasicSolver(
-			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap,
-			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap,
+			Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap,
+			Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap,
+			Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDependencyMap,
 			Map<Property, Collection<Property>> relatedPropertiesMap) {
-		this.propertyDependencyMap	= propertyDependencyMap;
-		this.propertyDefMap			= propertyDefMap;
-		this.relatedPropertiesMap	= relatedPropertiesMap;
+		
+		this.hierarchicalDefMap			= hierarchicalDefMap;
+		this.hierarchicalConstraintMap	= hierarchicalConstraintMap;
+		this.hierarchicalDepMap			= hierarchicalDependencyMap;
+		this.relatedPropertiesMap		= relatedPropertiesMap;
 	}
 
 	/**
@@ -415,18 +425,39 @@ public class BasicSolver implements IConstraintSolver {
 			while(nodesCopy.size() > 0) {
 				currentNode = nodesCopy.get(0);
 				Property failedProperty = null;
-				for(Constraint constraint : node.constraints()) {
-					if(constraint.level().equals(Hierarchy.parse(currentNode.getClass()))) {
-						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
-						String reference = constraint.condition().reference().toString();
-						if(result.get(reference).contains(currentNode)) {
-							Property property = constraint.condition().property();
-							satisfied &= satisfies(currentNode, constraint.condition(), property);
-							if(!satisfied) {
-								failedProperty = property;
-								break;
-							}
+				
+//				Get the level of this node
+				Hierarchy nodeLevel = Hierarchy.parse(currentNode.getClass());
+
+//				Get the constraints present in this level
+				Map<Property, Collection<Constraint>> levelConstraintMap = hierarchicalConstraintMap.get(nodeLevel);
+
+//				Iterate over each entry of the map
+				for(Map.Entry<Property, Collection<Constraint>> entry : levelConstraintMap.entrySet()) {
+					Property constraintProperty = entry.getKey();
+					Collection<Constraint> propertyConstraints = entry.getValue();
+
+//					Check to see which constraint-conditions from the collection of constraints were satisfied
+					BitSet bits = new BitSet(propertyConstraints.size());
+					Collection<Constraint> satisfiedConstraints = new LinkedList<Constraint>();
+					int idx = 0;
+					for(Constraint constraint : propertyConstraints) {
+						IQuery query = constraint.query();
+						Result result = QueryResolutionEngine.evaluate(currentNode, query);
+						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
+							bits.set(idx);
+							satisfiedConstraints.add(constraint);
 						}
+					}
+					
+//					Check to see if the combining those conditions results in a valid constraint condition
+					RangeSet validRanges = mergeConstraints(currentNode, constraintProperty, satisfiedConstraints);
+					if(validRanges.contains(currentNode.properties().get(constraintProperty)))
+						satisfied = true;
+					else {
+						satisfied = false;
+						failedProperty = constraintProperty;
+						break;
 					}
 				}
 				if(!satisfied) {
@@ -435,7 +466,7 @@ public class BasicSolver implements IConstraintSolver {
 					definitions = new HashSet<PropertyDef>();
 					for(Property property : relatedPropertiesMap.get(failedProperty)) {
 						for(Hierarchy level : Hierarchy.values()) {
-							PropertyDef definition = propertyDefMap.get(level).get(property);
+							PropertyDef definition = hierarchicalDefMap.get(level).get(property);
 							if(definition != null)
 								definitions.add(definition);
 						}
@@ -448,6 +479,97 @@ public class BasicSolver implements IConstraintSolver {
 			if(satisfied)
 				break;
 		}
+	}
+
+	private RangeSet mergeConstraints(IWorldTree node, Property constraintProperty, Collection<Constraint> satisfiedConstraints) {
+		RangeSet validRanges = new RangeSet();
+		
+		DatumType type = node.properties().get(constraintProperty).type();
+		switch(type) {
+		case FLOAT:
+			validRanges.add(FloatRange.closed(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY));
+			break;
+		case INT:
+			validRanges.add(IntegerRange.closed(Integer.MIN_VALUE, Integer.MAX_VALUE));
+			break;
+		case BOOL:
+		case STRING:
+		default:
+			throw new IllegalStateException("Unimplemented type " + type);
+		}
+
+//		TODO: Handle condition unions
+		for(Constraint constraint : satisfiedConstraints) {
+			ICondition condition = constraint.condition();
+			while(condition != null) {
+				RangeSet conditionRangeSet = new RangeSet();
+				Datum conditionValue = condition.value();
+				switch(condition.type()) {
+				case BASIC:
+//					XXX: This only works for integer ranges..
+					switch(condition.operator()) {
+					case EQ:
+						Range conditionRange = Range.createRange(conditionValue, BoundType.CLOSED,
+								conditionValue, BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case GE:
+						conditionRange = Range.createRange(conditionValue, BoundType.CLOSED,
+								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case GT:
+						conditionRange = Range.createRange(conditionValue, BoundType.OPEN,
+								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case LE:
+						conditionRange = Range.createRange(new Datum.Int(Integer.MIN_VALUE), BoundType.CLOSED,
+								condition.value(), BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case LT:
+						conditionRange = Range.createRange(new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED,
+								condition.value(), BoundType.OPEN);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case NOTEQ:
+						Range conditionRange1 = Range.createRange(new Datum.Int(Integer.MIN_VALUE), BoundType.CLOSED,
+								condition.value(), BoundType.OPEN);
+						Range conditionRange2 = Range.createRange(condition.value(), BoundType.OPEN,
+								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange1);
+						conditionRangeSet.add(conditionRange2);
+						break;
+					default:
+						throw new IllegalStateException("Unimplemented operator " + condition.operator());
+					}
+					RangeSet validRangesClone = new RangeSet();
+					RangeSet resultRanges = new RangeSet();
+					validRangesClone.addAll(validRanges);
+					for(Range validRange : validRangesClone) {
+						for(Range range : conditionRangeSet) {
+							Range resultRange = validRange.intersection(range);
+							if(resultRange != null)
+								resultRanges.add(resultRange);
+						}
+						validRanges.remove(validRange);
+					}
+					validRanges = resultRanges;
+					break;
+				case BOOLEAN:
+//					TODO
+					break;
+				case COMPLEX:
+//					TODO
+					break;
+				default:
+					throw new IllegalStateException("Unimplemented condition type " + condition.type());
+				}
+				condition = condition.subCondition();
+			}
+		}
+		return validRanges;
 	}
 
 	@Override
