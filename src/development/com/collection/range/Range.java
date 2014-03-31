@@ -27,15 +27,15 @@ public abstract class Range {
 		case CLOSED:
 			switch(upperBoundType) {
 			case CLOSED:
-				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LE) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LE) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound + "]";
 				break;
 			case OPEN:
-				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound + ")";
 				break;
 			}
 			break;
 		case OPEN:
-			assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+			assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "(" + lowerBound + " - " + upperBound;
 			break;
 		}
 		
