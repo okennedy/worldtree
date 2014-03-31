@@ -436,28 +436,15 @@ public class BasicSolver implements IConstraintSolver {
 				for(Map.Entry<Property, Collection<Constraint>> entry : levelConstraintMap.entrySet()) {
 					Property constraintProperty = entry.getKey();
 					Collection<Constraint> propertyConstraints = entry.getValue();
-
-//					Check to see which constraint-conditions from the collection of constraints were satisfied
-					BitSet bits = new BitSet(propertyConstraints.size());
-					Collection<Constraint> satisfiedConstraints = new LinkedList<Constraint>();
-					int idx = 0;
 					for(Constraint constraint : propertyConstraints) {
-						IQuery query = constraint.query();
-						Result result = QueryResolutionEngine.evaluate(currentNode, query);
+						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
 						if(result.get(constraint.query().pattern().lhs().toString()).contains(currentNode)) {
-							bits.set(idx);
-							satisfiedConstraints.add(constraint);
+							satisfied = satisfies(currentNode, constraint.condition(), constraintProperty);
 						}
-					}
-					
-//					Check to see if the combining those conditions results in a valid constraint condition
-					RangeSet validRanges = mergeConstraints(currentNode, constraintProperty, satisfiedConstraints);
-					if(validRanges.contains(currentNode.properties().get(constraintProperty)))
-						satisfied = true;
-					else {
-						satisfied = false;
-						failedProperty = constraintProperty;
-						break;
+						if(!satisfied) {
+							failedProperty = constraintProperty;
+							break;
+						}
 					}
 				}
 				if(!satisfied) {
@@ -479,97 +466,6 @@ public class BasicSolver implements IConstraintSolver {
 			if(satisfied)
 				break;
 		}
-	}
-
-	private RangeSet mergeConstraints(IWorldTree node, Property constraintProperty, Collection<Constraint> satisfiedConstraints) {
-		RangeSet validRanges = new RangeSet();
-		
-		DatumType type = node.properties().get(constraintProperty).type();
-		switch(type) {
-		case FLOAT:
-			validRanges.add(FloatRange.closed(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY));
-			break;
-		case INT:
-			validRanges.add(IntegerRange.closed(Integer.MIN_VALUE, Integer.MAX_VALUE));
-			break;
-		case BOOL:
-		case STRING:
-		default:
-			throw new IllegalStateException("Unimplemented type " + type);
-		}
-
-//		TODO: Handle condition unions
-		for(Constraint constraint : satisfiedConstraints) {
-			ICondition condition = constraint.condition();
-			while(condition != null) {
-				RangeSet conditionRangeSet = new RangeSet();
-				Datum conditionValue = condition.value();
-				switch(condition.type()) {
-				case BASIC:
-//					XXX: This only works for integer ranges..
-					switch(condition.operator()) {
-					case EQ:
-						Range conditionRange = Range.createRange(conditionValue, BoundType.CLOSED,
-								conditionValue, BoundType.CLOSED);
-						conditionRangeSet.add(conditionRange);
-						break;
-					case GE:
-						conditionRange = Range.createRange(conditionValue, BoundType.CLOSED,
-								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
-						conditionRangeSet.add(conditionRange);
-						break;
-					case GT:
-						conditionRange = Range.createRange(conditionValue, BoundType.OPEN,
-								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
-						conditionRangeSet.add(conditionRange);
-						break;
-					case LE:
-						conditionRange = Range.createRange(new Datum.Int(Integer.MIN_VALUE), BoundType.CLOSED,
-								condition.value(), BoundType.CLOSED);
-						conditionRangeSet.add(conditionRange);
-						break;
-					case LT:
-						conditionRange = Range.createRange(new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED,
-								condition.value(), BoundType.OPEN);
-						conditionRangeSet.add(conditionRange);
-						break;
-					case NOTEQ:
-						Range conditionRange1 = Range.createRange(new Datum.Int(Integer.MIN_VALUE), BoundType.CLOSED,
-								condition.value(), BoundType.OPEN);
-						Range conditionRange2 = Range.createRange(condition.value(), BoundType.OPEN,
-								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
-						conditionRangeSet.add(conditionRange1);
-						conditionRangeSet.add(conditionRange2);
-						break;
-					default:
-						throw new IllegalStateException("Unimplemented operator " + condition.operator());
-					}
-					RangeSet validRangesClone = new RangeSet();
-					RangeSet resultRanges = new RangeSet();
-					validRangesClone.addAll(validRanges);
-					for(Range validRange : validRangesClone) {
-						for(Range range : conditionRangeSet) {
-							Range resultRange = validRange.intersection(range);
-							if(resultRange != null)
-								resultRanges.add(resultRange);
-						}
-						validRanges.remove(validRange);
-					}
-					validRanges = resultRanges;
-					break;
-				case BOOLEAN:
-//					TODO
-					break;
-				case COMPLEX:
-//					TODO
-					break;
-				default:
-					throw new IllegalStateException("Unimplemented condition type " + condition.type());
-				}
-				condition = condition.subCondition();
-			}
-		}
-		return validRanges;
 	}
 
 	@Override
