@@ -355,7 +355,7 @@ public class QueryResolutionEngine {
 			}
 			
 //			Obtain one of the columns
-			int columnIndex = subResult.indexOf(pattern.lhs().toString());
+			int columnIndex = subResult.indexOf(pattern.lhs());
 			
 			
 			if(!relation.regex().equals(Relation.Regex.NONE)) {
