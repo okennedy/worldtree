@@ -1,4 +1,4 @@
-FOR ALL TILE T towest TILE TO WHERE TO.tiletype < 3 ASSERT T.tiletype > 2;
+FOR ALL TILE T towest TX WHERE TX.tiletype < 5 ASSERT T.tiletype = 3;
 
 DEFINE TILE T.tiletype as RANDOM UNIFORM INT FROM 0 to 5;
 
