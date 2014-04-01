@@ -1,5 +1,6 @@
 package internal.parser.resolve;
 
+import internal.parser.containers.Reference;
 import internal.tree.IWorldTree;
 
 import java.util.Collection;
@@ -15,19 +16,19 @@ public class Column extends Vector<IWorldTree> {
 	 * 
 	 */
 	private static final long serialVersionUID = 8728524978224116816L;
-	protected String name;
+	protected Reference reference;
 	
-	public Column(String name, Collection<IWorldTree> collection) {
-		this.name	= name;
+	public Column(Reference reference, Collection<IWorldTree> collection) {
+		this.reference	= reference;
 		this.addAll(collection);
 	}
 
-	public Column(String name) {
-		this.name 	= name;
+	public Column(Reference reference) {
+		this.reference 	= reference;
 	}
 	
 	public String toString() {
-		StringBuffer result = new StringBuffer(name + "\n");
+		StringBuffer result = new StringBuffer(reference + "\n");
 		
 		for(IWorldTree obj : this) {
 			result.append(obj.absoluteName() + "\n");
@@ -36,7 +37,7 @@ public class Column extends Vector<IWorldTree> {
 		return result.toString();
 	}
 
-	public String name() {
-		return name;
+	public Reference name() {
+		return reference;
 	}
 }

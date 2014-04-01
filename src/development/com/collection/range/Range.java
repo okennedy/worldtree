@@ -2,6 +2,7 @@ package development.com.collection.range;
 
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Datum.DatumType;
 
 /**
  * Range class is used to store a range
@@ -26,15 +27,15 @@ public abstract class Range {
 		case CLOSED:
 			switch(upperBoundType) {
 			case CLOSED:
-				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LE) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LE) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound + "]";
 				break;
 			case OPEN:
-				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+				assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound + ")";
 				break;
 			}
 			break;
 		case OPEN:
-			assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "[" + lowerBound + " - " + upperBound;
+			assert(lowerBound.compareTo(upperBound, TokenCmpOp.LT) == 0) : "Trying to create invalid range! " + "(" + lowerBound + " - " + upperBound;
 			break;
 		}
 		
@@ -42,6 +43,29 @@ public abstract class Range {
 		this.upperBoundType	= upperBoundType;
 		this.lowerBound		= lowerBound;
 		this.upperBound		= upperBound;
+	}
+	
+	public static Range createRange(Datum lowerBound, BoundType lowerBoundType, Datum upperBound, BoundType upperBoundType) {
+		DatumType rangeType = null;
+		if(!lowerBound.type().equals(upperBound.type()))
+			rangeType = DatumType.FLOAT;
+		else
+			rangeType = lowerBound.type();
+		
+		Range returnRange = null;
+		switch(rangeType) {
+		case FLOAT:
+			returnRange = new FloatRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+			break;
+		case INT:
+			returnRange = new IntegerRange(lowerBound, lowerBoundType, upperBound, upperBoundType);
+			break;
+		case BOOL:
+		case STRING:
+		default:
+			throw new IllegalStateException("Unimplemented datum type " + rangeType);
+		}
+		return returnRange;
 	}
 	
 	public Datum lowerBound() {

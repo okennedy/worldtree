@@ -90,20 +90,20 @@ public class QueryResolutionEngine {
 				pattern		= query.pattern();
 				result		= new Result();
 				while(pattern != null) {
-					String rhsColumnName	= null;
+					Reference rhsColumnRef	= null;
 					if(pattern.rhs() == null) {
 //						FIXME
-						result.add(new Column(pattern.lhs().toString(), objectList));
-						return result;
+						result.add(new Column(pattern.lhs(), objectList));
+//						return result;
 					}
-					else
-						rhsColumnName 		= pattern.rhs().toString();
-					Column rhsColumn		= result.get(rhsColumnName);
-					if(rhsColumn == null)
-						rhsColumn			= new Column(rhsColumnName, objectList);
-					
-					result = resolveQuery(node, level, pattern, result, rhsColumn);
-					
+					else {
+						rhsColumnRef 			= pattern.rhs();
+						Column rhsColumn		= result.get(rhsColumnRef);
+						if(rhsColumn == null)
+							rhsColumn			= new Column(rhsColumnRef, objectList);
+						
+						result = resolveQuery(node, level, pattern, result, rhsColumn);
+					}
 //					Filter based on conditions
 					validateCondition(result, query.condition());
 					pattern = pattern.subPattern();
@@ -142,13 +142,13 @@ public class QueryResolutionEngine {
 //		TODO: Handle AND | OR
 		while(condition != null) {
 			boolean inbuiltProperty	= false;
-			String columnName	= condition.reference().toString();
+			Reference columnRef	= condition.reference();
 			Property property	= condition.property();
 			if (Property.InbuiltPropertyEnum.check(property) != null)
 				inbuiltProperty = true;
-			Column column		= result.get(columnName);
+			Column column		= result.get(columnRef);
 			if(column == null)
-				throw new IllegalArgumentException("Reference " + columnName + " is not defined!");
+				throw new IllegalArgumentException("Reference " + columnRef + " is not defined!");
 			Column columnCopy	= new Column(column.name(), column);
 			for(IWorldTree object : columnCopy) {
 				if(inbuiltProperty) {
@@ -204,8 +204,8 @@ public class QueryResolutionEngine {
 				
 				if(pattern.relation().regex().equals(Relation.Regex.PLUS)) {
 //					FIXME: Remove * entries
-					Column lhs = result.get(pattern.lhs().toString());
-					Column rhs = result.get(pattern.rhs().toString());
+					Column lhs = result.get(pattern.lhs());
+					Column rhs = result.get(pattern.rhs());
 					int index = 0;
 					assert(lhs.size() == rhs.size());
 					while(index < lhs.size()) {
@@ -351,11 +351,11 @@ public class QueryResolutionEngine {
 //			Copy over any missing columns
 			for(Reference r : pattern.references()) {
 				if(!subResult.contains(r.toString()))
-					subResult.add(new Column(r.toString()));
+					subResult.add(new Column(r));
 			}
 			
 //			Obtain one of the columns
-			int columnIndex = subResult.indexOf(pattern.lhs().toString());
+			int columnIndex = subResult.indexOf(pattern.lhs());
 			
 			
 			if(!relation.regex().equals(Relation.Regex.NONE)) {
