@@ -406,5 +406,98 @@ public class ComplexSolver implements IConstraintSolver {
 		}
 		return null;
 	}
+	
+	private RangeSet mergeConstraints(IWorldTree node, Property constraintProperty, Collection<Constraint> satisfiedConstraints) {
+		RangeSet validRanges = new RangeSet();
+		
+		DatumType type = node.properties().get(constraintProperty).type();
+		switch(type) {
+		case FLOAT:
+			validRanges.add(FloatRange.closed(Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY));
+			break;
+		case INT:
+			validRanges.add(IntegerRange.closed(Integer.MIN_VALUE, Integer.MAX_VALUE));
+			break;
+		case BOOL:
+		case STRING:
+		default:
+			throw new IllegalStateException("Unimplemented type " + type);
+		}
 
+//		TODO: Handle condition unions
+		for(Constraint constraint : satisfiedConstraints) {
+			ICondition condition = constraint.condition();
+			while(condition != null) {
+				RangeSet conditionRangeSet = new RangeSet();
+				Datum conditionValue = condition.value();
+				switch(condition.type()) {
+				case BASIC:
+//					XXX: This only works for integer ranges..
+					switch(condition.operator()) {
+					case EQ:
+						Range conditionRange = Range.createRange(conditionValue, BoundType.CLOSED,
+								conditionValue, BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case GE:
+						conditionRange = Range.createRange(conditionValue, BoundType.CLOSED,
+								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case GT:
+						conditionRange = Range.createRange(conditionValue, BoundType.OPEN,
+								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case LE:
+						conditionRange = Range.createRange(new Datum.Int(Integer.MIN_VALUE), BoundType.CLOSED,
+								condition.value(), BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case LT:
+						conditionRange = Range.createRange(new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED,
+								condition.value(), BoundType.OPEN);
+						conditionRangeSet.add(conditionRange);
+						break;
+					case NOTEQ:
+						Range conditionRange1 = Range.createRange(new Datum.Int(Integer.MIN_VALUE), BoundType.CLOSED,
+								condition.value(), BoundType.OPEN);
+						Range conditionRange2 = Range.createRange(condition.value(), BoundType.OPEN,
+								new Datum.Int(Integer.MAX_VALUE), BoundType.CLOSED);
+						conditionRangeSet.add(conditionRange1);
+						conditionRangeSet.add(conditionRange2);
+						break;
+					default:
+						throw new IllegalStateException("Unimplemented operator " + condition.operator());
+					}
+					RangeSet validRangesClone = new RangeSet();
+					RangeSet resultRanges = new RangeSet();
+					validRangesClone.addAll(validRanges);
+					for(Range validRange : validRangesClone) {
+						for(Range range : conditionRangeSet) {
+							Range resultRange = validRange.intersection(range);
+							if(resultRange != null)
+								resultRanges.add(resultRange);
+						}
+						validRanges.remove(validRange);
+					}
+					validRanges = resultRanges;
+					break;
+				case BOOLEAN:
+//					TODO
+					break;
+				case COMPLEX:
+//					TODO
+					break;
+				default:
+					throw new IllegalStateException("Unimplemented condition type " + condition.type());
+				}
+				condition = condition.subCondition();
+			}
+		}
+		return validRanges;
+	}
 }
+
+
+

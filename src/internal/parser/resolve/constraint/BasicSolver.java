@@ -1,6 +1,7 @@
 package internal.parser.resolve.constraint;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +14,8 @@ import internal.Helper.Hierarchy;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Datum.DatumType;
+import internal.parser.containers.Datum.Flt;
 import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.IExpr;
@@ -24,21 +27,28 @@ import internal.parser.resolve.Result;
 import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.tree.IWorldTree;
 import internal.tree.IWorldTree.IMap;
+import development.com.collection.range.FloatRange;
+import development.com.collection.range.IntegerRange;
 import development.com.collection.range.Range;
 import development.com.collection.range.RangeSet;
+import development.com.collection.range.Range.BoundType;
 
 public class BasicSolver implements IConstraintSolver {
-	private Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap = null;
-	private Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap = null;
+	private Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap = null;
+	private Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap = null;
+	private Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDepMap = null;
 	private Map<Property, Collection<Property>> relatedPropertiesMap = null;
 	
 	public BasicSolver(
-			Map<Hierarchy, Map<Property, Collection<Property>>> propertyDependencyMap,
-			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap,
+			Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap,
+			Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap,
+			Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDependencyMap,
 			Map<Property, Collection<Property>> relatedPropertiesMap) {
-		this.propertyDependencyMap	= propertyDependencyMap;
-		this.propertyDefMap			= propertyDefMap;
-		this.relatedPropertiesMap	= relatedPropertiesMap;
+		
+		this.hierarchicalDefMap			= hierarchicalDefMap;
+		this.hierarchicalConstraintMap	= hierarchicalConstraintMap;
+		this.hierarchicalDepMap			= hierarchicalDependencyMap;
+		this.relatedPropertiesMap		= relatedPropertiesMap;
 	}
 
 	/**
@@ -97,7 +107,7 @@ public class BasicSolver implements IConstraintSolver {
 		
 //		Now, we evaluate the query and narrow down on the columns based on the references
 		Result result = QueryResolutionEngine.evaluate(node, definition.query());
-		column = result.get(references.iterator().next().toString());	//FIXME: Temporary hack
+		column = result.get(references.iterator().next());	//FIXME: Temporary hack
 		
 //		Since we are probably going to have to evaluate an expression, we store the values of properties referenced in the expression
 		Map<IWorldTree, List<Datum>> childMap = new LinkedHashMap<IWorldTree, List<Datum>>(column.size());
@@ -337,7 +347,7 @@ public class BasicSolver implements IConstraintSolver {
 //					We have an expression at the Tile level
 					IQuery query = definition.query();
 					Result result = QueryResolutionEngine.evaluate(node, query);
-					Column column = result.get(definition.reference().toString());
+					Column column = result.get(definition.reference());
 					if(column.contains(node)) {
 						IExpr expr = definition.expression();
 						ICondition condition = definition.condition();
@@ -415,17 +425,25 @@ public class BasicSolver implements IConstraintSolver {
 			while(nodesCopy.size() > 0) {
 				currentNode = nodesCopy.get(0);
 				Property failedProperty = null;
-				for(Constraint constraint : node.constraints()) {
-					if(constraint.level().equals(Hierarchy.parse(currentNode.getClass()))) {
+				
+//				Get the level of this node
+				Hierarchy nodeLevel = Hierarchy.parse(currentNode.getClass());
+
+//				Get the constraints present in this level
+				Map<Property, Collection<Constraint>> levelConstraintMap = hierarchicalConstraintMap.get(nodeLevel);
+
+//				Iterate over each entry of the map
+				for(Map.Entry<Property, Collection<Constraint>> entry : levelConstraintMap.entrySet()) {
+					Property constraintProperty = entry.getKey();
+					Collection<Constraint> propertyConstraints = entry.getValue();
+					for(Constraint constraint : propertyConstraints) {
 						Result result = QueryResolutionEngine.evaluate(currentNode, constraint);
-						String reference = constraint.condition().reference().toString();
-						if(result.get(reference).contains(currentNode)) {
-							Property property = constraint.condition().property();
-							satisfied &= satisfies(currentNode, constraint.condition(), property);
-							if(!satisfied) {
-								failedProperty = property;
-								break;
-							}
+						if(result.get(constraint.query().pattern().lhs()).contains(currentNode)) {
+							satisfied = satisfies(currentNode, constraint.condition(), constraintProperty);
+						}
+						if(!satisfied) {
+							failedProperty = constraintProperty;
+							break;
 						}
 					}
 				}
@@ -435,7 +453,7 @@ public class BasicSolver implements IConstraintSolver {
 					definitions = new HashSet<PropertyDef>();
 					for(Property property : relatedPropertiesMap.get(failedProperty)) {
 						for(Hierarchy level : Hierarchy.values()) {
-							PropertyDef definition = propertyDefMap.get(level).get(property);
+							PropertyDef definition = hierarchicalDefMap.get(level).get(property);
 							if(definition != null)
 								definitions.add(definition);
 						}

@@ -3,6 +3,7 @@ package development.hierarchical_split;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
 import internal.parser.containers.Datum;
+import internal.parser.containers.Reference;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.resolve.Result;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import development.com.collection.range.Range;
 import development.com.collection.range.RangeSet;
 
@@ -23,18 +25,18 @@ public class HierarchicalSplit {
 		constraint 					= processConstraint(constraint);
 		Map<IWorldTree, RangeSet> childRanges = new HashMap<IWorldTree, RangeSet>();
 		Result queryResult 			= QueryResolutionEngine.evaluate(node, definition.query());
-		String columnName			= null;
+		Reference column		= null;
 		if(definition.aggregateExpression().expr() != null) {
 			IExpr aggExpr = definition.aggregateExpression().expr();
 			if(aggExpr.property() != null)
-				columnName			= definition.aggregateExpression().expr().reference().toString();
+				column			= definition.aggregateExpression().expr().reference();
 			else
-				columnName 			= definition.query().pattern().lhs().toString();
+				column 			= definition.query().pattern().lhs();
 		}
 		else
-			columnName 				= definition.query().pattern().lhs().toString();
+			column 				= definition.query().pattern().lhs();
 		
-		List<IWorldTree> children 	= queryResult.get(columnName);
+		List<IWorldTree> children 	= queryResult.get(column);
 		for(IWorldTree child : children) {
 			RangeSet bounds = ConstraintSolver.getBounds(child, definition);
 			childRanges.put(child, bounds);

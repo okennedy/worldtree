@@ -143,7 +143,7 @@ public class Expr implements IExpr {
 			if(value != null)
 				return value;
 			else {
-				IWorldTree referenceNode = result.get(reference.toString()).get(0);	//FIXME: This is not the right thing to do..
+				IWorldTree referenceNode = result.get(reference).get(0);	//FIXME: This is not the right thing to do..
 				return referenceNode.properties().get(property);
 			}
 		case MAXMIN:
