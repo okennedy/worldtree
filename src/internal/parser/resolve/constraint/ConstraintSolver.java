@@ -217,6 +217,8 @@ public class ConstraintSolver {
 					}
 					break;
 				case RANDOM:
+					if(!relatedPropertiesMap.containsKey(baseProperty))
+						relatedPropertiesMap.put(baseProperty, new HashSet<Property>());
 					break;
 				case INHERIT:
 //					TODO: Need to implement this
