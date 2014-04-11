@@ -317,7 +317,10 @@ PropertyDef propertyDef() :
 IStatement parse() :
 {
     IStatement s = null;
+    Hierarchy level = null;
+    String levelStr	= null;
 }
-{    s = query(null)	  ";"	{ return s; }|   s = constraint()  ";"	{ return s; }
+{    levelStr = word() { level = Hierarchy.parse(levelStr);}
+    s = query(level)	  ";"	{ return s; }|   s = constraint()  ";"	{ return s; }
 |   s = propertyDef() ";"	{ return s; }
 }
