@@ -39,7 +39,7 @@ public class Driver {
     }
 
     /***** INTERPRET COMMAND LINE *****/
-    String outFile = "-";
+    String outFile = Logger.STDOUT;
 		String worldDefFile = "world.definitions";    
 		String propertiesFile = null;
     if(argv.hasOption("o"))
@@ -77,12 +77,11 @@ public class Driver {
 		System.out.println("Time taken to materialize constraints  :" + timeKeeper.toString());
 		
     /***** OUTPUT *****/
-		boolean propertiesByDefault = true;
+		Logger.eraseFile(outFile);
 		if(argv.hasOption("map")){
       write(map, outFile);
-      propertiesByDefault = false;
     }
-    if(propertiesByDefault || argv.hasOption("dumpProperties")){
+    if(argv.hasOption("dumpProperties")){
       writeProperties(map, outFile);
     }
 	}
