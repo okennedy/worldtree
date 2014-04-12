@@ -36,6 +36,12 @@ public class ConstraintSolver {
 			new HashMap<Property, Collection<Property>>();
 	
 	public static void pushDownConstraints(IWorldTree node) {
+		for(Hierarchy level : Hierarchy.values()) {
+			hierarchicalDefMap.put(level, new HashMap<Property, PropertyDef>());
+			hierarchicalDependencyMap.put(level, new HashMap<Property, Collection<Property>>());
+			hierarchicalConstraintMap.put(level, new HashMap<Property, Collection<Constraint>>());
+		}
+		
 		resolveDefinitionDependencies(node);
 		validateDefinitions(node);
 		sortDefinitions(node);

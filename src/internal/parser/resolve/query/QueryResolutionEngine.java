@@ -7,7 +7,10 @@ import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -110,21 +113,85 @@ public class QueryResolutionEngine {
 				}
 //				Check if we need to union
 				if(oldResult != null) {
-//					First check for semantics
-					assert result.size() == oldResult.size() : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
-					int index = 0;
-					while(index < result.size()) {	//We have already verified that both results have same number of columns
-						assert result.get(index).name().equals(oldResult.get(index).name()) : "Cannot union " + result.toString() + "\n AND \n" + oldResult.toString();
-						index++;
+					Reference commonReference = null;
+					Column oldCommonColumn = null;
+					Column newCommonColumn = null;
+					for(Column oldColumn : oldResult) {
+						for(Column newColumn : result) {
+							if(oldColumn.name().equals(newColumn.name())) {
+								oldCommonColumn = oldColumn;
+								newCommonColumn = newColumn;
+								commonReference = oldColumn.name();
+							}
+						}
 					}
 					
-//					Now do the actual merge
-					List<IWorldTree> row = null;
-					for(index = 0; index < oldResult.get(0).size(); index++) {
-						row = oldResult.getRow(index);
-//						if(!result.contains(row))
-							result.add(row);
+					assert commonReference != null : 
+						"There is no common reference between \n" + result.toString() + "\n AND \n" + oldResult.toString();
+					
+					int newCommonColumnIdx = result.indexOf(newCommonColumn);
+					Map<IWorldTree, Collection<Integer>> newCommonObjects = 
+							new HashMap<IWorldTree, Collection<Integer>>(newCommonColumn.size());
+					Map<IWorldTree, Collection<Integer>> oldCommonObjects = 
+							new HashMap<IWorldTree, Collection<Integer>>(oldCommonColumn.size());
+					int index = 0;
+					for(IWorldTree object : newCommonColumn) {
+						if(!newCommonObjects.containsKey(object))
+							newCommonObjects.put(object, new LinkedList<Integer>());
+						newCommonObjects.get(object).add(index);
+						index++;
 					}
+					index = 0;
+					for(IWorldTree object : oldCommonColumn) {
+						if(newCommonObjects.containsKey(object)) {
+							if(!oldCommonObjects.containsKey(object))
+								oldCommonObjects.put(object, new LinkedList<Integer>());
+							oldCommonObjects.get(object).add(index);
+						}
+						index++;
+					}	
+					
+
+//					Eliminate all un-mergeable elements from newCommonObjects
+					Iterator<IWorldTree> iter = newCommonObjects.keySet().iterator();
+					while(iter.hasNext()) {
+						IWorldTree object = iter.next();
+						if(!oldCommonObjects.containsKey(object))
+							iter.remove();
+					}
+					
+//					Now we have just the common elements..start merging them
+//					First create a new result with all the columns of both results without duplicating the common column
+					Result mergeResult = new Result();
+					for(Column c : oldResult)
+						mergeResult.add(new Column(c.name()));
+					for(Column c : result) {
+						if(!c.equals(newCommonColumn))
+							mergeResult.add(new Column(c.name()));
+					}
+					
+//					Now, merge them
+					for(Map.Entry<IWorldTree, Collection<Integer>> entry : newCommonObjects.entrySet()) {
+						IWorldTree object = entry.getKey();
+						Collection<Integer> newRows = entry.getValue();
+						Collection<Integer> oldRows = oldCommonObjects.get(object);
+						for(Integer oldRowIdx : oldRows) {
+							List<IWorldTree> row = new ArrayList<IWorldTree>(mergeResult.size());
+							row.addAll(oldResult.getRow(oldRowIdx));
+							for(Integer newRowIdx : newRows) {
+								List<IWorldTree> rowCopy = new ArrayList<IWorldTree>(mergeResult.size());
+								rowCopy.addAll(row);
+								int idx = 0;
+								for(IWorldTree o : result.getRow(newRowIdx)) {
+									if(idx != newCommonColumnIdx)
+										rowCopy.add(o);
+									idx++;
+								}
+								mergeResult.add(rowCopy);
+							}
+						}
+					}
+					result = mergeResult;
 				}
 				query = query.subQuery();
 				oldResult = result;
