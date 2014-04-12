@@ -11,6 +11,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
@@ -555,11 +556,11 @@ public class WorldTreeFactory implements Serializable {
 		private static final long serialVersionUID = 7530444796681530305L;
 		
 		public IPiece piece;
-		private List<String> artifacts;
+		private java.util.Map<String, Datum> artifacts;
 		public Tile(String name, Coordinates coord, IWorldTree parent, IPiece tilePiece) {
 			super(name, parent, new ArrayList<Constraint>(0));
 			this.piece 			= tilePiece;
-			this.artifacts		= new ArrayList<String>(0);
+			this.artifacts		= new HashMap<String, Datum>(0);
 			initialize();
 		}
 		
@@ -657,15 +658,22 @@ public class WorldTreeFactory implements Serializable {
 			for(java.util.Map.Entry<Property, Datum> entry : this.properties().entrySet()) {
 				Property property = entry.getKey();
 				Datum value		= entry.getValue();
-				
-				artifacts.add(property.toString().charAt(0) + "=" + value);
+				int tmpIdx = 1;
+				while(artifacts.containsKey(property.toString().substring(0, tmpIdx)))
+					tmpIdx++;
+				artifacts.put(property.toString().substring(0, tmpIdx), value);
 			}
 			
-			for(String artifact : artifacts) {
+			for(java.util.Map.Entry<String, Datum> entry : artifacts.entrySet()) {
+				String name = entry.getKey();
+				Datum value = entry.getValue();
+				String artifact = name;
+				if(value != null)
+					artifact += "=" + value;
 				StringBuffer searchString = new StringBuffer();
 				while(searchString.length() < artifact.length())
 					searchString.append(" ");
-				int index = sb.indexOf(searchString.toString(), 12);
+				int index = sb.indexOf(searchString.toString() + " ", 12);	//XXX: The '12' needs to be updated if PieceStrings changes
 				if(index < 0)
 					System.err.println("Unable to update current tile visual! No space for artifact :" + artifact);
 				else {
@@ -680,7 +688,7 @@ public class WorldTreeFactory implements Serializable {
 
 		@Override
 		public void addArtifact(String artifact) {
-			artifacts.add(artifact);
+			artifacts.put(artifact, null);
 		}
 
 		@Override
@@ -689,7 +697,7 @@ public class WorldTreeFactory implements Serializable {
 		}
 		
 		@Override
-		public Collection<String> artifacts() {
+		public java.util.Map<String, Datum> artifacts() {
 			return artifacts;
 		}
 

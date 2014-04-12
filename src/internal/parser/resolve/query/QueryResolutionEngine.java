@@ -8,12 +8,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 import internal.Helper.Hierarchy;
 import internal.parser.TokenCmpOp;
@@ -83,32 +85,44 @@ public class QueryResolutionEngine {
 			break;
 		}
 		case QUERY: {
-			IQuery query = (IQuery) statement;
+			IQuery query 		= (IQuery) statement;
 			Hierarchy level		= query.level();
 			IPattern pattern	= query.pattern();
 			List<IWorldTree> objectList = getObjects(node, level);
 			
-			while(query != null) {
-				level		= query.level();
-				pattern		= query.pattern();
+			IQuery currentQuery = query;
+			while(currentQuery != null) {
+				level		= currentQuery.level();
+				pattern		= currentQuery.pattern();
 				result		= new Result();
 				while(pattern != null) {
-					Reference rhsColumnRef	= null;
-					if(pattern.rhs() == null) {
-//						FIXME
-						result.add(new Column(pattern.lhs(), objectList));
-//						return result;
+					Column indexColumn = null;
+					if(result.size() != 0) {
+//						Find the common column
+						for(Reference r : pattern.references()) {
+							if(result.contains(r)) {		//XXX: Can we have both references in the old result already?
+								indexColumn = result.get(r);
+								break;
+							}
+						}
 					}
 					else {
-						rhsColumnRef 			= pattern.rhs();
-						Column rhsColumn		= result.get(rhsColumnRef);
-						if(rhsColumn == null)
-							rhsColumn			= new Column(rhsColumnRef, objectList);
-						
-						result = resolveQuery(node, level, pattern, result, rhsColumn);
+						Reference rhsColumnRef	= null;
+						if(pattern.rhs() == null) {
+//							FIXME
+							result.add(new Column(pattern.lhs(), objectList));
+							pattern = pattern.subPattern();
+							continue;
+//							return result;
+						}
+						else {
+							rhsColumnRef 			= pattern.rhs();
+							indexColumn				= result.get(rhsColumnRef);
+							if(indexColumn == null)
+								indexColumn			= new Column(rhsColumnRef, objectList);
+						}
 					}
-//					Filter based on conditions
-					validateCondition(result, query.condition());
+					result = resolveQuery(node, level, pattern, result, indexColumn);
 					pattern = pattern.subPattern();
 				}
 //				Check if we need to union
@@ -193,9 +207,11 @@ public class QueryResolutionEngine {
 					}
 					result = mergeResult;
 				}
-				query = query.subQuery();
+				currentQuery = currentQuery.subQuery();
 				oldResult = result;
 			}
+//			Filter based on conditions
+			validateCondition(result, query.condition());
 			break;
 		}
 		default:
@@ -217,14 +233,16 @@ public class QueryResolutionEngine {
 			if(column == null)
 				throw new IllegalArgumentException("Reference " + columnRef + " is not defined!");
 			Column columnCopy	= new Column(column.name(), column);
+			
+			Collection<Integer> indices = new TreeSet<Integer>(Collections.reverseOrder()); 
+			int rowIndex = 0;
 			for(IWorldTree object : columnCopy) {
 				if(inbuiltProperty) {
 					Method method = instance.relationMap.get(property.toString().toLowerCase());
 					try {
 						boolean satisfies = (Boolean) method.invoke(null, object, condition);
 						if(!satisfies) {
-							int rowIndex = column.indexOf(object);
-							result.removeRow(rowIndex);
+							indices.add(rowIndex);
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -232,18 +250,20 @@ public class QueryResolutionEngine {
 				}
 				else {
 					if(!object.properties().containsKey(property)) {
-						int rowIndex = column.indexOf(object);
-						result.removeRow(rowIndex);
+						indices.add(rowIndex);
 					}
 					else {
 						Datum value 		= condition.value();
 						Datum objectValue	= object.properties().get(property);
 						if(objectValue.compareTo(value, condition.operator()) != 0) {
-							int rowIndex 	= column.indexOf(object);
-							result.removeRow(rowIndex);
+							indices.add(rowIndex);
 						}
 					}
 				}
+				rowIndex++;
+			}
+			for(Integer idx : indices) {
+				result.removeRow(idx);
 			}
 			condition = condition.subCondition();
 		}
@@ -412,18 +432,39 @@ public class QueryResolutionEngine {
 		@Inbuilt
 		@Proxy(methods = "toeast towest tonorth tosouth")
 		public static Result direction(IPattern pattern, Result result, Column objectList) {
+			if(result.size() != 0)
+				assert objectList.size() == result.get(0).size();
 			Relation relation 	= pattern.relation();
 			Result subResult 	= Result.newCopy(result);
-			
+			int columnIndex = -1;
 //			Copy over any missing columns
 			for(Reference r : pattern.references()) {
-				if(!subResult.contains(r.toString()))
+				if(!subResult.contains(r))
 					subResult.add(new Column(r));
 			}
 			
 //			Obtain one of the columns
-			int columnIndex = subResult.indexOf(pattern.lhs());
+			if(result.size() > 0) {
+//				We already have a result..pick the index of the new reference
+				for(Reference r : pattern.references()) {
+					if(!result.contains(r)) {
+						columnIndex = subResult.indexOf(r);
+						break;
+					}
+				}
+			}
+			else
+				columnIndex = subResult.indexOf(pattern.rhs());
 			
+//			Check which column we are iterating over
+//			If we're iterating over left column, then we need to flip the directions
+			boolean flipDirections = true;
+			if(result.size() > 0) {
+				if(objectList.equals(result.get(pattern.rhs())))
+					flipDirections = false;
+				else
+					assert(objectList.equals(result.get(pattern.lhs())));
+			}
 			
 			if(!relation.regex().equals(Relation.Regex.NONE)) {
 				List<IWorldTree> row = new ArrayList<IWorldTree>(subResult.size());
@@ -461,16 +502,28 @@ public class QueryResolutionEngine {
 				case END:
 					break;
 				case TO_EAST:
-					dNode = node.neighbour(Direction.E);
+					if(flipDirections)
+						dNode = node.neighbour(Direction.W);
+					else
+						dNode = node.neighbour(Direction.E);
 					break;
 				case TO_NORTH:
-					dNode = node.neighbour(Direction.N);
+					if(flipDirections)
+						dNode = node.neighbour(Direction.S);
+					else
+						dNode = node.neighbour(Direction.N);
 					break;
 				case TO_SOUTH:
-					dNode = node.neighbour(Direction.S);
+					if(flipDirections)
+						dNode = node.neighbour(Direction.N);
+					else
+						dNode = node.neighbour(Direction.S);
 					break;
 				case TO_WEST:
-					dNode = node.neighbour(Direction.W);
+					if(flipDirections)
+						dNode = node.neighbour(Direction.E);
+					else
+						dNode = node.neighbour(Direction.W);
 					break;
 				default:
 					throw new IllegalStateException(relation.name() + " resolved to inbuilt?!\n");
@@ -485,8 +538,8 @@ public class QueryResolutionEngine {
 							row.add(columnIndex, dNode);
 						}
 						else {
-							row.add(columnIndex, dNode);
 							row.add(node);
+							row.add(columnIndex, dNode);
 						}
 						subResult.add(row);
 						break;

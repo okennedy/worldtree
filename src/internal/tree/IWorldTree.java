@@ -173,7 +173,9 @@ public interface IWorldTree {
 	public interface ITile extends IWorldTree {
 		
 		/**
-		 * Add an artifact to the visual of this {@code ITile}
+		 * Add an artifact to the visual of this {@code ITile} <br>
+		 * FIXME: The signature of this method may need to be changed.
+		 * Currently, we assume that this method is only being used for debugging purposes.
 		 * @param artifact {@code String} containing the artifact to add
 		 */
 		public void addArtifact(String artifact);
@@ -188,7 +190,7 @@ public interface IWorldTree {
 		 * Obtain a collection of all artifacts that are part of this {@code ITile}'s visual
 		 * @return {@code Collection<String>} containing all artifacts
 		 */
-		public Collection<String> artifacts();
+		public java.util.Map<String, Datum> artifacts();
 		
 		/**
 		 * Obtain reference to the piece located in this Tile
