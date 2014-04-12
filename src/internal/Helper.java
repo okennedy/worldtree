@@ -51,23 +51,6 @@ public class Helper {
 	
 	
 	/**
-	 * Get a buffered writer for a specified path.  
-	 * @param path {@code String} path to get a writer for ('-' means stdout)
-	 * @returns {@code BufferedWriter} writer for path.
-	 */
-	public static BufferedWriter writerFor(String path)
-    throws IOException
-	{
-	 Writer out;
-    if(path.equals("-")){
-      out = new OutputStreamWriter(System.out);
-    } else {
-      out = new FileWriter(new File(path));
-    }
-    return new BufferedWriter(out);
-	}
-	
-	/**
 	 * Write an {@code IWorldTree} object to file {@code 'output/output.txt'}
 	 * @param object {@code IWorldTree} object to write
 	 */
@@ -80,9 +63,9 @@ public class Helper {
 	 * @param output {@code String} filename to write to ('-' for stdout)
 	 */
 	public static void write(IWorldTree object, String output) {
-		BufferedWriter out = null;
+		Logger out = null;
 		try {
-		  out = writerFor(output);
+		  out = Logger.writerFor(output);
 			out.write(object.toString());
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -107,7 +90,7 @@ public class Helper {
 		try {
 			if(!fileName.contains(".txt") && !fileName.substring(fileName.length() - 4).equalsIgnoreCase(".txt"))
 				fileName += ".txt";
-			out = new BufferedWriter(new FileWriter(new File("output/" + fileName)));
+			out = Logger.writerFor(("output/" + fileName));
 			out.write(string);
 			out.newLine();
 		} catch(IOException e) {
@@ -131,9 +114,9 @@ public class Helper {
    */
 	public static void writeProperties(IWorldTree node, String output)
 	{
-    BufferedWriter out = null;
+    Logger out = null;
     try {
-      out = writerFor(output);
+      out = Logger.writerFor(output);
       writeProperties(node, out, "");
     } catch(IOException e){
       e.printStackTrace();
@@ -413,6 +396,53 @@ public class Helper {
 			} catch(IOException e) {
 				System.err.println(e.getMessage());
 			}
+		}
+	}
+
+	public static class Logger extends BufferedWriter {
+//		We need a way to distinguish stdout from other file names.
+//		We use a filename that is guaranteed to be invalid.
+		public static final String STDOUT = "\0";
+		private String path;
+
+		private Logger(String path, Writer out) {
+			super(out);
+			this.path = path;
+		}
+
+		/**
+		 * Get a buffered writer for a specified path.
+		 * @param path {@code String} path to get a writer for ('-' means stdout)
+		 * @returns {@code BufferedWriter} writer for path.
+		 */
+		public static Logger writerFor(String path)
+	    throws IOException
+		{
+		 Writer out;
+	    if(path.equals(STDOUT)){
+	      out = new OutputStreamWriter(System.out);
+	    } else {
+	      out = new FileWriter(new File(path), true);
+	    }
+	    return new Logger(path, out);
+		}
+
+		@Override
+		public void close() throws IOException {
+			if(this.path.equals(STDOUT)) {
+				this.flush();
+//				We don't close stdout as we didn't open it..
+				return;
+			}
+			else
+				super.close();
+		}
+		
+		public static boolean eraseFile(String path) {
+			File file = new File(path);
+			if(file.exists())
+				return file.delete();
+			return true;
 		}
 	}
 }
