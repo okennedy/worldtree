@@ -34,13 +34,13 @@ import development.com.collection.range.RangeSet;
 import development.com.collection.range.Range.BoundType;
 
 public class BasicSolver implements IConstraintSolver {
-	private Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap = null;
+	private Map<Hierarchy, Map<Property, Collection<PropertyDef>>> hierarchicalDefMap = null;
 	private Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap = null;
 	private Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDepMap = null;
 	private Map<Property, Collection<Property>> relatedPropertiesMap = null;
 	
 	public BasicSolver(
-			Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap,
+			Map<Hierarchy, Map<Property, Collection<PropertyDef>>> hierarchicalDefMap,
 			Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap,
 			Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDependencyMap,
 			Map<Property, Collection<Property>> relatedPropertiesMap) {
@@ -463,9 +463,12 @@ public class BasicSolver implements IConstraintSolver {
 					definitions = new HashSet<PropertyDef>();
 					for(Property property : relatedPropertiesMap.get(failedProperty)) {
 						for(Hierarchy level : Hierarchy.values()) {
-							PropertyDef definition = hierarchicalDefMap.get(level).get(property);
-							if(definition != null)
-								definitions.add(definition);
+							Collection<PropertyDef> propertyDefinitions = hierarchicalDefMap.get(level).get(property);
+							if(propertyDefinitions != null) {
+								for(PropertyDef definition : propertyDefinitions) { 
+									definitions.add(definition);
+								}
+							}
 						}
 					}
 					break;

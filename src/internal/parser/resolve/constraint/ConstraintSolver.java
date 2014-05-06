@@ -30,8 +30,8 @@ import internal.tree.IWorldTree.IMap;
 
 public class ConstraintSolver {
 	private static IConstraintSolver solver = null;
-	private static Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap = 
-			new HashMap<Hierarchy, Map<Property, PropertyDef>>();
+	private static Map<Hierarchy, Map<Property, Collection<PropertyDef>>> hierarchicalDefMap = 
+			new HashMap<Hierarchy, Map<Property, Collection<PropertyDef>>>();
 	private static Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDependencyMap = 
 			new HashMap<Hierarchy, Map<Property, Collection<Property>>>();
 	private static Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap = 
@@ -41,7 +41,7 @@ public class ConstraintSolver {
 	
 	public static void pushDownConstraints(IWorldTree node) {
 		for(Hierarchy level : Hierarchy.values()) {
-			hierarchicalDefMap.put(level, new HashMap<Property, PropertyDef>());
+			hierarchicalDefMap.put(level, new HashMap<Property, Collection<PropertyDef>>());
 			hierarchicalDependencyMap.put(level, new HashMap<Property, Collection<Property>>());
 			hierarchicalConstraintMap.put(level, new HashMap<Property, Collection<Constraint>>());
 		}
@@ -96,53 +96,57 @@ public class ConstraintSolver {
 	 * @throws IllegalStateException if there is no definition for a given property at the specified level
 	 */
 	private static void validateDefinition(Hierarchy level, 
-			Map<Hierarchy, Map<Property, PropertyDef>> propertyDefMap, Property property) throws IllegalStateException {
+			Map<Hierarchy, Map<Property, Collection<PropertyDef>>> propertyDefMap, Property property) throws IllegalStateException {
 
-		PropertyDef definition				= propertyDefMap.get(level).get(property);
-		if(definition == null)
+		Collection<PropertyDef> propertyDefinitions	= propertyDefMap.get(level).get(property);
+		if(propertyDefinitions == null)
 			throw new IllegalStateException("'" + property + "' has no definition at " + level + " level");
-		
-		Collection<Property> dependencies 	= new HashSet<Property>();
-		
-		switch(definition.type()) {
-		case AGGREGATE:
-			IExpr expr = definition.aggregateExpression().expr();
-			while(expr != null) {
-				if(expr.property() != null)
-					dependencies.add(expr.property());
-				expr = expr.subExpr();
-			}
-			level = level.childLevel();
-			break;
-		case BASIC:
-			if(definition.expression() != null) {
-				expr = definition.expression();
+		for(PropertyDef definition : propertyDefinitions) {
+			if(definition == null)
+				throw new IllegalStateException("'" + property + "' has no definition at " + level + " level");
+			
+			Collection<Property> dependencies 	= new HashSet<Property>();
+			
+			switch(definition.type()) {
+			case AGGREGATE:
+				IExpr expr = definition.aggregateExpression().expr();
 				while(expr != null) {
 					if(expr.property() != null)
 						dependencies.add(expr.property());
 					expr = expr.subExpr();
 				}
-			}
-			else if(definition.condition() != null) {
-				ICondition condition = definition.condition();
-				while(condition != null) {
-					if(condition.property() != null && !condition.property().equals(property))
-						dependencies.add(condition.property());
-					condition = condition.subCondition();
+				level = level.childLevel();
+				break;
+			case BASIC:
+				if(definition.expression() != null) {
+					expr = definition.expression();
+					while(expr != null) {
+						if(expr.property() != null)
+							dependencies.add(expr.property());
+						expr = expr.subExpr();
+					}
 				}
+				else if(definition.condition() != null) {
+					ICondition condition = definition.condition();
+					while(condition != null) {
+						if(condition.property() != null && !condition.property().equals(property))
+							dependencies.add(condition.property());
+						condition = condition.subCondition();
+					}
+				}
+				break;
+			case RANDOM:
+				break;
+			case INHERIT:
+	//			TODO: Implement this
+			default:
+				throw new IllegalStateException("Unimplemented definition type " + definition.type());
 			}
-			break;
-		case RANDOM:
-			break;
-		case INHERIT:
-//			TODO: Implement this
-		default:
-			throw new IllegalStateException("Unimplemented definition type " + definition.type());
+			
+			for(Property p : dependencies) {
+				validateDefinition(level, propertyDefMap, p);
+			}
 		}
-		
-		for(Property p : dependencies) {
-			validateDefinition(level, propertyDefMap, p);
-		}		
 	}
 	
 	/**
@@ -159,8 +163,8 @@ public class ConstraintSolver {
 			resolvePropertyOrder(hierarchicalDependencyMap.get(level), null, null, levelOrderedProperties);
 //			We now have the order in which definitions need to be instantiated
 			for(Property property: levelOrderedProperties) {
-				Map<Property, PropertyDef> localDefMap = hierarchicalDefMap.get(level);
-				orderedDefinitions.add(localDefMap.get(property));
+				Map<Property, Collection<PropertyDef>> localDefMap = hierarchicalDefMap.get(level);
+				orderedDefinitions.addAll(localDefMap.get(property));
 			}
 		}
 //		At this point, we have an ordered list of definitions
@@ -180,14 +184,16 @@ public class ConstraintSolver {
 //		We now find dependencies among property definitions
 		for(Hierarchy level : Hierarchy.values()) {
 			HashMap<Property, Collection<Property>> levelDependencyMap = new HashMap<Property, Collection<Property>>();
-			HashMap<Property, PropertyDef> levelPropertyDefMap = new HashMap<Property, PropertyDef>();
+			HashMap<Property, Collection<PropertyDef>> levelPropertyDefMap = new HashMap<Property, Collection<PropertyDef>>();
 			for(PropertyDef definition : definitions) {
 				if(!definition.level().equals(level))
 					continue;
 				Property baseProperty = definition.property();
 				if(!relatedPropertiesMap.containsKey(baseProperty))
 					relatedPropertiesMap.put(baseProperty, new HashSet<Property>());
-				levelPropertyDefMap.put(baseProperty, definition);
+				if(!levelPropertyDefMap.containsKey(baseProperty))
+					levelPropertyDefMap.put(baseProperty, new HashSet<PropertyDef>());
+				levelPropertyDefMap.get(baseProperty).add(definition);
 				Set<Property> dependencies = new HashSet<Property>();	//TODO: Figure out whether we care about the order here
 				switch(definition.type()) {
 				case AGGREGATE:
@@ -424,24 +430,28 @@ public class ConstraintSolver {
 		
 		for(IWorldTree n : nodes) {
 			Hierarchy level = Hierarchy.parse(n.getClass());
-			Collection<PropertyDef> definitions = hierarchicalDefMap.get(level).values();
-			Map<Property, Collection<IWorldTree>> dependencies = n.dependencies();
-			for(PropertyDef definition : definitions) {
-				Property property	= definition.property();
-				dependencies.put(property, new LinkedList<IWorldTree>());
-				if(definition.query() != null) {
-					Reference ref	= definition.reference();
-					IQuery query	= definition.query();
-					//FIXME: This will probably break when the query has conditions based on other properties
-					Result result	= QueryResolutionEngine.evaluate(n, query);
-					Column column	= result.get(ref);
-					for(int idx = 0; idx < column.size(); idx++) {
-						if(column.get(idx).equals(n)) {
-							for(Column c : result) {
-								if(c.name().equals(ref))
-									continue;
-								else {
-									dependencies.get(property).add(c.get(idx));
+			Map<Property, Collection<PropertyDef>> propertyDefMap = hierarchicalDefMap.get(level);
+			for(Map.Entry<Property, Collection<PropertyDef>> entry : propertyDefMap.entrySet()) {
+				Collection<PropertyDef> definitions = entry.getValue();
+				Map<Property, Collection<IWorldTree>> dependencies = n.dependencies();
+				for(PropertyDef definition : definitions) {
+					Property property	= definition.property();
+					dependencies.put(property, new LinkedList<IWorldTree>());
+					if(definition.type().equals(PropertyDef.Type.BASIC) && definition.query() != null) {
+						Reference ref	= definition.reference();
+						IQuery query	= definition.query();
+						//FIXME: This will probably break when the query has conditions based on other properties
+						Result result	= QueryResolutionEngine.evaluate(n, query);
+						Column column	= result.get(ref);
+						assert(column != null);
+						for(int idx = 0; idx < column.size(); idx++) {
+							if(column.get(idx).equals(n)) {
+								for(Column c : result) {
+									if(c.name().equals(ref))
+										continue;
+									else {
+										dependencies.get(property).add(c.get(idx));
+									}
 								}
 							}
 						}
