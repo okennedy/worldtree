@@ -59,6 +59,12 @@ public interface IWorldTree {
 	public Collection<PropertyDef> definitions();
 	
 	/**
+	 * Obtain the property instantiation dependencies of this {@code IWorldTree} instance
+	 * @return {@code Map<Property, Collection<IWorldTree>>}
+	 */
+	public Map<Property, Collection<IWorldTree>> dependencies();
+	
+	/**
 	 * Updates the definitions of this {@code IWorldTree} instance
 	 * @param orderedDefinitions {@code Collection<PropertyDef>} definitions to set
 	 */

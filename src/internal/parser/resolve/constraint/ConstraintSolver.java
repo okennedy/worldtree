@@ -10,19 +10,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 import development.com.collection.range.RangeSet;
 import internal.Helper.Hierarchy;
 import internal.parser.containers.Constraint;
+import internal.parser.containers.Reference;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.Expr;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.Property;
 import internal.parser.containers.property.PropertyDef;
 import internal.parser.containers.query.IQuery;
+import internal.parser.resolve.Column;
 import internal.parser.resolve.Result;
 import internal.parser.resolve.query.QueryResolutionEngine;
 import internal.tree.IWorldTree;
+import internal.tree.IWorldTree.IMap;
 
 public class ConstraintSolver {
 	private static IConstraintSolver solver = null;
@@ -46,6 +50,7 @@ public class ConstraintSolver {
 		validateDefinitions(node);
 		sortDefinitions(node);
 		resolveRelatedProperties(node);
+		resolveNodeDependencies(node);
 		solver = new BasicSolver(hierarchicalDefMap, hierarchicalConstraintMap, hierarchicalDependencyMap, relatedPropertiesMap);
 		solver.pushDownConstraints(node);
 	}
@@ -406,6 +411,38 @@ public class ConstraintSolver {
 			Constraint c = iter.next();
 			resolveConstraintDependencies(c, propertyConstraintMap, dependencies);
 			iter.remove();
+		}
+	}
+	
+	private static void resolveNodeDependencies(IWorldTree node) {
+		Hierarchy level = Hierarchy.parse(node.getClass());
+		Collection<PropertyDef> definitions = hierarchicalDefMap.get(level).values();
+
+		List<IWorldTree> nodes = new LinkedList<IWorldTree>();
+		IMap map = ((IMap) node.root());	//FIXME: Hack
+		nodes.add(map);
+		nodes.addAll(map.getNodesByLevel(Hierarchy.Room));
+		nodes.addAll(map.getNodesByLevel(Hierarchy.Region));
+		nodes.addAll(map.getNodesByLevel(Hierarchy.Tile));
+		
+		for(IWorldTree n : nodes) {
+			Map<Property, Collection<IWorldTree>> dependencies = n.dependencies();
+			for(PropertyDef definition : definitions) {
+				Property property	= definition.property();
+				dependencies.put(property, new LinkedList<IWorldTree>());
+				if(definition.query() != null) {
+					Reference ref	= definition.reference();
+					IQuery query	= definition.query();
+					//FIXME: This will probably break when the query has conditions based on other properties
+					Result result	= QueryResolutionEngine.evaluate(n, query);
+					for(Column c : result) {
+						if(c.name().equals(ref))
+	//						We don't care about the node itself
+							continue;
+						dependencies.get(property).addAll(c);
+					}
+				}
+			}
 		}
 	}
 }

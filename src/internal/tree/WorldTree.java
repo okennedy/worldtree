@@ -30,6 +30,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 	private String name;
 	private Collection<Constraint> constraints;
 	private Collection<PropertyDef> definitions;
+	private Map<Property, Collection<IWorldTree>> dependencies;
 	private Map<Property, Datum> properties;
 	private Map<Property, RangeSet> bounds;
 
@@ -40,6 +41,7 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 		this.constraints 	= constraints;
 		this.properties		= new HashMap<Property, Datum>(0);
 		this.bounds			= null;
+		this.dependencies	= new HashMap<Property, Collection<IWorldTree>>(0);	
 		
 		if(parent != null) {
 			IWorldTree root = this.root();
@@ -102,6 +104,11 @@ public abstract class WorldTree implements IWorldTree, Serializable {
 			return definitions;
 		else
 			return this.parent.definitions();
+	}
+	
+	@Override
+	public Map<Property, Collection<IWorldTree>> dependencies() {
+		return dependencies;
 	}
 	
 	@Override
