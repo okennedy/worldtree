@@ -126,7 +126,7 @@ public class ConstraintSolver {
 			else if(definition.condition() != null) {
 				ICondition condition = definition.condition();
 				while(condition != null) {
-					if(condition.property() != null)
+					if(condition.property() != null && !condition.property().equals(property))
 						dependencies.add(condition.property());
 					condition = condition.subCondition();
 				}
@@ -215,7 +215,7 @@ public class ConstraintSolver {
 					else if(definition.condition() != null) {
 						ICondition condition = definition.condition();
 						while(condition != null) {
-							if(condition.property() != null)
+							if(condition.property() != null && !condition.property().equals(baseProperty))
 								dependencies.add(condition.property());
 							condition = condition.subCondition();
 						}
@@ -415,9 +415,6 @@ public class ConstraintSolver {
 	}
 	
 	private static void resolveNodeDependencies(IWorldTree node) {
-		Hierarchy level = Hierarchy.parse(node.getClass());
-		Collection<PropertyDef> definitions = hierarchicalDefMap.get(level).values();
-
 		List<IWorldTree> nodes = new LinkedList<IWorldTree>();
 		IMap map = ((IMap) node.root());	//FIXME: Hack
 		nodes.add(map);
@@ -426,6 +423,8 @@ public class ConstraintSolver {
 		nodes.addAll(map.getNodesByLevel(Hierarchy.Tile));
 		
 		for(IWorldTree n : nodes) {
+			Hierarchy level = Hierarchy.parse(n.getClass());
+			Collection<PropertyDef> definitions = hierarchicalDefMap.get(level).values();
 			Map<Property, Collection<IWorldTree>> dependencies = n.dependencies();
 			for(PropertyDef definition : definitions) {
 				Property property	= definition.property();
@@ -435,11 +434,17 @@ public class ConstraintSolver {
 					IQuery query	= definition.query();
 					//FIXME: This will probably break when the query has conditions based on other properties
 					Result result	= QueryResolutionEngine.evaluate(n, query);
-					for(Column c : result) {
-						if(c.name().equals(ref))
-	//						We don't care about the node itself
-							continue;
-						dependencies.get(property).addAll(c);
+					Column column	= result.get(ref);
+					for(int idx = 0; idx < column.size(); idx++) {
+						if(column.get(idx).equals(n)) {
+							for(Column c : result) {
+								if(c.name().equals(ref))
+									continue;
+								else {
+									dependencies.get(property).add(c.get(idx));
+								}
+							}
+						}
 					}
 				}
 			}
