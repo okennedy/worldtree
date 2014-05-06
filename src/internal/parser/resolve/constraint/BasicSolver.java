@@ -339,6 +339,14 @@ public class BasicSolver implements IConstraintSolver {
 				if(!definition.level().equals(Hierarchy.parse(node.getClass())))
 					continue;
 				Property property = definition.property();
+//				We're going to have to make a recursive call here to resolve node dependencies
+				Collection<IWorldTree> nodeDependencies = node.dependencies().get(property);
+				if(nodeDependencies != null) {
+					for(IWorldTree n : nodeDependencies)
+						iterativePushDown(n, definitions);
+				}
+//				We've resolved all dependencies..we should be able to materialize now
+
 				Range range = null;
 				Datum value = null;
 				
@@ -356,6 +364,8 @@ public class BasicSolver implements IConstraintSolver {
 						else if(condition != null)
 							value = condition.evaluate(node, result);
 					}
+//					FIXME:We cannot leave the property unset
+					node.properties().put(property, new Datum.Int(0));
 					break;
 				case RANDOM:
 					range = definition.randomspec().range();
