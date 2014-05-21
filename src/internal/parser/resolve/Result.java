@@ -1,9 +1,11 @@
 package internal.parser.resolve;
 
+import internal.parser.containers.Datum;
 import internal.parser.containers.Reference;
 import internal.tree.IWorldTree;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static internal.Helper.multiLine;
@@ -167,6 +169,21 @@ public class Result extends ArrayList<Column> {
 		Result newResult = new Result();
 		for(Column c : result)
 			newResult.add(new Column(c.name()));
+		return newResult;
+	}
+	
+	/**
+	 * Returns a deep-copy of the current {@code Result}
+	 * @return {@code Result}
+	 */
+	@Override
+	public Object clone() {
+		Result newResult = new Result();
+		for(Column c : this) {
+			Column newColumn = new Column(c.reference);
+			newColumn.addAll(c);
+			newResult.add(newColumn);
+		}
 		return newResult;
 	}
 }
