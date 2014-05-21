@@ -223,8 +223,10 @@ public class QueryResolutionEngine {
 
 	private void validateCondition(Result result, ICondition condition) {
 //		TODO: Handle AND | OR
-		while(condition != null) {
-			boolean inbuiltProperty	= false;
+		Result resultCopy = (Result) result.clone();
+		
+		boolean inbuiltProperty	= false;
+		if(condition != null) {
 			Reference columnRef	= condition.reference();
 			Property property	= condition.property();
 			if (Property.InbuiltPropertyEnum.check(property) != null)
@@ -265,7 +267,24 @@ public class QueryResolutionEngine {
 			for(Integer idx : indices) {
 				result.removeRow(idx);
 			}
-			condition = condition.subCondition();
+			ICondition subCondition = condition.subCondition();
+			if(subCondition != null) {
+				switch(condition.unionType()) {
+				case AND:
+					validateCondition(result, subCondition);
+					break;
+				case OR:
+					Result subResult = (Result) resultCopy.clone();
+					validateCondition(subResult, subCondition);
+					for(int subRowIdx = 0; subRowIdx < subResult.get(0).size(); subRowIdx++) {
+						if(!result.contains(subResult.getRow(subRowIdx)))
+							result.add(subResult.getRow(subRowIdx));
+					}
+					break;
+				default:
+					throw new IllegalStateException("Unimplemented");
+				}
+			}
 		}
 	}
 	

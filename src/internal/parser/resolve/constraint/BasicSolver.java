@@ -145,7 +145,8 @@ public class BasicSolver implements IConstraintSolver {
 		Datum propertyValue = null;
 		switch(definition.type()) {
 		case AGGREGATE:
-//			Since we already have all the 'children', and since we have already computed the expression, just iterate over the values and apply the aggregation logic
+//			Since we already have all the 'children', and since we have already 
+//			computed the expression, just iterate over the values and apply the aggregation logic
 			for(Datum value : values) {
 				switch(definition.aggregateExpression().type()) {
 				case COUNT:
