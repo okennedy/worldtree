@@ -312,13 +312,15 @@ public class ConstraintSolver {
 				Hierarchy currentLevel = level;
 				while(currentLevel != null) {
 					Collection<Property> dependencies = hierarchicalDependencyMap.get(currentLevel).get(baseProperty);
-					relatedPropertiesMap.get(baseProperty).addAll(dependencies);
-					for(Property property : dependencies) {
-						Collection<Property> subDependencies = hierarchicalDependencyMap.get(currentLevel).get(property);
-						relatedPropertiesMap.get(baseProperty).addAll(subDependencies);
+					if(dependencies != null) {
+						relatedPropertiesMap.get(baseProperty).addAll(dependencies);
+						for(Property property : dependencies) {
+							Collection<Property> subDependencies = hierarchicalDependencyMap.get(currentLevel).get(property);
+							relatedPropertiesMap.get(baseProperty).addAll(subDependencies);
+						}
 					}
 					currentLevel = currentLevel.childLevel();
-				}				
+				}
 			}
 		}
 		
@@ -435,13 +437,15 @@ public class ConstraintSolver {
 					//FIXME: This will probably break when the query has conditions based on other properties
 					Result result	= QueryResolutionEngine.evaluate(n, query);
 					Column column	= result.get(ref);
-					for(int idx = 0; idx < column.size(); idx++) {
-						if(column.get(idx).equals(n)) {
-							for(Column c : result) {
-								if(c.name().equals(ref))
-									continue;
-								else {
-									dependencies.get(property).add(c.get(idx));
+					if(column != null) {
+						for(int idx = 0; idx < column.size(); idx++) {
+							if(column.get(idx).equals(n)) {
+								for(Column c : result) {
+									if(c.name().equals(ref))
+										continue;
+									else {
+										dependencies.get(property).add(c.get(idx));
+									}
 								}
 							}
 						}
