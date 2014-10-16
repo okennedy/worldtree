@@ -1,0 +1,5 @@
+FOR ALL TILE T ASSERT T.reachable = 1;
+
+DEFINE TILE T.reachable AS TE.reachable IN TILE T toeast TE;
+DEFINE TILE T.reachable AS 1 WHERE TE is null IN TILE T toeast TE;
+DEFINE TILE T.tiletype AS RANDOM UNIFORM INT FROM 0 to 100;
