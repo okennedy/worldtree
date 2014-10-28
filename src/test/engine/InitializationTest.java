@@ -97,7 +97,7 @@ public class InitializationTest {
 	
 	@Test
 	public void materializationAndQueryTest() {
-		factory = new WorldTreeFactory("init.properties", "world.definitions");
+		factory = new WorldTreeFactory("world.properties", "world.definitions");
 		map = factory.newMap("InitTestMap", null);
 		map.initRooms();
 		map.initRegions();

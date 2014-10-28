@@ -36,6 +36,12 @@ public class ConstraintSolver {
 			new HashMap<Property, Collection<Property>>();
 	
 	public static void pushDownConstraints(IWorldTree node) {
+		for(Hierarchy level : Hierarchy.values()) {
+			hierarchicalDefMap.put(level, new HashMap<Property, PropertyDef>());
+			hierarchicalDependencyMap.put(level, new HashMap<Property, Collection<Property>>());
+			hierarchicalConstraintMap.put(level, new HashMap<Property, Collection<Constraint>>());
+		}
+		
 		resolveDefinitionDependencies(node);
 		validateDefinitions(node);
 		sortDefinitions(node);
@@ -174,6 +180,8 @@ public class ConstraintSolver {
 				if(!definition.level().equals(level))
 					continue;
 				Property baseProperty = definition.property();
+				if(!relatedPropertiesMap.containsKey(baseProperty))
+					relatedPropertiesMap.put(baseProperty, new HashSet<Property>());
 				levelPropertyDefMap.put(baseProperty, definition);
 				Set<Property> dependencies = new HashSet<Property>();	//TODO: Figure out whether we care about the order here
 				switch(definition.type()) {
@@ -183,8 +191,6 @@ public class ConstraintSolver {
 					IExpr expr = definition.aggregateExpression().expr();
 					while(expr != null ){
 						if(expr.property() != null) {
-							if(!relatedPropertiesMap.containsKey(baseProperty))
-								relatedPropertiesMap.put(baseProperty, new HashSet<Property>());
 //							Add self
 							relatedPropertiesMap.get(baseProperty).add(baseProperty);
 							relatedPropertiesMap.get(baseProperty).add(expr.property());

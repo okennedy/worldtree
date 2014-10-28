@@ -1,0 +1,6 @@
+FOR ALL TILE T toeast TE WHERE TE.reachable = 1 ASSERT T.reachable = 1;
+FOR ALL TILE T tosouth TS WHERE TS.reachable = 1 ASSERT T.reachable = 1;
+FOR ALL TILE T toeast TE, T tosouth TS WHERE TE.reachable = 0 AND TS.reachable = 0 ASSERT T.reachable = 0;
+
+DEFINE TILE T.reachable AS RANDOM UNIFORM INT FROM 0 to 2;
+DEFINE TILE T.tiletype AS RANDOM UNIFORM INT FROM 0 to 100;

@@ -1,0 +1,4 @@
+FOR ALL TILE T toeast TX WHERE TX.tiletype < 50 ASSERT T.tiletype > 25;
+FOR ALL TILE T toeast TX WHERE TX.tiletype > 50 ASSERT T.tiletype < 75;
+
+DEFINE TILE T.tiletype as RANDOM UNIFORM INT FROM 0 to 100;
