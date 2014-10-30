@@ -366,6 +366,7 @@ public class BasicSolver implements IConstraintSolver {
 							value = condition.evaluate(node, result);
 					}
 //					FIXME:We cannot leave the property unset
+//					FIXME: This breaks reachability6.definitions
 					node.properties().put(property, new Datum.Int(0));
 					break;
 				case RANDOM:
@@ -430,6 +431,9 @@ public class BasicSolver implements IConstraintSolver {
 		
 		List<IWorldTree> nodesCopy = new LinkedList<IWorldTree>(nodes);
 		IWorldTree currentNode = null;
+		
+//		We will try 10000 times in total
+		int retryCount = 0;
 		while(true) {
 			boolean satisfied = true;
 			iterativePushDown(node, definitions);
@@ -468,6 +472,12 @@ public class BasicSolver implements IConstraintSolver {
 							if(definition != null)
 								definitions.add(definition);
 						}
+					}
+					retryCount++;
+					if(retryCount == 10000) {
+//						TODO: Figure out a way to provide more information about
+//						Why we failed and what we have so far.
+						throw new IllegalStateException("Failed to materialize");
 					}
 					break;
 				}
