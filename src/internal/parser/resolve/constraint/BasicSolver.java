@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import internal.Helper.Hierarchy;
 import internal.parser.TokenCmpOp;
 import internal.parser.containers.Constraint;
@@ -17,6 +18,7 @@ import internal.parser.containers.Datum;
 import internal.parser.containers.Datum.DatumType;
 import internal.parser.containers.Datum.Flt;
 import internal.parser.containers.Reference;
+import internal.parser.containers.condition.BaseCondition.ConditionType;
 import internal.parser.containers.condition.ICondition;
 import internal.parser.containers.expr.IExpr;
 import internal.parser.containers.property.Property;
@@ -34,13 +36,13 @@ import development.com.collection.range.RangeSet;
 import development.com.collection.range.Range.BoundType;
 
 public class BasicSolver implements IConstraintSolver {
-	private Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap = null;
+	private Map<Hierarchy, Map<Property, Collection<PropertyDef>>> hierarchicalDefMap = null;
 	private Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap = null;
 	private Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDepMap = null;
 	private Map<Property, Collection<Property>> relatedPropertiesMap = null;
 	
 	public BasicSolver(
-			Map<Hierarchy, Map<Property, PropertyDef>> hierarchicalDefMap,
+			Map<Hierarchy, Map<Property, Collection<PropertyDef>>> hierarchicalDefMap,
 			Map<Hierarchy, Map<Property, Collection<Constraint>>> hierarchicalConstraintMap,
 			Map<Hierarchy, Map<Property, Collection<Property>>> hierarchicalDependencyMap,
 			Map<Property, Collection<Property>> relatedPropertiesMap) {
@@ -357,17 +359,18 @@ public class BasicSolver implements IConstraintSolver {
 					IQuery query = definition.query();
 					Result result = QueryResolutionEngine.evaluate(node, query);
 					Column column = result.get(definition.reference());
-					if(column.contains(node)) {
+//					if(column.contains(node)) {
 						IExpr expr = definition.expression();
 						ICondition condition = definition.condition();
 						if(expr != null)
 							value = expr.evaluate(node, result);
 						else if(condition != null)
 							value = condition.evaluate(node, result);
-					}
+//					}
 //					FIXME:We cannot leave the property unset
-//					FIXME: This breaks reachability6.definitions
-					node.properties().put(property, new Datum.Int(0));
+//					FIXME: This default value breaks reachability6.definitions
+					if(value == null)
+						node.properties().put(property, new Datum.Int(0));
 					break;
 				case RANDOM:
 					range = definition.randomspec().range();
@@ -421,7 +424,7 @@ public class BasicSolver implements IConstraintSolver {
 	@Override
 	public void pushDownConstraints(IWorldTree node) {
 		IMap map = ((IMap) node.root());	//FIXME: Hack
-		Collection<PropertyDef> definitions = node.root().definitions();
+		Collection<PropertyDef> unsatisfiedDefinitions = node.root().definitions();
 		List<IWorldTree> nodes = new ArrayList<IWorldTree>();
 		
 		nodes.add(map);
@@ -436,7 +439,7 @@ public class BasicSolver implements IConstraintSolver {
 		int retryCount = 0;
 		while(true) {
 			boolean satisfied = true;
-			iterativePushDown(node, definitions);
+			iterativePushDown(node, unsatisfiedDefinitions);
 			while(nodesCopy.size() > 0) {
 				currentNode = nodesCopy.get(0);
 				Property failedProperty = null;
@@ -465,12 +468,12 @@ public class BasicSolver implements IConstraintSolver {
 				if(!satisfied) {
 					nodesCopy.clear();
 					nodesCopy.addAll(nodes);
-					definitions = new HashSet<PropertyDef>();
+					unsatisfiedDefinitions = new HashSet<PropertyDef>();
 					for(Property property : relatedPropertiesMap.get(failedProperty)) {
 						for(Hierarchy level : Hierarchy.values()) {
-							PropertyDef definition = hierarchicalDefMap.get(level).get(property);
-							if(definition != null)
-								definitions.add(definition);
+							Collection<PropertyDef> propertyDefinitions = hierarchicalDefMap.get(level).get(property);
+							if(propertyDefinitions != null)
+								unsatisfiedDefinitions.addAll(propertyDefinitions);
 						}
 					}
 					retryCount++;

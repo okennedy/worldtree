@@ -73,9 +73,10 @@ public class Property implements IContainer {
 		 * Check whether a property is built-in
 		 * @param method {@code String} containing the name of the property to check
 		 * @return {@code InbuiltPropertyEnum} corresponding to the specified property <br>
-		 * @throws IllegalStateException if there is no such property
 		 */
 		public static InbuiltPropertyEnum check(Property property) {
+			if(property == null)
+				return null;
 			for(InbuiltPropertyEnum rel : values()) {
 				if(rel.property.equalsIgnoreCase(property.toString()))
 					return rel;

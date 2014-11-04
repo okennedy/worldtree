@@ -51,6 +51,7 @@ TOKEN [IGNORE_CASE] : /* KEYWORDS */
 |   < THEN		: "THEN" >
 |   < ELSE		: "ELSE" >
 |   < RANDOM	: "RANDOM" >
+|   < NULL		: "NULL" >
 |   < WORD		: [ "a"-"z", "A"-"Z" ] ([ "a"-"z", "A"-"Z", "0"-"9", "_"])* >
 |   < CONSTANT 	: (< DIGIT >)+ >
 |   < #DIGIT 	: [ "0"-"9" ] >
@@ -144,6 +145,9 @@ ICondition baseCondition() :
     
     )
     	{ return new BaseCondition(false, type, ref, property, op, value); }
+
+|   LOOKAHEAD(2) ref = reference() < EQ > < NULL >
+		{ return new BaseCondition(false, ConditionType.BASIC, ref, null, TokenCmpOp.EQ, null); }
 
 |   ref = reference() < DOT > property = property()
 		{ return new BaseCondition(false, ConditionType.BOOLEAN, ref, property, null, null); }

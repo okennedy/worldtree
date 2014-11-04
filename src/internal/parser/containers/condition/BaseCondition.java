@@ -126,7 +126,9 @@ public class BaseCondition implements ICondition {
 		if(not)
 			result.append("NOT ");
 		
-		result.append(reference.toString() + "." + property.toString());
+		result.append(reference.toString());
+		if(property != null)
+			result.append("." + property.toString());
 		switch(type) {
 		case BASIC:
 			result.append(" " + cmpOp + " " + value);
@@ -150,8 +152,9 @@ public class BaseCondition implements ICondition {
 		
 		if(not)
 			result.append("NOT ");
-		
-		result.append(reference.debugString() + "." + property.debugString());
+		result.append(reference.debugString());
+		if(property != null)
+			result.append("." + property.debugString());
 		switch(type) {
 		case BASIC:
 			result.append(" " + cmpOp + " " + value);
@@ -181,22 +184,33 @@ public class BaseCondition implements ICondition {
 	@Override
 	public Datum evaluate(IWorldTree node, Result result) {
 		IWorldTree referenceNode	= result.get(reference).get(0);	//FIXME: This may not be the right approach...
-		Datum propertyValue			= referenceNode.properties().get(property);
 		boolean conditionResult		= false;
-		switch(type) {
-		case BASIC:
-			if(propertyValue.compareTo(value, cmpOp) == 0)
+		
+		if(property == null) {
+//			Handle conditions of the type X = NULL
+			assert(value == null) : "Condition value *must* be null if property is null! :" + this.toString();
+			
+			if(referenceNode == null)
 				conditionResult = true;
-			break;
-		case BOOLEAN:
-			if(propertyValue != null)
-				conditionResult = ((Integer) propertyValue.toInt().data()).intValue() > 0 ? true : false;
-			break;
-		case COMPLEX:
-//			TODO
-			break;
-		default:
-			break;
+		}
+		else {
+			Datum propertyValue			= referenceNode.properties().get(property);
+			
+			switch(type) {
+			case BASIC:
+				if(propertyValue.compareTo(value, cmpOp) == 0)
+					conditionResult = true;
+				break;
+			case BOOLEAN:
+				if(propertyValue != null)
+					conditionResult = ((Integer) propertyValue.toInt().data()).intValue() > 0 ? true : false;
+				break;
+			case COMPLEX:
+	//			TODO
+				break;
+			default:
+				break;
+			}
 		}
 		if(not)
 			conditionResult = !conditionResult;

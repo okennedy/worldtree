@@ -221,40 +221,69 @@ public class QueryResolutionEngine {
 		return result;
 	}
 
+	/**
+	 * Filter results based on condition
+	 * @param result {@code Result} to filter
+	 * @param condition {@code ICondition} to filter with
+	 */
 	private void validateCondition(Result result, ICondition condition) {
 //		TODO: Handle AND | OR
+		if(condition == null)
+			return;
+		
 		Result resultCopy = (Result) result.clone();
 		
 		boolean inbuiltProperty	= false;
-		if(condition != null) {
-			Reference columnRef	= condition.reference();
-			Property property	= condition.property();
-			if (Property.InbuiltPropertyEnum.check(property) != null)
-				inbuiltProperty = true;
-			Column column		= result.get(columnRef);
-			if(column == null)
-				throw new IllegalArgumentException("Reference " + columnRef + " is not defined!");
-			Column columnCopy	= new Column(column.name(), column);
-			
-			Collection<Integer> indices = new TreeSet<Integer>(Collections.reverseOrder()); 
-			int rowIndex = 0;
-			for(IWorldTree object : columnCopy) {
-				if(inbuiltProperty) {
-					Method method = instance.relationMap.get(property.toString().toLowerCase());
-					try {
-						boolean satisfies = (Boolean) method.invoke(null, object, condition);
-						if(!satisfies) {
-							indices.add(rowIndex);
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
+		Reference columnRef	= condition.reference();
+		Property property	= condition.property();
+		if (Property.InbuiltPropertyEnum.check(property) != null)
+			inbuiltProperty = true;
+		Column column		= result.get(columnRef);
+		if(column == null)
+			throw new IllegalArgumentException("Reference " + columnRef + " is not defined!");
+		Column columnCopy	= new Column(column.name(), column);
+		
+		Collection<Integer> indices = new TreeSet<Integer>(Collections.reverseOrder()); 
+		int rowIndex = 0;
+		for(IWorldTree object : columnCopy) {
+			if(inbuiltProperty) {
+				Method method = instance.relationMap.get(property.toString().toLowerCase());
+				try {
+					boolean satisfies = (Boolean) method.invoke(null, object, condition);
+					if(!satisfies) {
+						indices.add(rowIndex);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			else {
+				if(property == null) {
+//					TODO: Handle conditions of the type TE !?= NULL
+					assert(condition.value() == null) : "Condition value was expected to be null";
+					switch(condition.operator()) {
+					case EQ:
+//						We're looking for NULL case..
+//						the entries in result are *not* null..so remove all
+						indices.add(rowIndex);
+						break;
+					case NOTEQ:
+						break;
+					default:
+						throw new IllegalStateException("Condition :" + condition + 
+								"Cannot have operator '" + condition.operator() + "'!");
 					}
 				}
 				else {
+//					We do have a property..check the condition
 					if(!object.properties().containsKey(property)) {
+//						This object does not contain the necessary property.
+//						So go ahead and remove it from the result
 						indices.add(rowIndex);
 					}
 					else {
+//						This object does contain the necessary property.
+//						Check if it satisfies the condition, remove accordingly
 						Datum value 		= condition.value();
 						Datum objectValue	= object.properties().get(property);
 						if(objectValue.compareTo(value, condition.operator()) != 0) {
@@ -262,28 +291,28 @@ public class QueryResolutionEngine {
 						}
 					}
 				}
-				rowIndex++;
 			}
-			for(Integer idx : indices) {
-				result.removeRow(idx);
-			}
-			ICondition subCondition = condition.subCondition();
-			if(subCondition != null) {
-				switch(condition.unionType()) {
-				case AND:
-					validateCondition(result, subCondition);
-					break;
-				case OR:
-					Result subResult = (Result) resultCopy.clone();
-					validateCondition(subResult, subCondition);
-					for(int subRowIdx = 0; subRowIdx < subResult.get(0).size(); subRowIdx++) {
-						if(!result.contains(subResult.getRow(subRowIdx)))
-							result.add(subResult.getRow(subRowIdx));
-					}
-					break;
-				default:
-					throw new IllegalStateException("Unimplemented");
+			rowIndex++;
+		}
+		for(Integer idx : indices) {
+			result.removeRow(idx);
+		}
+		ICondition subCondition = condition.subCondition();
+		if(subCondition != null) {
+			switch(condition.unionType()) {
+			case AND:
+				validateCondition(result, subCondition);
+				break;
+			case OR:
+				Result subResult = (Result) resultCopy.clone();
+				validateCondition(subResult, subCondition);
+				for(int subRowIdx = 0; subRowIdx < subResult.get(0).size(); subRowIdx++) {
+					if(!result.contains(subResult.getRow(subRowIdx)))
+						result.add(subResult.getRow(subRowIdx));
 				}
+				break;
+			default:
+				throw new IllegalStateException("Unimplemented");
 			}
 		}
 	}
