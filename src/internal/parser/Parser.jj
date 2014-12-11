@@ -137,21 +137,17 @@ ICondition baseCondition() :
     TokenCmpOp op			= null;
     ConditionType type		= null;
     Datum value				= null;}
-{    LOOKAHEAD(6) ref = reference() < DOT > property = property()
+{    LOOKAHEAD(1) ref = reference()
     (
-        LOOKAHEAD(2) (< EQ > | < NOTEQ >) { op = TokenCmpOp.parse(token.image); }
-    		(< TRUE > | < FALSE >) 		{ value = new Datum.Bool(Boolean.parseBoolean(token.image)); type = ConditionType.BOOLEAN; }
-    |   op = op() value = constant()	{ type = ConditionType.BASIC; }
-    
+        LOOKAHEAD(3) < DOT > property = property() (< EQ > | < NOTEQ >) { op = TokenCmpOp.parse(token.image); }
+        (
+ 			LOOKAHEAD(1) (< TRUE > | < FALSE >) 		{ value = new Datum.Bool(Boolean.parseBoolean(token.image)); type = ConditionType.BOOLEAN; }
+		|  	LOOKAHEAD(1) value = constant()	{ type = ConditionType.BASIC; }
+		)
+	|  	LOOKAHEAD(3) < DOT > property = property() { type = ConditionType.BOOLEAN; }
+	|  	LOOKAHEAD(3) (< EQ > | < NOTEQ >)  { op = TokenCmpOp.parse(token.image); type = ConditionType.BASIC;} < NULL >
     )
     	{ return new BaseCondition(false, type, ref, property, op, value); }
-
-|   LOOKAHEAD(2) ref = reference() < EQ > < NULL >
-		{ return new BaseCondition(false, ConditionType.BASIC, ref, null, TokenCmpOp.EQ, null); }
-
-|   ref = reference() < DOT > property = property()
-		{ return new BaseCondition(false, ConditionType.BOOLEAN, ref, property, null, null); }
-
 |   < NOT > condition = baseCondition()
 		{ return new BaseCondition(true, condition.type(), condition.reference(), condition.property(), condition.operator(), condition.value()); }
 }
