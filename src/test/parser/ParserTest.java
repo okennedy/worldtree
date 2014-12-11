@@ -30,10 +30,10 @@ public class ParserTest {
 	public static void setUp() {
 		try {
 			PieceFactory.initialize(pieceStrings);
-			factory = new WorldTreeFactory("init.properties", "world.definitions");
-			map = factory.newMap("TestMap", null);
-			map.fullInit();
-			write(map);
+//			factory = new WorldTreeFactory("world.properties", "world.definitions");
+//			map = factory.newMap("TestMap", null);
+//			map.fullInit();
+//			write(map);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
