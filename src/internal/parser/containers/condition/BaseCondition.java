@@ -198,8 +198,15 @@ public class BaseCondition implements ICondition {
 			
 			switch(type) {
 			case BASIC:
-				if(propertyValue.compareTo(value, cmpOp) == 0)
-					conditionResult = true;
+				if(cmpOp == null || value == null) {
+//					They should both be null
+					assert(cmpOp == null && value == null) : "Cannot have one of operator or value being null! " + this.debugString();
+					
+//					We're handling a condition of the form X.property
+//					XXX: if propertyValue is null, does it mean failure?
+					return propertyValue == null ? null : propertyValue.clone();
+				}
+				conditionResult = propertyValue.compareTo(value, cmpOp) == 0 ? true : false;
 				break;
 			case BOOLEAN:
 				if(propertyValue != null)

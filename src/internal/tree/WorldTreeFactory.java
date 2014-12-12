@@ -123,8 +123,10 @@ public class WorldTreeFactory implements Serializable {
 				in.close();
 			} catch(IOException e) {
 				System.err.println(e.getMessage());
+				e.printStackTrace();
 			} catch(ParseException e) {
 				System.err.println(e.getMessage());
+				e.printStackTrace();
 			}
 		}
 		else

@@ -1,3 +1,4 @@
+package driver;
 import org.apache.commons.cli.*;
 
 import static internal.Helper.*;
@@ -16,7 +17,9 @@ public class Driver {
     options.addOption("o", true, 
       "Specify the output file (stdout by default)");
     options.addOption("c", "config", true,
-      "Specify the config file ('worldDefFile.properties' by default)");
+      "Specify the config file ('world.properties' by default)");
+    options.addOption("d", "definitions", true,
+    	      "Specify the definitions file ('world.definitions' by default)");
     options.addOption("map", false,
       "Dump a graphical representation of the map");
     options.addOption("dumpProperties", false,
@@ -42,10 +45,10 @@ public class Driver {
     String outFile = Logger.STDOUT;
 		String worldDefFile = "world.definitions";    
 		String propertiesFile = null;
+	if(argv.hasOption("d"))
+	  { worldDefFile = argv.getOptionValue("d"); }
     if(argv.hasOption("o"))
       { outFile= argv.getOptionValue("o"); }
-    if(argv.getArgs().length > 0)
-      { worldDefFile = argv.getArgs()[0]; }
     if(argv.hasOption("config")) 
       { propertiesFile = argv.getOptionValue("config"); }
     else

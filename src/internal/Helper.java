@@ -256,6 +256,19 @@ public class Helper {
 		return sb.toString();
 	}
 	
+	public static String indent(String string, int indentation) {
+		List<String> lines = new ArrayList<String>();
+		for(String line : string.split("\n"))
+			lines.add(line);
+		StringBuffer sb = new StringBuffer();
+		for(String line : lines) {
+			for(int i = 0; i < indentation; i++)
+				sb.append(" ");
+			sb.append(line);
+		}
+		return sb.toString();
+	}
+	
 	/**
 	 * Hierarchy is an enum that is used to obtain parent and child levels relative to a given level in the Hierarchy
 	 * @author Guru

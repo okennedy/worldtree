@@ -139,16 +139,16 @@ ICondition baseCondition() :
     Datum value				= null;}
 {    LOOKAHEAD(1) ref = reference()
     (
-        LOOKAHEAD(3) < DOT > property = property() (< EQ > | < NOTEQ >) { op = TokenCmpOp.parse(token.image); }
-        (
- 			LOOKAHEAD(1) (< TRUE > | < FALSE >) 		{ value = new Datum.Bool(Boolean.parseBoolean(token.image)); type = ConditionType.BOOLEAN; }
-		|  	LOOKAHEAD(1) value = constant()	{ type = ConditionType.BASIC; }
+        LOOKAHEAD(4) < DOT > property = property()
+        (        	LOOKAHEAD(2) (< EQ > | < NOTEQ >) { op = TokenCmpOp.parse(token.image); }
+        		(< TRUE > | < FALSE >) { value = new Datum.Bool(Boolean.parseBoolean(token.image)); type = ConditionType.BOOLEAN; }
+		|  	LOOKAHEAD(2) op = op() value = constant()	{ type = ConditionType.BASIC; }
 		)
-	|  	LOOKAHEAD(3) < DOT > property = property() { type = ConditionType.BOOLEAN; }
+	|  	LOOKAHEAD(3) < DOT > property = property() { type = ConditionType.BASIC; }
 	|  	LOOKAHEAD(3) (< EQ > | < NOTEQ >)  { op = TokenCmpOp.parse(token.image); type = ConditionType.BASIC;} < NULL >
     )
     	{ return new BaseCondition(false, type, ref, property, op, value); }
-|   < NOT > condition = baseCondition()
+|   LOOKAHEAD(1) < NOT > condition = baseCondition()
 		{ return new BaseCondition(true, condition.type(), condition.reference(), condition.property(), condition.operator(), condition.value()); }
 }
 

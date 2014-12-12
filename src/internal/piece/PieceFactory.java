@@ -33,7 +33,7 @@ public class PieceFactory implements Serializable {
 	 */
 	public static void initialize(String[] pieceStrings) throws Exception {
 		if(instance != null)
-			throw new Exception("Multiple initialization of singleton class");
+			System.err.println("Warn: Multiple initialization of singleton class");
 		instance = new PieceFactory(pieceStrings);
 	}
 
